@@ -14,7 +14,7 @@ export const supabaseAdmin = createClient<Database>(
 export const STORAGE_BUCKETS = {
   AVATARS: 'avatars',
   UPLOADS: 'uploads',
-  PUBLIC: 'public',
+  ASSETS: 'assets',
 } as const;
 
 export const uploadFile = async (

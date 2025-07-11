@@ -1,0 +1,82 @@
+-- Supabase RPC Functions untuk SocialBuzz
+-- Jalankan SQL ini di Supabase SQL Editor
+
+-- 1. Function untuk increment user balance
+CREATE OR REPLACE FUNCTION increment_user_balance(user_id UUID, amount DECIMAL)
+RETURNS VOID AS $$
+BEGIN
+  UPDATE users 
+  SET 
+    balance = balance + amount,
+    updated_at = NOW()
+  WHERE id = user_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- 2. Function untuk increment user donations
+CREATE OR REPLACE FUNCTION increment_user_donations(user_id UUID, amount DECIMAL)
+RETURNS VOID AS $$
+BEGIN
+  UPDATE users 
+  SET 
+    total_donations = total_donations + amount,
+    updated_at = NOW()
+  WHERE id = user_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- 3. Function untuk increment user earnings
+CREATE OR REPLACE FUNCTION increment_user_earnings(user_id UUID, amount DECIMAL)
+RETURNS VOID AS $$
+BEGIN
+  UPDATE users 
+  SET 
+    total_earnings = total_earnings + amount,
+    updated_at = NOW()
+  WHERE id = user_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- 4. Function untuk decrement user balance
+CREATE OR REPLACE FUNCTION decrement_user_balance(user_id UUID, amount DECIMAL)
+RETURNS VOID AS $$
+BEGIN
+  UPDATE users 
+  SET 
+    balance = balance - amount,
+    updated_at = NOW()
+  WHERE id = user_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- 5. Grant permissions untuk RPC functions (jika diperlukan)
+GRANT EXECUTE ON FUNCTION increment_user_balance(UUID, DECIMAL) TO authenticated;
+GRANT EXECUTE ON FUNCTION increment_user_donations(UUID, DECIMAL) TO authenticated;
+GRANT EXECUTE ON FUNCTION increment_user_earnings(UUID, DECIMAL) TO authenticated;
+GRANT EXECUTE ON FUNCTION decrement_user_balance(UUID, DECIMAL) TO authenticated;
+
+-- 6. Grant permissions untuk anon role (jika diperlukan untuk public access)
+GRANT EXECUTE ON FUNCTION increment_user_balance(UUID, DECIMAL) TO anon;
+GRANT EXECUTE ON FUNCTION increment_user_donations(UUID, DECIMAL) TO anon;
+GRANT EXECUTE ON FUNCTION increment_user_earnings(UUID, DECIMAL) TO anon;
+GRANT EXECUTE ON FUNCTION decrement_user_balance(UUID, DECIMAL) TO anon;
+
+-- CARA PENGGUNAAN:
+-- Dari aplikasi Next.js, panggil dengan:
+-- await supabase.rpc('increment_user_balance', { user_id: 'uuid', amount: 1000 });
+-- await supabase.rpc('increment_user_donations', { user_id: 'uuid', amount: 1000 });
+-- await supabase.rpc('increment_user_earnings', { user_id: 'uuid', amount: 1000 });
+-- await supabase.rpc('decrement_user_balance', { user_id: 'uuid', amount: 1000 });
+
+-- CATATAN:
+-- 1. Pastikan tabel 'users' sudah ada dengan kolom:
+--    - id (UUID primary key)
+--    - balance (DECIMAL default 0)
+--    - total_donations (DECIMAL default 0)
+--    - total_earnings (DECIMAL default 0)
+--    - updated_at (TIMESTAMP)
+--
+-- 2. Jika menggunakan tipe data yang berbeda (misalnya BIGINT untuk amount),
+--    sesuaikan parameter function di atas
+--
+-- 3. Functions ini menggunakan atomic operations yang aman untuk concurrent access
