@@ -223,13 +223,10 @@ export class PaymentService {
 
       if (error) throw error;
 
-      await supabase
-        .from('users')
-        .update({
-          balance: supabase.raw('balance - ?', [amount]),
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', userId);
+      await supabase.rpc('decrement_user_balance', {
+        user_id: userId,
+        amount: amount,
+      });
 
       return payout;
     } catch (error) {

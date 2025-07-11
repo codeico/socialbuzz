@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext, createContext, ReactNode } from 'react';
+import React, { useState, useEffect, useContext, createContext, ReactNode } from 'react';
 import { AuthUser, LoginCredentials, RegisterCredentials } from '@/types/user';
 import { ApiResponse } from '@/types/common';
 
@@ -21,7 +21,7 @@ export const useAuth = () => {
   return context;
 };
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -121,16 +121,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  return (
-    <AuthContext.Provider value={{
-      user,
-      loading,
-      login,
-      register,
-      logout,
-      updateUser,
-    }}>
-      {children}
-    </AuthContext.Provider>
+  const contextValue: AuthContextType = {
+    user,
+    loading,
+    login,
+    register,
+    logout,
+    updateUser,
+  };
+
+  return React.createElement(
+    AuthContext.Provider,
+    { value: contextValue },
+    children
   );
 };

@@ -1,4 +1,4 @@
-import jwt from 'jsonwebtoken';
+import * as jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { AuthUser } from '@/types/user';
 
@@ -18,6 +18,7 @@ export const verifyPassword = async (
 };
 
 export const generateToken = (user: AuthUser): string => {
+  // @ts-ignore
   return jwt.sign(
     {
       id: user.id,

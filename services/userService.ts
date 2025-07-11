@@ -196,13 +196,10 @@ export class UserService {
 
   static async updateUserBalance(userId: string, amount: number): Promise<boolean> {
     try {
-      const { error } = await supabase
-        .from('users')
-        .update({
-          balance: supabase.raw('balance + ?', [amount]),
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', userId);
+      const { error } = await supabase.rpc('increment_user_balance', {
+        user_id: userId,
+        amount: amount,
+      });
 
       return !error;
     } catch (error) {
@@ -213,13 +210,10 @@ export class UserService {
 
   static async updateUserEarnings(userId: string, amount: number): Promise<boolean> {
     try {
-      const { error } = await supabase
-        .from('users')
-        .update({
-          total_earnings: supabase.raw('total_earnings + ?', [amount]),
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', userId);
+      const { error } = await supabase.rpc('increment_user_earnings', {
+        user_id: userId,
+        amount: amount,
+      });
 
       return !error;
     } catch (error) {
@@ -230,13 +224,10 @@ export class UserService {
 
   static async updateUserDonations(userId: string, amount: number): Promise<boolean> {
     try {
-      const { error } = await supabase
-        .from('users')
-        .update({
-          total_donations: supabase.raw('total_donations + ?', [amount]),
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', userId);
+      const { error } = await supabase.rpc('increment_user_donations', {
+        user_id: userId,
+        amount: amount,
+      });
 
       return !error;
     } catch (error) {
