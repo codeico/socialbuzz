@@ -45,7 +45,9 @@ export const Modal: React.FC<ModalProps> = ({
     };
   }, [isOpen, onClose]);
 
-  if (!isOpen) return null;
+  if (!isOpen) {
+    return null;
+  }
 
   const sizeClasses = {
     sm: 'max-w-sm',
@@ -64,7 +66,7 @@ export const Modal: React.FC<ModalProps> = ({
         className={cn(
           'relative bg-background rounded-lg shadow-lg border max-h-[90vh] overflow-y-auto',
           sizeClasses[size],
-          'w-full mx-4'
+          'w-full mx-4',
         )}
       >
         {title && (

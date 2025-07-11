@@ -12,7 +12,7 @@ export const hashPassword = async (password: string): Promise<string> => {
 
 export const verifyPassword = async (
   password: string,
-  hashedPassword: string
+  hashedPassword: string,
 ): Promise<boolean> => {
   return bcrypt.compare(password, hashedPassword);
 };
@@ -26,7 +26,7 @@ export const generateToken = (user: AuthUser): string => {
       role: user.role,
     },
     JWT_SECRET,
-    { expiresIn: JWT_EXPIRES_IN }
+    { expiresIn: JWT_EXPIRES_IN },
   );
 };
 
@@ -61,11 +61,15 @@ export const verifyResetToken = (token: string): string | null => {
 };
 
 export const extractTokenFromHeader = (authHeader: string | null): string | null => {
-  if (!authHeader) return null;
-  
+  if (!authHeader) {
+    return null;
+  }
+
   const parts = authHeader.split(' ');
-  if (parts.length !== 2 || parts[0] !== 'Bearer') return null;
-  
+  if (parts.length !== 2 || parts[0] !== 'Bearer') {
+    return null;
+  }
+
   return parts[1];
 };
 

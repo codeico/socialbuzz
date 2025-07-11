@@ -8,7 +8,7 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey);
 
 export const supabaseAdmin = createClient<Database>(
   supabaseUrl,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
 );
 
 export const STORAGE_BUCKETS = {
@@ -20,7 +20,7 @@ export const STORAGE_BUCKETS = {
 export const uploadFile = async (
   file: File,
   bucket: keyof typeof STORAGE_BUCKETS,
-  path: string
+  path: string,
 ) => {
   const { data, error } = await supabase.storage
     .from(STORAGE_BUCKETS[bucket])
@@ -38,7 +38,7 @@ export const uploadFile = async (
 
 export const getPublicUrl = (
   bucket: keyof typeof STORAGE_BUCKETS,
-  path: string
+  path: string,
 ) => {
   const { data } = supabase.storage
     .from(STORAGE_BUCKETS[bucket])
@@ -49,7 +49,7 @@ export const getPublicUrl = (
 
 export const deleteFile = async (
   bucket: keyof typeof STORAGE_BUCKETS,
-  path: string
+  path: string,
 ) => {
   const { error } = await supabase.storage
     .from(STORAGE_BUCKETS[bucket])
@@ -63,7 +63,7 @@ export const deleteFile = async (
 export const createSignedUrl = async (
   bucket: keyof typeof STORAGE_BUCKETS,
   path: string,
-  expiresIn: number = 3600
+  expiresIn: number = 3600,
 ) => {
   const { data, error } = await supabase.storage
     .from(STORAGE_BUCKETS[bucket])

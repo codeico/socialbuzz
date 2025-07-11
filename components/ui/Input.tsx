@@ -26,7 +26,7 @@ export const Input: React.FC<InputProps> = ({
           'input',
           error && 'border-destructive',
           fullWidth && 'w-full',
-          className
+          className,
         )}
         {...props}
       />

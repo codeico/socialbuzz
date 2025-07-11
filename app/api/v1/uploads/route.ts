@@ -16,7 +16,7 @@ export const POST = withAuth(async (req) => {
     if (!file) {
       return NextResponse.json(
         { success: false, error: 'No file provided' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -25,7 +25,7 @@ export const POST = withAuth(async (req) => {
     if (!allowedTypes.includes(file.type)) {
       return NextResponse.json(
         { success: false, error: 'Invalid file type' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -34,7 +34,7 @@ export const POST = withAuth(async (req) => {
     if (file.size > maxSize) {
       return NextResponse.json(
         { success: false, error: 'File too large (max 5MB)' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -65,7 +65,7 @@ export const POST = withAuth(async (req) => {
     console.error('Upload error:', error);
     return NextResponse.json(
       { success: false, error: 'Upload failed' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 });

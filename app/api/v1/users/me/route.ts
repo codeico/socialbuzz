@@ -31,7 +31,7 @@ export const GET = withAuth(async (req) => {
     if (error) {
       return NextResponse.json(
         { success: false, error: 'User not found' },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -43,7 +43,7 @@ export const GET = withAuth(async (req) => {
     console.error('Get user error:', error);
     return NextResponse.json(
       { success: false, error: 'Internal server error' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 });
@@ -56,7 +56,7 @@ export const PUT = withAuth(async (req) => {
     if (!fullName) {
       return NextResponse.json(
         { success: false, error: 'Full name is required' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -75,7 +75,7 @@ export const PUT = withAuth(async (req) => {
       console.error('Update user error:', error);
       return NextResponse.json(
         { success: false, error: 'Failed to update user' },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -87,7 +87,7 @@ export const PUT = withAuth(async (req) => {
     console.error('Update user error:', error);
     return NextResponse.json(
       { success: false, error: 'Internal server error' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 });

@@ -22,14 +22,14 @@ export const POST = withAuth(async (req) => {
     if (!recipientId || !amount || !paymentMethod) {
       return NextResponse.json(
         { success: false, error: 'Missing required fields' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (amount < 1000) {
       return NextResponse.json(
         { success: false, error: 'Minimum donation amount is Rp 1,000' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -43,7 +43,7 @@ export const POST = withAuth(async (req) => {
     if (recipientError || !recipient) {
       return NextResponse.json(
         { success: false, error: 'Recipient not found' },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -75,7 +75,7 @@ export const POST = withAuth(async (req) => {
       console.error('Transaction creation error:', transactionError);
       return NextResponse.json(
         { success: false, error: 'Failed to create transaction' },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -102,7 +102,7 @@ export const POST = withAuth(async (req) => {
 
       return NextResponse.json(
         { success: false, error: 'Failed to create payment' },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -119,7 +119,7 @@ export const POST = withAuth(async (req) => {
     console.error('Payment creation error:', error);
     return NextResponse.json(
       { success: false, error: 'Internal server error' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 });

@@ -43,7 +43,7 @@ export const Button: React.FC<ButtonProps> = ({
         variantClasses[variant],
         sizeClasses[size],
         fullWidth && 'w-full',
-        className
+        className,
       )}
       disabled={disabled || loading}
       {...props}

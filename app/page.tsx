@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Heart, Shield, Zap, Users } from 'lucide-react';
 
 export default function HomePage() {

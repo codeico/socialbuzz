@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
     if (!email || !password || !username || !fullName) {
       return NextResponse.json(
         { success: false, error: 'All fields are required' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
     if (!emailRegex.test(email)) {
       return NextResponse.json(
         { success: false, error: 'Invalid email format' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
     if (password.length < 8) {
       return NextResponse.json(
         { success: false, error: 'Password must be at least 8 characters' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
     if (existingUser) {
       return NextResponse.json(
         { success: false, error: 'Email already registered' },
-        { status: 409 }
+        { status: 409 },
       );
     }
 
@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
     if (existingUsername) {
       return NextResponse.json(
         { success: false, error: 'Username already taken' },
-        { status: 409 }
+        { status: 409 },
       );
     }
 
@@ -89,7 +89,7 @@ export async function POST(req: NextRequest) {
       console.error('User creation error:', error);
       return NextResponse.json(
         { success: false, error: 'Failed to create user' },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -126,7 +126,7 @@ export async function POST(req: NextRequest) {
     console.error('Registration error:', error);
     return NextResponse.json(
       { success: false, error: 'Internal server error' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

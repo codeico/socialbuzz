@@ -1,14 +1,14 @@
 import React from 'react';
-import { 
-  Home, 
-  User, 
-  CreditCard, 
-  Settings, 
+import {
+  Home,
+  User,
+  CreditCard,
+  Settings,
   LogOut,
   Users,
   DollarSign,
   FileText,
-  Shield
+  Shield,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/utils/cn';
@@ -48,8 +48,12 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   ];
 
   const getTabs = () => {
-    if (user?.role === 'super_admin') return superAdminTabs;
-    if (user?.role === 'admin') return adminTabs;
+    if (user?.role === 'super_admin') {
+      return superAdminTabs;
+    }
+    if (user?.role === 'admin') {
+      return adminTabs;
+    }
     return userTabs;
   };
 
@@ -71,7 +75,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
               </span>
               <button
                 onClick={logout}
-                className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                className="inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-500 bg-white"
               >
                 <LogOut className="w-4 h-4 mr-2" />
                 Logout
@@ -96,7 +100,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                         'w-full flex items-center px-3 py-2 text-sm font-medium rounded-md',
                         activeTab === tab.id
                           ? 'bg-indigo-100 text-indigo-700'
-                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
                       )}
                     >
                       <Icon className="w-5 h-5 mr-3" />

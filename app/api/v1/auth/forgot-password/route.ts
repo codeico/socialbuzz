@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
     if (!email) {
       return NextResponse.json(
         { success: false, error: 'Email is required' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
     console.error('Forgot password error:', error);
     return NextResponse.json(
       { success: false, error: 'Internal server error' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

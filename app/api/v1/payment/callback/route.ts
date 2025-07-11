@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
       console.error('Invalid payment callback:', body);
       return NextResponse.json(
         { success: false, error: 'Invalid callback signature' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
       console.error('Transaction not found:', body.merchantOrderId);
       return NextResponse.json(
         { success: false, error: 'Transaction not found' },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -65,13 +65,13 @@ export async function POST(req: NextRequest) {
       console.error('Failed to update transaction:', updateError);
       return NextResponse.json(
         { success: false, error: 'Failed to update transaction' },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
     // If payment is successful, process the donation
     if (isSuccess && transaction.type === 'donation') {
-      await processSuccessfulDonation(transaction, body);
+      await processSuccessfulDonation(transaction);
     }
 
     console.log(`Transaction ${transaction.id} ${newStatus}`);
@@ -84,29 +84,24 @@ export async function POST(req: NextRequest) {
     console.error('Payment callback error:', error);
     return NextResponse.json(
       { success: false, error: 'Internal server error' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
-async function processSuccessfulDonation(transaction: any, callback: PaymentCallback) {
+async function processSuccessfulDonation(transaction: any) {
   try {
     // Update recipient's balance and total earnings
-    await supabase
-      .from('users')
-      .update({
-        balance: supabase.raw('balance + ?', [transaction.amount]),
-        total_earnings: supabase.raw('total_earnings + ?', [transaction.amount]),
-      })
-      .eq('id', transaction.recipient_id);
+    await supabase.rpc('increment_user_balance', {
+      user_id: transaction.recipient_id,
+      amount: transaction.amount,
+    });
 
     // Update donor's total donations
-    await supabase
-      .from('users')
-      .update({
-        total_donations: supabase.raw('total_donations + ?', [transaction.amount]),
-      })
-      .eq('id', transaction.user_id);
+    await supabase.rpc('increment_user_donations', {
+      user_id: transaction.user_id,
+      amount: transaction.amount,
+    });
 
     // Create donation record
     await supabase.from('donations').insert({

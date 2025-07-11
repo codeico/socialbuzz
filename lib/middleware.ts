@@ -7,7 +7,7 @@ export interface AuthenticatedRequest extends NextRequest {
 }
 
 export const withAuth = (
-  handler: (req: AuthenticatedRequest) => Promise<NextResponse>
+  handler: (req: AuthenticatedRequest) => Promise<NextResponse>,
 ) => {
   return async (req: NextRequest): Promise<NextResponse> => {
     try {
@@ -17,7 +17,7 @@ export const withAuth = (
       if (!token) {
         return NextResponse.json(
           { success: false, error: 'Authentication required' },
-          { status: 401 }
+          { status: 401 },
         );
       }
 
@@ -25,7 +25,7 @@ export const withAuth = (
       if (!user) {
         return NextResponse.json(
           { success: false, error: 'Invalid or expired token' },
-          { status: 401 }
+          { status: 401 },
         );
       }
 
@@ -35,20 +35,20 @@ export const withAuth = (
       console.error('Auth middleware error:', error);
       return NextResponse.json(
         { success: false, error: 'Authentication failed' },
-        { status: 401 }
+        { status: 401 },
       );
     }
   };
 };
 
 export const withAdminAuth = (
-  handler: (req: AuthenticatedRequest) => Promise<NextResponse>
+  handler: (req: AuthenticatedRequest) => Promise<NextResponse>,
 ) => {
   return withAuth(async (req: AuthenticatedRequest) => {
     if (req.user.role !== 'admin' && req.user.role !== 'super_admin') {
       return NextResponse.json(
         { success: false, error: 'Admin access required' },
-        { status: 403 }
+        { status: 403 },
       );
     }
     return handler(req);
@@ -56,13 +56,13 @@ export const withAdminAuth = (
 };
 
 export const withSuperAdminAuth = (
-  handler: (req: AuthenticatedRequest) => Promise<NextResponse>
+  handler: (req: AuthenticatedRequest) => Promise<NextResponse>,
 ) => {
   return withAuth(async (req: AuthenticatedRequest) => {
     if (req.user.role !== 'super_admin') {
       return NextResponse.json(
         { success: false, error: 'Super admin access required' },
-        { status: 403 }
+        { status: 403 },
       );
     }
     return handler(req);

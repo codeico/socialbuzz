@@ -10,7 +10,7 @@ export const generateSignature = (
   merchantCode: string,
   merchantOrderId: string,
   paymentAmount: number,
-  apiKey: string
+  apiKey: string,
 ): string => {
   const message = merchantCode + merchantOrderId + paymentAmount + apiKey;
   return crypto.createHash('md5').update(message).digest('hex');
@@ -21,7 +21,7 @@ export const verifyCallbackSignature = (
   amount: number,
   merchantOrderId: string,
   apiKey: string,
-  receivedSignature: string
+  receivedSignature: string,
 ): boolean => {
   const message = merchantCode + amount + merchantOrderId + apiKey;
   const calculatedSignature = crypto.createHash('md5').update(message).digest('hex');
@@ -29,14 +29,14 @@ export const verifyCallbackSignature = (
 };
 
 export const createPaymentRequest = async (
-  paymentData: DuitkuPaymentRequest
+  paymentData: DuitkuPaymentRequest,
 ): Promise<DuitkuPaymentResponse> => {
   try {
     const signature = generateSignature(
       DUITKU_MERCHANT_CODE,
       paymentData.merchantOrderId,
       paymentData.paymentAmount,
-      DUITKU_API_KEY
+      DUITKU_API_KEY,
     );
 
     const requestData = {
@@ -61,7 +61,7 @@ export const createPaymentRequest = async (
         headers: {
           'Content-Type': 'application/json',
         },
-      }
+      },
     );
 
     return response.data;
@@ -77,7 +77,7 @@ export const checkPaymentStatus = async (merchantOrderId: string): Promise<any> 
       DUITKU_MERCHANT_CODE,
       merchantOrderId,
       0,
-      DUITKU_API_KEY
+      DUITKU_API_KEY,
     );
 
     const requestData = {
@@ -93,7 +93,7 @@ export const checkPaymentStatus = async (merchantOrderId: string): Promise<any> 
         headers: {
           'Content-Type': 'application/json',
         },
-      }
+      },
     );
 
     return response.data;
@@ -124,7 +124,7 @@ export const validateCallback = (callback: PaymentCallback): boolean => {
     callback.amount,
     callback.merchantOrderId,
     DUITKU_API_KEY,
-    callback.signature
+    callback.signature,
   );
 
   const isAmountValid = callback.amount > 0;
