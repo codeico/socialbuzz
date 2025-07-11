@@ -1,0 +1,450 @@
+openapi: 3.0.3
+info:
+  title: SocialBuzz API - Users
+  description: User management endpoints for SocialBuzz platform
+  version: 1.0.0
+  contact:
+    name: SocialBuzz Team
+    email: support@socialbuzz.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://api.socialbuzz.com/v1
+    description: Production server
+  - url: http://localhost:3000/api/v1
+    description: Development server
+
+paths:
+  /users/me:
+    get:
+      summary: Get current user profile
+      description: Get the authenticated user's profile information
+      operationId: getCurrentUser
+      tags:
+        - Users
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/UserProfile'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      summary: Update current user profile
+      description: Update the authenticated user's profile information
+      operationId: updateCurrentUser
+      tags:
+        - Users
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - fullName
+              properties:
+                fullName:
+                  type: string
+                  minLength: 2
+                  maxLength: 50
+                  example: John Doe
+                avatar:
+                  type: string
+                  nullable: true
+                  example: https://example.com/avatar.jpg
+      responses:
+        '200':
+          description: User profile updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/UserProfile'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /users/transactions:
+    get:
+      summary: Get user transactions
+      description: Get paginated list of user's transactions
+      operationId: getUserTransactions
+      tags:
+        - Users
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: Page number
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          description: Number of items per page
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+        - name: sortBy
+          in: query
+          description: Sort field
+          required: false
+          schema:
+            type: string
+            enum: [created_at, amount, status]
+            default: created_at
+        - name: sortOrder
+          in: query
+          description: Sort order
+          required: false
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+      responses:
+        '200':
+          description: Transactions retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/PaginatedTransactions'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /users/donations:
+    get:
+      summary: Get user donations received
+      description: Get paginated list of donations received by the user
+      operationId: getUserDonations
+      tags:
+        - Users
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: Page number
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          description: Number of items per page
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+      responses:
+        '200':
+          description: Donations retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/PaginatedDonations'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 123e4567-e89b-12d3-a456-426614174000
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        username:
+          type: string
+          example: johndoe
+        fullName:
+          type: string
+          example: John Doe
+        avatar:
+          type: string
+          nullable: true
+          example: https://example.com/avatar.jpg
+        role:
+          type: string
+          enum: [user, admin, super_admin]
+          example: user
+        isVerified:
+          type: boolean
+          example: false
+        balance:
+          type: number
+          example: 100000
+        totalEarnings:
+          type: number
+          example: 500000
+        totalDonations:
+          type: number
+          example: 250000
+        createdAt:
+          type: string
+          format: date-time
+          example: 2024-01-01T12:00:00Z
+        updatedAt:
+          type: string
+          format: date-time
+          example: 2024-01-01T12:00:00Z
+
+    Transaction:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 123e4567-e89b-12d3-a456-426614174000
+        userId:
+          type: string
+          example: 123e4567-e89b-12d3-a456-426614174000
+        recipientId:
+          type: string
+          nullable: true
+          example: 123e4567-e89b-12d3-a456-426614174000
+        type:
+          type: string
+          enum: [donation, payout, fee]
+          example: donation
+        amount:
+          type: number
+          example: 50000
+        currency:
+          type: string
+          example: IDR
+        status:
+          type: string
+          enum: [pending, completed, failed, cancelled]
+          example: completed
+        paymentMethod:
+          type: string
+          example: bank_transfer
+        merchantOrderId:
+          type: string
+          example: SB-user123-1234567890
+        reference:
+          type: string
+          nullable: true
+          example: DK123456789
+        description:
+          type: string
+          example: Donation to John Doe
+        createdAt:
+          type: string
+          format: date-time
+          example: 2024-01-01T12:00:00Z
+        completedAt:
+          type: string
+          format: date-time
+          nullable: true
+          example: 2024-01-01T12:05:00Z
+
+    Donation:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 123e4567-e89b-12d3-a456-426614174000
+        donorId:
+          type: string
+          example: 123e4567-e89b-12d3-a456-426614174000
+        recipientId:
+          type: string
+          example: 123e4567-e89b-12d3-a456-426614174000
+        amount:
+          type: number
+          example: 50000
+        currency:
+          type: string
+          example: IDR
+        message:
+          type: string
+          nullable: true
+          example: Keep up the great work!
+        isAnonymous:
+          type: boolean
+          example: false
+        transactionId:
+          type: string
+          example: 123e4567-e89b-12d3-a456-426614174000
+        createdAt:
+          type: string
+          format: date-time
+          example: 2024-01-01T12:00:00Z
+
+    PaginatedTransactions:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Transaction'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    PaginatedDonations:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Donation'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+          example: 1
+        limit:
+          type: integer
+          example: 10
+        total:
+          type: integer
+          example: 100
+        totalPages:
+          type: integer
+          example: 10
+        hasNext:
+          type: boolean
+          example: true
+        hasPrev:
+          type: boolean
+          example: false
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+          example: User not found
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+# Example curl requests:
+# 
+# Get Current User:
+# curl -X GET "http://localhost:3000/api/v1/users/me" \
+#   -H "Authorization: Bearer YOUR_JWT_TOKEN"
+#
+# Update Current User:
+# curl -X PUT "http://localhost:3000/api/v1/users/me" \
+#   -H "Content-Type: application/json" \
+#   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+#   -d '{
+#     "fullName": "John Doe Updated",
+#     "avatar": "https://example.com/new-avatar.jpg"
+#   }'
+#
+# Get User Transactions:
+# curl -X GET "http://localhost:3000/api/v1/users/transactions?page=1&limit=10" \
+#   -H "Authorization: Bearer YOUR_JWT_TOKEN"
+#
+# Get User Donations:
+# curl -X GET "http://localhost:3000/api/v1/users/donations?page=1&limit=10" \
+#   -H "Authorization: Bearer YOUR_JWT_TOKEN"

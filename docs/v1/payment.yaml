@@ -1,0 +1,314 @@
+openapi: 3.0.3
+info:
+  title: SocialBuzz API - Payment
+  description: Payment endpoints for SocialBuzz platform
+  version: 1.0.0
+  contact:
+    name: SocialBuzz Team
+    email: support@socialbuzz.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://api.socialbuzz.com/v1
+    description: Production server
+  - url: http://localhost:3000/api/v1
+    description: Development server
+
+paths:
+  /payment/create:
+    post:
+      summary: Create payment for donation
+      description: Create a new payment request for donation using Duitku
+      operationId: createPayment
+      tags:
+        - Payment
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - recipientId
+                - amount
+                - paymentMethod
+              properties:
+                recipientId:
+                  type: string
+                  example: 123e4567-e89b-12d3-a456-426614174000
+                amount:
+                  type: number
+                  minimum: 1000
+                  maximum: 10000000
+                  example: 50000
+                paymentMethod:
+                  type: string
+                  example: bank_transfer
+                message:
+                  type: string
+                  maxLength: 1000
+                  example: Keep up the great work!
+                isAnonymous:
+                  type: boolean
+                  default: false
+                  example: false
+      responses:
+        '200':
+          description: Payment created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      transactionId:
+                        type: string
+                        example: 123e4567-e89b-12d3-a456-426614174000
+                      paymentUrl:
+                        type: string
+                        example: https://sandbox.duitku.com/payment/123456
+                      reference:
+                        type: string
+                        example: DK123456789
+                      vaNumber:
+                        type: string
+                        nullable: true
+                        example: 8808123456789
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Recipient not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /payment/callback:
+    post:
+      summary: Payment callback from Duitku
+      description: Handle payment callback from Duitku payment gateway
+      operationId: paymentCallback
+      tags:
+        - Payment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - merchantCode
+                - amount
+                - merchantOrderId
+                - signature
+                - resultCode
+              properties:
+                merchantCode:
+                  type: string
+                  example: DS123456
+                amount:
+                  type: number
+                  example: 50000
+                merchantOrderId:
+                  type: string
+                  example: SB-user123-1234567890
+                productDetail:
+                  type: string
+                  example: Donation
+                additionalParam:
+                  type: string
+                  example: ""
+                paymentCode:
+                  type: string
+                  example: "01"
+                resultCode:
+                  type: string
+                  example: "00"
+                merchantUserId:
+                  type: string
+                  example: user123
+                reference:
+                  type: string
+                  example: DK123456789
+                signature:
+                  type: string
+                  example: a1b2c3d4e5f6
+                publisherOrderId:
+                  type: string
+                  example: "123456"
+                spUserHash:
+                  type: string
+                  example: "hash123"
+                settlementDate:
+                  type: string
+                  example: "2024-01-01 12:00:00"
+                issuerCode:
+                  type: string
+                  example: "MANDIRI"
+      responses:
+        '200':
+          description: Callback processed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Transaction completed
+        '400':
+          description: Invalid callback signature
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Transaction not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    Transaction:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 123e4567-e89b-12d3-a456-426614174000
+        userId:
+          type: string
+          example: 123e4567-e89b-12d3-a456-426614174000
+        recipientId:
+          type: string
+          nullable: true
+          example: 123e4567-e89b-12d3-a456-426614174000
+        type:
+          type: string
+          enum: [donation, payout, fee]
+          example: donation
+        amount:
+          type: number
+          example: 50000
+        currency:
+          type: string
+          example: IDR
+        status:
+          type: string
+          enum: [pending, completed, failed, cancelled]
+          example: pending
+        paymentMethod:
+          type: string
+          example: bank_transfer
+        merchantOrderId:
+          type: string
+          example: SB-user123-1234567890
+        reference:
+          type: string
+          nullable: true
+          example: DK123456789
+        description:
+          type: string
+          example: Donation to John Doe
+        metadata:
+          type: object
+          nullable: true
+          example: { "message": "Keep up the great work!", "isAnonymous": false }
+        createdAt:
+          type: string
+          format: date-time
+          example: 2024-01-01T12:00:00Z
+        updatedAt:
+          type: string
+          format: date-time
+          example: 2024-01-01T12:00:00Z
+        completedAt:
+          type: string
+          format: date-time
+          nullable: true
+          example: 2024-01-01T12:05:00Z
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+          example: Invalid payment method
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+# Example curl requests:
+# 
+# Create Payment:
+# curl -X POST "http://localhost:3000/api/v1/payment/create" \
+#   -H "Content-Type: application/json" \
+#   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+#   -d '{
+#     "recipientId": "123e4567-e89b-12d3-a456-426614174000",
+#     "amount": 50000,
+#     "paymentMethod": "bank_transfer",
+#     "message": "Keep up the great work!",
+#     "isAnonymous": false
+#   }'
+#
+# Payment Callback (From Duitku):
+# curl -X POST "http://localhost:3000/api/v1/payment/callback" \
+#   -H "Content-Type: application/json" \
+#   -d '{
+#     "merchantCode": "DS123456",
+#     "amount": 50000,
+#     "merchantOrderId": "SB-user123-1234567890",
+#     "productDetail": "Donation",
+#     "additionalParam": "",
+#     "paymentCode": "01",
+#     "resultCode": "00",
+#     "merchantUserId": "user123",
+#     "reference": "DK123456789",
+#     "signature": "a1b2c3d4e5f6",
+#     "publisherOrderId": "123456",
+#     "spUserHash": "hash123",
+#     "settlementDate": "2024-01-01 12:00:00",
+#     "issuerCode": "MANDIRI"
+#   }'
