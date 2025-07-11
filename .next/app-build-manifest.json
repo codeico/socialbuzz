@@ -7,13 +7,6 @@
       "static/chunks/main-app-be4e25bef94f6a55.js",
       "static/chunks/app/_not-found/page-f08302ee705a96b1.js"
     ],
-    "/api/v1/auth/register/route": [
-      "static/chunks/webpack-3316f9cccc33e7b7.js",
-      "static/chunks/4bd1b696-6e92223d928976cc.js",
-      "static/chunks/684-b715b11dbaecc2e8.js",
-      "static/chunks/main-app-be4e25bef94f6a55.js",
-      "static/chunks/app/api/v1/auth/register/route-3115ecac667a12b5.js"
-    ],
     "/api/v1/auth/login/route": [
       "static/chunks/webpack-3316f9cccc33e7b7.js",
       "static/chunks/4bd1b696-6e92223d928976cc.js",
@@ -26,8 +19,15 @@
       "static/chunks/4bd1b696-6e92223d928976cc.js",
       "static/chunks/684-b715b11dbaecc2e8.js",
       "static/chunks/main-app-be4e25bef94f6a55.js",
-      "static/css/931b179cff3131dc.css",
+      "static/css/15539e5df78827a4.css",
       "static/chunks/app/layout-9096a277ebfae271.js"
+    ],
+    "/api/v1/auth/register/route": [
+      "static/chunks/webpack-3316f9cccc33e7b7.js",
+      "static/chunks/4bd1b696-6e92223d928976cc.js",
+      "static/chunks/684-b715b11dbaecc2e8.js",
+      "static/chunks/main-app-be4e25bef94f6a55.js",
+      "static/chunks/app/api/v1/auth/register/route-3115ecac667a12b5.js"
     ],
     "/api/v1/auth/forgot-password/route": [
       "static/chunks/webpack-3316f9cccc33e7b7.js",
