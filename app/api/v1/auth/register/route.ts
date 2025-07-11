@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { supabase, supabaseAdmin } from '@/lib/supabase';
 import { hashPassword, generateToken } from '@/lib/auth';
 import { RegisterCredentials } from '@/types/user';
 import { handleCors } from '@/lib/middleware';
@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Check if email already exists
-    const { data: existingUser } = await supabase
+    const { data: existingUser } = await supabaseAdmin
       .from('users')
       .select('id')
       .eq('email', email)
@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Check if username already exists
-    const { data: existingUsername } = await supabase
+    const { data: existingUsername } = await supabaseAdmin
       .from('users')
       .select('id')
       .eq('username', username)
@@ -68,8 +68,8 @@ export async function POST(req: NextRequest) {
     // Hash password
     const passwordHash = await hashPassword(password);
 
-    // Create user
-    const { data: user, error } = await supabase
+    // Create user using admin client to bypass RLS
+    const { data: user, error } = await supabaseAdmin
       .from('users')
       .insert({
         email,
@@ -93,8 +93,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Create user profile
-    await supabase.from('user_profiles').insert({
+    // Create user profile using admin client
+    await supabaseAdmin.from('user_profiles').insert({
       user_id: user.id,
       preferences: {
         emailNotifications: true,

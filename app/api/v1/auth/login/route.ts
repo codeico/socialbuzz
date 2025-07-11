@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { supabase, supabaseAdmin } from '@/lib/supabase';
 import { verifyPassword, generateToken } from '@/lib/auth';
 import { LoginCredentials } from '@/types/user';
 import { handleCors } from '@/lib/middleware';
@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { data: user, error } = await supabase
+    const { data: user, error } = await supabaseAdmin
       .from('users')
       .select('*')
       .eq('email', email)
@@ -53,8 +53,8 @@ export async function POST(req: NextRequest) {
 
     const token = generateToken(authUser);
 
-    // Update last login
-    await supabase
+    // Update last login using admin client
+    await supabaseAdmin
       .from('users')
       .update({ last_login: new Date().toISOString() })
       .eq('id', user.id);
