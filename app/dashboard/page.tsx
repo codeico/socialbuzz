@@ -160,7 +160,14 @@ export default function DashboardPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            <Button className="w-full justify-start" variant="outline">
+            <Button 
+              className="w-full justify-start" 
+              variant="outline"
+              onClick={() => {
+                // TODO: Implement payout request modal/page
+                alert('Payout request feature will be implemented');
+              }}
+            >
               <Plus className="mr-2 h-4 w-4" />
               Request Payout
             </Button>
@@ -180,7 +187,11 @@ export default function DashboardPage() {
               <Zap className="mr-2 h-4 w-4" />
               Donation Widget
             </Button>
-            <Button className="w-full justify-start" variant="outline">
+            <Button 
+              className="w-full justify-start" 
+              variant="outline"
+              onClick={() => window.open(`/profile/${user?.username}`, '_blank')}
+            >
               <Eye className="mr-2 h-4 w-4" />
               View Profile
             </Button>
@@ -238,12 +249,6 @@ export default function DashboardPage() {
     switch (activeTab) {
       case 'overview':
         return renderOverview();
-      case 'profile':
-        return <div>Profile settings coming soon...</div>;
-      case 'transactions':
-        return <div>Transactions list coming soon...</div>;
-      case 'settings':
-        return <div>Account settings coming soon...</div>;
       default:
         return renderOverview();
     }

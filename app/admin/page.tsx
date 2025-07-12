@@ -1,352 +1,330 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { AdminLayout } from '@/components/admin/AdminLayout';
-import { UserManagement } from '@/components/admin/UserManagement';
-import { PayoutManagement } from '@/components/admin/PayoutManagement';
-import { Analytics } from '@/components/admin/Analytics';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { useAuth } from '@/hooks/useAuth';
 import { formatCurrency, formatDate } from '@/utils/formatter';
 import { 
   Users, 
   DollarSign, 
-  TrendingUp, 
-  AlertCircle,
+  CreditCard, 
+  TrendingUp,
+  Activity,
+  AlertTriangle,
+  CheckCircle,
+  Clock,
   ArrowUpRight,
   ArrowDownRight,
-  CheckCircle,
-  XCircle,
-  Clock,
-  UserPlus,
-  Activity
+  Eye,
+  BarChart3,
+  RefreshCw
 } from 'lucide-react';
 
 interface AdminStats {
   totalUsers: number;
-  totalTransactions: number;
   totalRevenue: number;
+  totalTransactions: number;
   pendingPayouts: number;
-  activeUsers: number;
-  newUsersToday: number;
-  transactionVolume: number;
-  platformRevenue: number;
+  todayRevenue: number;
+  todayTransactions: number;
+  userGrowth: number;
+  revenueGrowth: number;
 }
 
 interface RecentActivity {
   id: string;
-  type: 'user_signup' | 'transaction' | 'payout' | 'report';
-  title: string;
-  description: string;
-  timestamp: string;
+  type: 'user_registered' | 'transaction_completed' | 'payout_requested';
+  user: string;
   amount?: number;
-  status?: string;
+  timestamp: string;
 }
 
-export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState('overview');
-  const { user, loading: authLoading } = useAuth();
+export default function AdminDashboardPage() {
   const [stats, setStats] = useState<AdminStats>({
-    totalUsers: 0,
-    totalTransactions: 0,
-    totalRevenue: 0,
-    pendingPayouts: 0,
-    activeUsers: 0,
-    newUsersToday: 0,
-    transactionVolume: 0,
-    platformRevenue: 0,
+    totalUsers: 1247,
+    totalRevenue: 2450000,
+    totalTransactions: 3456,
+    pendingPayouts: 12,
+    todayRevenue: 45000,
+    todayTransactions: 23,
+    userGrowth: 12.5,
+    revenueGrowth: 8.3,
   });
-  const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
-  const [loading, setLoading] = useState(true);
-  const router = useRouter();
+  const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([
+    {
+      id: '1',
+      type: 'user_registered',
+      user: 'John Doe',
+      timestamp: new Date().toISOString(),
+    },
+    {
+      id: '2',
+      type: 'transaction_completed',
+      user: 'Jane Smith',
+      amount: 50000,
+      timestamp: new Date(Date.now() - 300000).toISOString(),
+    },
+    {
+      id: '3',
+      type: 'payout_requested',
+      user: 'Mike Johnson',
+      amount: 250000,
+      timestamp: new Date(Date.now() - 600000).toISOString(),
+    },
+  ]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.push('/auth/login');
-    } else if (user && user.role !== 'admin') {
-      router.push('/dashboard');
-    }
-  }, [user, authLoading, router]);
-
-  useEffect(() => {
-    if (user && user.role === 'admin') {
-      loadAdminData();
-    }
-  }, [user]);
-
-  const loadAdminData = async () => {
+  const loadDashboardData = async () => {
     try {
       setLoading(true);
+      setError('');
+
+      // For now, just simulate loading
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Mock data for admin dashboard
-      const mockStats: AdminStats = {
-        totalUsers: 2847,
-        totalTransactions: 15632,
-        totalRevenue: 458923000,
-        pendingPayouts: 12,
-        activeUsers: 1234,
-        newUsersToday: 23,
-        transactionVolume: 89123000,
-        platformRevenue: 22946000,
-      };
-
-      const mockActivity: RecentActivity[] = [
-        {
-          id: '1',
-          type: 'user_signup',
-          title: 'New User Registration',
-          description: 'johndoe123 joined the platform',
-          timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
-        },
-        {
-          id: '2',
-          type: 'transaction',
-          title: 'Large Donation',
-          description: 'Donation from @supporter to @creator',
-          timestamp: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
-          amount: 500000,
-          status: 'completed',
-        },
-        {
-          id: '3',
-          type: 'payout',
-          title: 'Payout Request',
-          description: 'artistgirl requested payout of Rp 2,500,000',
-          timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
-          amount: 2500000,
-          status: 'pending',
-        },
-        {
-          id: '4',
-          type: 'report',
-          title: 'User Report',
-          description: 'Report submitted for inappropriate content',
-          timestamp: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
-          status: 'pending',
-        },
-        {
-          id: '5',
-          type: 'transaction',
-          title: 'Platform Fee',
-          description: 'Fee collected from transaction #TX12345',
-          timestamp: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
-          amount: 25000,
-          status: 'completed',
-        },
-      ];
-
-      setStats(mockStats);
-      setRecentActivity(mockActivity);
+      // In production, this would fetch real data:
+      // const token = localStorage.getItem('token');
+      // const response = await fetch('/api/v1/admin/dashboard/stats', {
+      //   headers: { 'Authorization': `Bearer ${token}` },
+      // });
+      
+      setLoading(false);
     } catch (error) {
-      console.error('Error loading admin data:', error);
-    } finally {
+      setError('Failed to load dashboard data');
+      console.error('Dashboard data fetch error:', error);
       setLoading(false);
     }
   };
 
-  const renderOverview = () => (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
-        <p className="text-gray-600">Platform overview and management</p>
-      </div>
-      
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalUsers.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">
-              +{stats.newUsersToday} new today
-            </p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(stats.totalRevenue)}</div>
-            <p className="text-xs text-muted-foreground">
-              Platform: {formatCurrency(stats.platformRevenue)}
-            </p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Transactions</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalTransactions.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">
-              Volume: {formatCurrency(stats.transactionVolume)}
-            </p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Payouts</CardTitle>
-            <AlertCircle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.pendingPayouts}</div>
-            <p className="text-xs text-muted-foreground">
-              Require approval
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Recent Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Activity className="mr-2 h-5 w-5" />
-              Recent Activity
-            </CardTitle>
-            <CardDescription>
-              Latest platform activity
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {recentActivity.map((activity) => (
-                <div key={activity.id} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
-                  <div className="flex-shrink-0">
-                    {activity.type === 'user_signup' && <UserPlus className="h-5 w-5 text-blue-500" />}
-                    {activity.type === 'transaction' && <ArrowDownRight className="h-5 w-5 text-green-500" />}
-                    {activity.type === 'payout' && <ArrowUpRight className="h-5 w-5 text-orange-500" />}
-                    {activity.type === 'report' && <AlertCircle className="h-5 w-5 text-red-500" />}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900">{activity.title}</p>
-                    <p className="text-sm text-gray-500">{activity.description}</p>
-                    <div className="flex items-center justify-between mt-1">
-                      <p className="text-xs text-gray-400">
-                        {formatDate(activity.timestamp)}
-                      </p>
-                      {activity.amount && (
-                        <p className="text-xs font-medium text-gray-600">
-                          {formatCurrency(activity.amount)}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  {activity.status && (
-                    <div className="flex-shrink-0">
-                      {activity.status === 'completed' && <CheckCircle className="h-4 w-4 text-green-500" />}
-                      {activity.status === 'pending' && <Clock className="h-4 w-4 text-yellow-500" />}
-                      {activity.status === 'failed' && <XCircle className="h-4 w-4 text-red-500" />}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-            <CardDescription>
-              Common admin tasks
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <Button 
-              className="w-full justify-start" 
-              variant="outline"
-              onClick={() => setActiveTab('users')}
-            >
-              <Users className="mr-2 h-4 w-4" />
-              Manage Users
-            </Button>
-            <Button 
-              className="w-full justify-start" 
-              variant="outline"
-              onClick={() => setActiveTab('payouts')}
-            >
-              <DollarSign className="mr-2 h-4 w-4" />
-              Review Payouts
-            </Button>
-            <Button 
-              className="w-full justify-start" 
-              variant="outline"
-              onClick={() => setActiveTab('analytics')}
-            >
-              <TrendingUp className="mr-2 h-4 w-4" />
-              View Analytics
-            </Button>
-            <Button 
-              className="w-full justify-start" 
-              variant="outline"
-              onClick={() => setActiveTab('settings')}
-            >
-              <AlertCircle className="mr-2 h-4 w-4" />
-              Platform Settings
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
-
-  const renderContent = () => {
-    switch (activeTab) {
-      case 'overview':
-        return renderOverview();
-      case 'users':
-        return <UserManagement />;
-      case 'payouts':
-        return <PayoutManagement />;
-      case 'analytics':
-        return <Analytics />;
-      case 'settings':
-        return <div className="p-6 text-center text-gray-600">Platform settings coming soon...</div>;
+  const getActivityIcon = (type: string) => {
+    switch (type) {
+      case 'user_registered':
+        return <Users className="h-4 w-4 text-blue-600" />;
+      case 'transaction_completed':
+        return <CreditCard className="h-4 w-4 text-green-600" />;
+      case 'payout_requested':
+        return <DollarSign className="h-4 w-4 text-orange-600" />;
       default:
-        return renderOverview();
+        return <Activity className="h-4 w-4 text-gray-600" />;
     }
   };
 
-  if (authLoading || loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading admin dashboard...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!user || user.role !== 'admin') {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h1 className="text-xl font-bold text-gray-900 mb-2">Access Denied</h1>
-          <p className="text-gray-600">You don't have permission to access this page.</p>
-        </div>
-      </div>
-    );
-  }
+  const getActivityText = (activity: RecentActivity) => {
+    switch (activity.type) {
+      case 'user_registered':
+        return `${activity.user} registered as a new user`;
+      case 'transaction_completed':
+        return `${activity.user} completed a transaction of ${formatCurrency(activity.amount || 0)}`;
+      case 'payout_requested':
+        return `${activity.user} requested a payout of ${formatCurrency(activity.amount || 0)}`;
+      default:
+        return `${activity.user} performed an action`;
+    }
+  };
 
   return (
-    <AdminLayout activeTab={activeTab} onTabChange={setActiveTab}>
-      <div className="p-6">
-        {renderContent()}
+    <AdminLayout activeTab="overview">
+      <div className="p-8">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+              <p className="text-gray-600 mt-2">Welcome to the SocialBuzz administration panel</p>
+            </div>
+            <Button onClick={loadDashboardData} variant="outline" disabled={loading}>
+              <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+          </div>
+        </div>
+
+        {/* Error Message */}
+        {error && (
+          <Card className="mb-6 border-red-200 bg-red-50">
+            <CardContent className="p-4 flex items-center">
+              <AlertTriangle className="h-5 w-5 text-red-600 mr-2" />
+              <p className="text-red-600">{error}</p>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Key Metrics */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.totalUsers.toLocaleString()}</div>
+              <div className="flex items-center text-xs text-muted-foreground mt-1">
+                {stats.userGrowth >= 0 ? (
+                  <ArrowUpRight className="h-3 w-3 text-green-600 mr-1" />
+                ) : (
+                  <ArrowDownRight className="h-3 w-3 text-red-600 mr-1" />
+                )}
+                <span className={stats.userGrowth >= 0 ? 'text-green-600' : 'text-red-600'}>
+                  {Math.abs(stats.userGrowth).toFixed(1)}%
+                </span>
+                <span className="ml-1">from last month</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{formatCurrency(stats.totalRevenue)}</div>
+              <div className="flex items-center text-xs text-muted-foreground mt-1">
+                {stats.revenueGrowth >= 0 ? (
+                  <ArrowUpRight className="h-3 w-3 text-green-600 mr-1" />
+                ) : (
+                  <ArrowDownRight className="h-3 w-3 text-red-600 mr-1" />
+                )}
+                <span className={stats.revenueGrowth >= 0 ? 'text-green-600' : 'text-red-600'}>
+                  {Math.abs(stats.revenueGrowth).toFixed(1)}%
+                </span>
+                <span className="ml-1">from last month</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Transactions</CardTitle>
+              <CreditCard className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.totalTransactions.toLocaleString()}</div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {stats.todayTransactions} today
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Pending Payouts</CardTitle>
+              <Clock className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.pendingPayouts}</div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Require attention
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Today's Summary */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <Card>
+            <CardHeader>
+              <CardTitle>Today's Summary</CardTitle>
+              <CardDescription>Performance metrics for today</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium">Revenue</p>
+                    <p className="text-2xl font-bold text-green-600">
+                      {formatCurrency(stats.todayRevenue)}
+                    </p>
+                  </div>
+                  <TrendingUp className="h-8 w-8 text-green-600" />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium">Transactions</p>
+                    <p className="text-2xl font-bold text-blue-600">
+                      {stats.todayTransactions}
+                    </p>
+                  </div>
+                  <Activity className="h-8 w-8 text-blue-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Recent Activity</CardTitle>
+              <CardDescription>Latest platform activity</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {recentActivity.length > 0 ? (
+                  recentActivity.slice(0, 5).map((activity) => (
+                    <div key={activity.id} className="flex items-start space-x-3">
+                      {getActivityIcon(activity.type)}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-gray-900">
+                          {getActivityText(activity)}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {formatDate(activity.timestamp)}
+                        </p>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-gray-500">No recent activity</p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Quick Actions */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Quick Actions</CardTitle>
+            <CardDescription>Common administrative tasks</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <Button 
+                variant="outline" 
+                className="h-20 flex-col"
+                onClick={() => window.location.href = '/admin/users'}
+              >
+                <Users className="h-6 w-6 mb-2" />
+                Manage Users
+              </Button>
+              <Button 
+                variant="outline" 
+                className="h-20 flex-col"
+                onClick={() => window.location.href = '/admin/transactions'}
+              >
+                <CreditCard className="h-6 w-6 mb-2" />
+                View Transactions
+              </Button>
+              <Button 
+                variant="outline" 
+                className="h-20 flex-col"
+                onClick={() => window.location.href = '/admin/payouts'}
+              >
+                <DollarSign className="h-6 w-6 mb-2" />
+                Process Payouts
+              </Button>
+              <Button 
+                variant="outline" 
+                className="h-20 flex-col"
+                onClick={() => window.location.href = '/admin/reports'}
+              >
+                <BarChart3 className="h-6 w-6 mb-2" />
+                View Reports
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </AdminLayout>
   );

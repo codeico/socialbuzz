@@ -1,494 +1,219 @@
-# 🚀 SocialBuzz Clone - Production Ready
+# SocialBuzz Clone - Siap Produksi
 
-A comprehensive, production-ready social platform for creators to receive donations and build communities. Built with modern technologies and best practices.
+Platform sosial yang komprehensif dan siap produksi bagi para kreator untuk menerima donasi dan membangun komunitas. Dibangun dengan teknologi modern dan praktik terbaik.
 
-## ✨ Features
+## ✨ Fitur
 
-### 🎯 Core Features
-- **Complete Authentication System** - JWT-based with secure password hashing
-- **User & Admin Dashboards** - Role-based access control
-- **Payment Integration** - Duitku payment gateway with secure callbacks
-- **File Upload System** - Supabase Storage integration
-- **Real-time Notifications** - In-app notification system
-- **Mobile Responsive** - Works perfectly on all devices
+### Fitur Inti
+- **Sistem Autentikasi Lengkap** - Berbasis JWT dengan hashing kata sandi yang aman.
+- **Dasbor Pengguna & Admin** - Kontrol akses berbasis peran (Role-Based Access Control).
+- **Integrasi Pembayaran** - Gateway pembayaran Duitku dengan callback yang aman.
+- **Sistem Unggah File** - Integrasi dengan Supabase Storage.
+- **Notifikasi Real-time** - Sistem notifikasi dalam aplikasi menggunakan WebSockets.
+- **Desain Responsif** - Bekerja dengan sempurna di semua perangkat.
 
-### 👥 User Features
-- User registration and login
-- Profile management with avatar uploads
-- Donation receiving and tracking
-- Transaction history
-- Payout requests
-- Account settings
+### Fitur Pengguna
+- Pendaftaran dan login pengguna.
+- Manajemen profil dengan unggah avatar.
+- Menerima dan melacak donasi.
+- Riwayat transaksi.
+- Permintaan penarikan dana (payout).
+- Pengaturan akun.
 
-### 🛠 Admin Features
-- User management
-- Transaction monitoring
-- Payout approval system
-- Platform statistics
-- Site configuration
+### Fitur Admin
+- Manajemen pengguna.
+- Pemantauan transaksi.
+- Sistem persetujuan penarikan dana.
+- Statistik platform.
+- Konfigurasi situs.
 
-### 🔧 Super Admin Features
-- Complete system control
-- Admin user management
-- Revenue tracking
-- System configuration
-
-## 🧩 Tech Stack
+## 🛠️ Tumpukan Teknologi (Tech Stack)
 
 ### Frontend
-- **Next.js 15** - React framework with App Router
-- **TypeScript** - Type-safe development
-- **Tailwind CSS 4.x** - Utility-first CSS framework
-- **Lucide React** - Beautiful icons
+- **Next.js 15** - Framework React dengan App Router.
+- **TypeScript** - Pengembangan yang aman secara tipe (type-safe).
+- **Tailwind CSS** - Framework CSS utility-first.
+- **Lucide React** - Ikon yang indah dan konsisten.
 
 ### Backend
-- **Next.js API Routes** - Serverless functions
-- **JWT Authentication** - Secure token-based auth
-- **Supabase** - PostgreSQL database and storage
-- **Duitku** - Payment gateway integration
+- **Next.js API Routes** - Fungsi serverless.
+- **JWT Authentication** - Otentikasi berbasis token yang aman.
+- **Supabase** - Database PostgreSQL dan penyimpanan file (storage).
+- **Duitku** - Integrasi gateway pembayaran.
+- **Socket.IO** - Untuk fungsionalitas real-time.
 
-### Development Tools
-- **ESLint & Prettier** - Code quality and formatting
-- **Husky** - Git hooks for pre-commit linting
-- **TypeScript** - Static type checking
+### Alat Pengembangan
+- **ESLint & Prettier** - Kualitas dan format kode.
+- **Husky & lint-staged** - Git hooks untuk linting sebelum commit.
+- **TypeScript** - Pengecekan tipe statis.
 
-## 📂 Project Structure
+## 📂 Struktur Proyek
 
 ```
 my-socialbuzz-clone/
 ├── app/                          # Next.js App Router
-│   ├── api/v1/                  # API routes (versioned)
-│   │   ├── auth/                # Authentication endpoints
-│   │   ├── payment/             # Payment processing
-│   │   ├── users/               # User management
-│   │   ├── admin/               # Admin endpoints
-│   │   └── uploads/             # File upload
-│   ├── dashboard/               # Dashboard pages
-│   ├── auth/                    # Authentication pages
-│   ├── layout.tsx               # Root layout
-│   └── page.tsx                 # Home page
-├── components/                   # React components
-│   ├── ui/                      # UI components
-│   └── dashboard/               # Dashboard components
-├── lib/                         # Core utilities
-│   ├── supabase.ts              # Database client
-│   ├── auth.ts                  # Authentication utils
-│   ├── duitku.ts                # Payment integration
-│   └── middleware.ts            # API middleware
-├── services/                    # Business logic
-│   ├── userService.ts           # User operations
-│   └── paymentService.ts        # Payment operations
+│   ├── api/v1/                  # Rute API (dengan versi)
+│   │   ├── auth/                # Endpoint autentikasi
+│   │   └── ...                  # Endpoint lainnya
+│   ├── dashboard/               # Halaman-halaman dasbor
+│   ├── auth/                    # Halaman-halaman autentikasi
+│   ├── layout.tsx               # Layout utama
+│   └── page.tsx                 # Halaman beranda
+├── components/                   # Komponen React
+│   ├── ui/                      # Komponen UI (Tombol, Kartu, dll.)
+│   └── dashboard/               # Komponen spesifik dasbor
+├── lib/                         # Utilitas inti
+│   ├── supabase.ts              # Klien database Supabase
+│   ├── auth.ts                  # Utilitas autentikasi
+│   ├── duitku.ts                # Integrasi pembayaran Duitku
+│   └── middleware.ts            # Middleware untuk API
+├── services/                    # Logika bisnis
+│   ├── userService.ts           # Operasi terkait pengguna
+│   └── paymentService.ts        # Operasi terkait pembayaran
 ├── hooks/                       # Custom React hooks
-│   ├── useAuth.ts               # Authentication hook
-│   └── usePayment.ts            # Payment hook
-├── types/                       # TypeScript definitions
-│   ├── user.ts                  # User types
-│   ├── payment.ts               # Payment types
-│   └── common.ts                # Common types
-├── utils/                       # Utility functions
-│   ├── validator.ts             # Input validation
-│   └── formatter.ts             # Data formatting
-├── config/                      # Configuration
-│   ├── constants.ts             # App constants
-│   └── env.ts                   # Environment config
-├── docs/                        # API documentation
-│   └── v1/                      # API v1 docs
-│       ├── auth.yaml            # Auth endpoints
-│       ├── payment.yaml         # Payment endpoints
-│       └── users.yaml           # User endpoints
-├── styles/                      # Global styles
-│   └── globals.css              # Tailwind CSS
-├── public/                      # Static assets
-├── .env.example                 # Environment variables template
-├── package.json                 # Dependencies
-├── next.config.js               # Next.js configuration
-├── tailwind.config.js           # Tailwind configuration
-├── tsconfig.json                # TypeScript configuration
-└── README.md                    # This file
+│   ├── useAuth.ts               # Hook untuk autentikasi
+│   └── usePayment.ts            # Hook untuk pembayaran
+├── types/                       # Definisi TypeScript
+│   ├── user.ts                  # Tipe data pengguna
+│   ├── payment.ts               # Tipe data pembayaran
+│   └── common.ts                # Tipe data umum
+├── utils/                       # Fungsi utilitas
+│   ├── validator.ts             # Validasi input
+│   └── formatter.ts             # Format data
+├── config/                      # Konfigurasi
+│   ├── constants.ts             # Konstanta aplikasi
+│   └── env.ts                   # Konfigurasi environment
+├── public/                      # Aset statis (gambar, ikon)
+├── .env.example                 # Template variabel lingkungan
+├── package.json                 # Dependensi dan skrip
+├── next.config.js               # Konfigurasi Next.js
+├── tailwind.config.js           # Konfigurasi Tailwind
+├── tsconfig.json                # Konfigurasi TypeScript
+└── README.md                    # File ini
 ```
 
-## 🚀 Getting Started
+## 🚀 Memulai
 
-### Prerequisites
-- Node.js 18.0 or higher
-- npm, yarn, or pnpm
-- Supabase account
-- Duitku merchant account
+### Prasyarat
+- Node.js 18.0 atau lebih tinggi
+- npm, yarn, atau pnpm
+- Akun Supabase
+- Akun merchant Duitku
 
-### Installation
+### Instalasi
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/your-username/socialbuzz-clone.git
-   cd socialbuzz-clone
-   ```
+1.  **Clone repositori**
+    ```bash
+    git clone https://github.com/your-username/socialbuzz-clone.git
+    cd socialbuzz-clone
+    ```
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   # or
-   yarn install
-   # or
-   pnpm install
-   ```
+2.  **Install dependensi**
+    ```bash
+    npm install
+    ```
 
-3. **Set up environment variables**
-   ```bash
-   cp .env.example .env.local
-   ```
+3.  **Siapkan variabel lingkungan**
+    Salin `.env.example` ke `.env.local`.
+    ```bash
+    cp .env.example .env.local
+    ```
+    Isi variabel yang diperlukan di `.env.local`:
+    ```env
+    # Aplikasi
+    NEXT_PUBLIC_APP_URL=http://localhost:3000
 
-   Fill in your environment variables:
-   ```env
-   # Application
-   NEXT_PUBLIC_APP_URL=http://localhost:3000
-   
-   # Database - Supabase
-   NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-   SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
-   
-   # JWT Authentication
-   JWT_SECRET=your-super-secret-jwt-key-min-32-characters
-   
-   # Payment Gateway - Duitku
-   DUITKU_MERCHANT_CODE=your-merchant-code
-   DUITKU_API_KEY=your-api-key
-   ```
+    # Database - Supabase
+    NEXT_PUBLIC_SUPABASE_URL=https://proyek-anda.supabase.co
+    NEXT_PUBLIC_SUPABASE_ANON_KEY=kunci-anon-anda
+    SUPABASE_SERVICE_ROLE_KEY=kunci-service-role-anda
 
-4. **Set up the database**
-   
-   Run the following SQL in your Supabase SQL editor:
-   ```sql
-   -- Create users table
-   CREATE TABLE users (
-     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-     email TEXT UNIQUE NOT NULL,
-     username TEXT UNIQUE NOT NULL,
-     full_name TEXT NOT NULL,
-     password_hash TEXT NOT NULL,
-     avatar TEXT,
-     role TEXT DEFAULT 'user' CHECK (role IN ('user', 'admin', 'super_admin')),
-     is_verified BOOLEAN DEFAULT false,
-     balance DECIMAL(15,2) DEFAULT 0,
-     total_earnings DECIMAL(15,2) DEFAULT 0,
-     total_donations DECIMAL(15,2) DEFAULT 0,
-     last_login TIMESTAMP WITH TIME ZONE,
-     created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
-     updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
-   );
-   
-   -- Create other tables (transactions, donations, etc.)
-   -- See docs/database-schema.sql for complete schema
-   ```
+    # Autentikasi JWT
+    JWT_SECRET=kunci-jwt-rahasia-anda-minimal-32-karakter
 
-5. **Run the development server**
-   ```bash
-   npm run dev
-   # or
-   yarn dev
-   # or
-   pnpm dev
-   ```
+    # Gateway Pembayaran - Duitku
+    DUITKU_MERCHANT_CODE=kode-merchant-anda
+    DUITKU_API_KEY=kunci-api-anda
+    ```
 
-6. **Open your browser**
-   
-   Visit [http://localhost:3000](http://localhost:3000) to see the application.
+4.  **Siapkan database**
+    Jalankan SQL dari file `database/socialbuzz_schema.sql` di editor SQL Supabase Anda untuk membuat tabel-tabel yang diperlukan.
 
-## 🔧 Configuration
+5.  **Jalankan server pengembangan**
+    ```bash
+    npm run dev
+    ```
 
-### Environment Variables
+6.  **Buka browser Anda**
+    Kunjungi [http://localhost:3000](http://localhost:3000) untuk melihat aplikasi.
 
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `NEXT_PUBLIC_APP_URL` | Application URL | ✅ |
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL | ✅ |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anonymous key | ✅ |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key | ✅ |
-| `JWT_SECRET` | JWT signing secret (min 32 chars) | ✅ |
-| `DUITKU_MERCHANT_CODE` | Duitku merchant code | ✅ |
-| `DUITKU_API_KEY` | Duitku API key | ✅ |
-| `SMTP_HOST` | Email server host | ❌ |
-| `SMTP_USER` | Email server username | ❌ |
-| `SMTP_PASSWORD` | Email server password | ❌ |
+## ⚙️ Konfigurasi
 
-### Payment Configuration
+### Variabel Lingkungan
 
-The application uses Duitku as the payment gateway. Configure your Duitku settings:
+| Variabel | Deskripsi | Wajib |
+| :--- | :--- | :---: |
+| `NEXT_PUBLIC_APP_URL` | URL aplikasi | ✅ |
+| `NEXT_PUBLIC_SUPABASE_URL` | URL proyek Supabase | ✅ |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Kunci anon Supabase | ✅ |
+| `SUPABASE_SERVICE_ROLE_KEY` | Kunci service role Supabase | ✅ |
+| `JWT_SECRET` | Rahasia penandatanganan JWT (min 32 karakter) | ✅ |
+| `DUITKU_MERCHANT_CODE` | Kode merchant Duitku | ✅ |
+| `DUITKU_API_KEY` | Kunci API Duitku | ✅ |
 
-1. Sign up for a Duitku merchant account
-2. Get your merchant code and API key
-3. Set up your callback URL: `https://yourdomain.com/api/v1/payment/callback`
-4. Configure your return URL: `https://yourdomain.com/payment/success`
+### Konfigurasi Pembayaran
 
-## 📚 API Documentation
+Aplikasi ini menggunakan Duitku. Konfigurasikan pengaturan Duitku Anda:
+1.  Daftar akun merchant Duitku.
+2.  Dapatkan kode merchant dan kunci API Anda.
+3.  Atur URL callback Anda ke: `https://domain-anda.com/api/v1/payment/callback`
+4.  Atur URL kembali (return URL) Anda ke: `https://domain-anda.com/payment/success`
 
-### Authentication Endpoints
+## 🧪 Pengujian (Testing)
 
-#### POST `/api/v1/auth/register`
-Register a new user account.
-
-**Request Body:**
-```json
-{
-  "email": "user@example.com",
-  "password": "password123",
-  "username": "johndoe",
-  "fullName": "John Doe"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-    "user": {
-      "id": "123e4567-e89b-12d3-a456-426614174000",
-      "email": "user@example.com",
-      "username": "johndoe",
-      "fullName": "John Doe",
-      "role": "user"
-    }
-  }
-}
-```
-
-#### POST `/api/v1/auth/login`
-Login with email and password.
-
-**Request Body:**
-```json
-{
-  "email": "user@example.com",
-  "password": "password123"
-}
-```
-
-### Payment Endpoints
-
-#### POST `/api/v1/payment/create`
-Create a new donation payment.
-
-**Headers:**
-```
-Authorization: Bearer <token>
-```
-
-**Request Body:**
-```json
-{
-  "recipientId": "123e4567-e89b-12d3-a456-426614174000",
-  "amount": 50000,
-  "paymentMethod": "bank_transfer",
-  "message": "Keep up the great work!",
-  "isAnonymous": false
-}
-```
-
-### User Endpoints
-
-#### GET `/api/v1/users/me`
-Get current user profile.
-
-**Headers:**
-```
-Authorization: Bearer <token>
-```
-
-For complete API documentation, see the OpenAPI specifications in the `docs/v1/` directory.
-
-## 🔐 Security Features
-
-- **JWT Authentication** - Secure token-based authentication
-- **Password Hashing** - bcryptjs with salt rounds
-- **Input Validation** - Zod schema validation
-- **SQL Injection Protection** - Parameterized queries
-- **XSS Protection** - Input sanitization
-- **CSRF Protection** - SameSite cookies
-- **Rate Limiting** - API rate limiting
-- **File Upload Security** - Type and size validation
-
-## 🧪 Testing
-
-Run the test suite:
+Jalankan suite pengujian:
 ```bash
 npm run test
-# or
-yarn test
-# or
-pnpm test
 ```
 
-Run linting:
+Jalankan linter untuk memeriksa kualitas kode:
 ```bash
 npm run lint
-# or
-yarn lint
-# or
-pnpm lint
 ```
 
-Run type checking:
+Periksa tipe dengan TypeScript:
 ```bash
 npm run type-check
-# or
-yarn type-check
-# or
-pnpm type-check
 ```
 
-## 📦 Building for Production
+## 📦 Build untuk Produksi
 
-1. **Build the application**
-   ```bash
-   npm run build
-   # or
-   yarn build
-   # or
-   pnpm build
-   ```
+1.  **Build aplikasi**
+    ```bash
+    npm run build
+    ```
 
-2. **Start the production server**
-   ```bash
-   npm start
-   # or
-   yarn start
-   # or
-   pnpm start
-   ```
+2.  **Jalankan server produksi**
+    ```bash
+    npm run start
+    ```
 
 ## 🚀 Deployment
 
-### Deploy to Vercel
+### Deploy ke Vercel
+1.  Push kode Anda ke GitHub.
+2.  Hubungkan repositori Anda ke Vercel.
+3.  Atur variabel lingkungan di dasbor Vercel.
+4.  Deploy!
 
-1. Push your code to GitHub
-2. Connect your repository to Vercel
-3. Set up environment variables in Vercel dashboard
-4. Deploy!
+## 🤝 Berkontribusi
 
-### Deploy API to Subdomain
+1.  Fork repositori ini.
+2.  Buat branch fitur Anda (`git checkout -b feature/FiturKeren`).
+3.  Commit perubahan Anda (`git commit -m 'Menambahkan FiturKeren'`).
+4.  Push ke branch (`git push origin feature/FiturKeren`).
+5.  Buka sebuah Pull Request.
 
-To deploy the API to `api.yourdomain.com`:
+## 📄 Lisensi
 
-1. **Set up subdomain routing**
-   ```javascript
-   // next.config.js
-   module.exports = {
-     async rewrites() {
-       return [
-         {
-           source: '/api/:path*',
-           destination: 'https://api.yourdomain.com/:path*',
-         },
-       ];
-     },
-   };
-   ```
-
-2. **Configure your DNS**
-   - Add a CNAME record for `api.yourdomain.com`
-   - Point it to your deployment platform
-
-### Environment-specific Configurations
-
-**Development:**
-```env
-NODE_ENV=development
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-DUITKU_BASE_URL=https://sandbox.duitku.com/webapi/api
-```
-
-**Production:**
-```env
-NODE_ENV=production
-NEXT_PUBLIC_APP_URL=https://yourdomain.com
-DUITKU_BASE_URL=https://passport.duitku.com/webapi/api
-```
-
-## 📖 Updating API Documentation
-
-The project uses OpenAPI (Swagger) specifications for API documentation. To update the documentation:
-
-1. **Edit the YAML files** in the `docs/v1/` directory
-2. **Add new endpoints** following the existing pattern
-3. **Include example requests and responses**
-4. **Update the curl examples** at the bottom of each file
-
-### Documentation Structure
-
-```
-docs/
-└── v1/
-    ├── auth.yaml      # Authentication endpoints
-    ├── payment.yaml   # Payment endpoints
-    ├── users.yaml     # User management endpoints
-    └── admin.yaml     # Admin endpoints
-```
-
-### Example Documentation Update
-
-When adding a new endpoint:
-
-```yaml
-/users/profile:
-  get:
-    summary: Get user profile
-    description: Retrieve detailed user profile information
-    operationId: getUserProfile
-    tags:
-      - Users
-    security:
-      - BearerAuth: []
-    responses:
-      '200':
-        description: Profile retrieved successfully
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UserProfile'
-```
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- [Next.js](https://nextjs.org/) - React framework
-- [Supabase](https://supabase.com/) - Backend as a Service
-- [Tailwind CSS](https://tailwindcss.com/) - CSS framework
-- [Duitku](https://duitku.com/) - Payment gateway
-- [Lucide](https://lucide.dev/) - Icon library
-
-## 🆘 Support
-
-If you encounter any issues or have questions:
-
-1. Check the [Issues](https://github.com/your-username/socialbuzz-clone/issues) page
-2. Create a new issue with detailed information
-3. Join our [Discord community](https://discord.gg/your-server)
-4. Email us at support@socialbuzz.com
-
-## 🔄 Changelog
-
-### v1.0.0
-- Initial release
-- Complete authentication system
-- Payment integration with Duitku
-- User and admin dashboards
-- File upload system
-- API documentation
-- Production-ready deployment
-
----
-
-Built with ❤️ by the SocialBuzz team
+Proyek ini dilisensikan di bawah Lisensi MIT - lihat file `LICENSE` untuk detailnya.

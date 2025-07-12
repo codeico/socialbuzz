@@ -44,7 +44,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       if (response.ok) {
         const data = await response.json();
-        setUser(data.data);
+        if (data.success) {
+          setUser(data.data);
+        } else {
+          localStorage.removeItem('token');
+        }
       } else {
         localStorage.removeItem('token');
       }

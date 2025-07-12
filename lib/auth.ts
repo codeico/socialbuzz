@@ -17,8 +17,7 @@ export const verifyPassword = async (
   return bcrypt.compare(password, hashedPassword);
 };
 
-export const generateToken = (user: AuthUser): string => {
-  // @ts-ignore
+export const generateToken = (user: any): string => {
   return jwt.sign(
     {
       id: user.id,
@@ -31,17 +30,14 @@ export const generateToken = (user: AuthUser): string => {
   );
 };
 
-export const verifyToken = (token: string): AuthUser | null => {
+export const verifyToken = (token: string): { userId: string; email: string; username: string; role: string } | null => {
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as any;
     return {
-      id: decoded.id,
+      userId: decoded.id,
       email: decoded.email,
       username: decoded.username,
-      fullName: decoded.fullName,
       role: decoded.role,
-      avatar: decoded.avatar,
-      isVerified: decoded.isVerified,
     };
   } catch (error) {
     return null;

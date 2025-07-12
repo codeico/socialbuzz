@@ -1,15 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
-import { withAuth } from '@/lib/middleware';
-import { handleCors } from '@/lib/middleware';
+import { verifyToken } from '@/lib/auth';
+import { supabaseAdmin } from '@/lib/supabase';
 
-export async function OPTIONS(req: NextRequest) {
-  return handleCors(req) || new NextResponse(null, { status: 200 });
-}
-
-export const GET = withAuth(async (req) => {
+export async function GET(request: NextRequest) {
   try {
-    const { data: user, error } = await supabase
+    const token = request.headers.get('authorization')?.replace('Bearer ', '');
+    if (!token) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const decoded = verifyToken(token);
+    if (!decoded) {
+      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+    }
+
+    const { data: user, error } = await supabaseAdmin
       .from('users')
       .select(`
         id,
@@ -25,10 +30,11 @@ export const GET = withAuth(async (req) => {
         created_at,
         updated_at
       `)
-      .eq('id', req.user.id)
+      .eq('id', decoded.userId)
       .single();
 
     if (error) {
+      console.error('User fetch error:', error);
       return NextResponse.json(
         { success: false, error: 'User not found' },
         { status: 404 },
@@ -46,11 +52,21 @@ export const GET = withAuth(async (req) => {
       { status: 500 },
     );
   }
-});
+}
 
-export const PUT = withAuth(async (req) => {
+export async function PUT(request: NextRequest) {
   try {
-    const body = await req.json();
+    const token = request.headers.get('authorization')?.replace('Bearer ', '');
+    if (!token) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const decoded = verifyToken(token);
+    if (!decoded) {
+      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+    }
+
+    const body = await request.json();
     const { fullName, avatar } = body;
 
     if (!fullName) {
@@ -60,14 +76,14 @@ export const PUT = withAuth(async (req) => {
       );
     }
 
-    const { data: user, error } = await supabase
+    const { data: user, error } = await supabaseAdmin
       .from('users')
       .update({
         full_name: fullName,
         avatar: avatar || null,
         updated_at: new Date().toISOString(),
       })
-      .eq('id', req.user.id)
+      .eq('id', decoded.userId)
       .select()
       .single();
 
@@ -90,4 +106,47 @@ export const PUT = withAuth(async (req) => {
       { status: 500 },
     );
   }
-});
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const token = request.headers.get('authorization')?.replace('Bearer ', '');
+    if (!token) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const decoded = verifyToken(token);
+    if (!decoded) {
+      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+    }
+
+    // Soft delete the user account
+    const { error } = await supabaseAdmin
+      .from('users')
+      .update({
+        is_active: false,
+        deleted_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', decoded.userId);
+
+    if (error) {
+      console.error('Delete user error:', error);
+      return NextResponse.json(
+        { success: false, error: 'Failed to delete user' },
+        { status: 500 },
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: 'Account deleted successfully',
+    });
+  } catch (error) {
+    console.error('Delete user error:', error);
+    return NextResponse.json(
+      { success: false, error: 'Internal server error' },
+      { status: 500 },
+    );
+  }
+}

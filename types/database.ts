@@ -7,12 +7,14 @@ export interface Database {
           email: string;
           username: string;
           full_name: string;
+          password_hash: string;
           avatar: string | null;
           role: 'user' | 'admin' | 'super_admin';
           is_verified: boolean;
           balance: number;
           total_earnings: number;
           total_donations: number;
+          last_login: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -21,12 +23,14 @@ export interface Database {
           email: string;
           username: string;
           full_name: string;
+          password_hash: string;
           avatar?: string | null;
           role?: 'user' | 'admin' | 'super_admin';
           is_verified?: boolean;
           balance?: number;
           total_earnings?: number;
           total_donations?: number;
+          last_login?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -35,12 +39,14 @@ export interface Database {
           email?: string;
           username?: string;
           full_name?: string;
+          password_hash?: string;
           avatar?: string | null;
           role?: 'user' | 'admin' | 'super_admin';
           is_verified?: boolean;
           balance?: number;
           total_earnings?: number;
           total_donations?: number;
+          last_login?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -233,6 +239,175 @@ export interface Database {
           value?: Record<string, any>;
           created_at?: string;
           updated_at?: string;
+        };
+      };
+      notifications: {
+        Row: {
+          id: string;
+          user_id: string;
+          type: string;
+          title: string;
+          message: string;
+          data: Record<string, any>;
+          action_url: string | null;
+          is_read: boolean;
+          read_at: string | null;
+          created_at: string;
+          updated_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          type: string;
+          title: string;
+          message: string;
+          data?: Record<string, any>;
+          action_url?: string | null;
+          is_read?: boolean;
+          read_at?: string | null;
+          created_at?: string;
+          updated_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          type?: string;
+          title?: string;
+          message?: string;
+          data?: Record<string, any>;
+          action_url?: string | null;
+          is_read?: boolean;
+          read_at?: string | null;
+          created_at?: string;
+          updated_at?: string | null;
+        };
+      };
+      password_reset_tokens: {
+        Row: {
+          id: string;
+          user_id: string;
+          token: string;
+          expires_at: string;
+          used_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          token: string;
+          expires_at: string;
+          used_at?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          token?: string;
+          expires_at?: string;
+          used_at?: string | null;
+          created_at?: string;
+        };
+      };
+      file_uploads: {
+        Row: {
+          id: string;
+          user_id: string;
+          filename: string;
+          original_name: string;
+          mimetype: string;
+          size: number;
+          url: string;
+          bucket: string;
+          path: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          filename: string;
+          original_name: string;
+          mimetype: string;
+          size: number;
+          url: string;
+          bucket: string;
+          path: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          filename?: string;
+          original_name?: string;
+          mimetype?: string;
+          size?: number;
+          url?: string;
+          bucket?: string;
+          path?: string;
+          created_at?: string;
+        };
+      };
+      faqs: {
+        Row: {
+          id: string;
+          question: string;
+          answer: string;
+          category: string;
+          is_active: boolean;
+          sort_order: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          question: string;
+          answer: string;
+          category: string;
+          is_active?: boolean;
+          sort_order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          question?: string;
+          answer?: string;
+          category?: string;
+          is_active?: boolean;
+          sort_order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      contact_submissions: {
+        Row: {
+          id: string;
+          name: string;
+          email: string;
+          subject: string;
+          category: string;
+          message: string;
+          status: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          email: string;
+          subject: string;
+          category?: string;
+          message: string;
+          status?: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          email?: string;
+          subject?: string;
+          category?: string;
+          message?: string;
+          status?: string;
+          created_at?: string;
         };
       };
     };

@@ -24,26 +24,53 @@ export default function ProfilePage() {
   });
   const [avatar, setAvatar] = useState('');
   const [loading, setLoading] = useState(false);
+  const [pageLoading, setPageLoading] = useState(true);
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
 
   useEffect(() => {
     if (user) {
-      setFormData({
-        fullName: user.fullName || '',
-        bio: '',
-        website: '',
-        location: '',
-        socialLinks: {
-          twitter: '',
-          instagram: '',
-          youtube: '',
-          tiktok: '',
-        },
-      });
-      setAvatar(user.avatar || '');
+      loadProfileData();
     }
   }, [user]);
+
+  const loadProfileData = async () => {
+    try {
+      setPageLoading(true);
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/v1/users/profile', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        const profile = data.data;
+        setFormData({
+          fullName: profile.full_name || '',
+          bio: profile.bio || '',
+          website: profile.website || '',
+          location: profile.location || '',
+          socialLinks: profile.socialLinks || {
+            twitter: '',
+            instagram: '',
+            youtube: '',
+            tiktok: '',
+          },
+        });
+        setAvatar(profile.avatar || '');
+      } else {
+        setError('Failed to load profile data');
+      }
+    } catch (error) {
+      console.error('Error loading profile:', error);
+      setError('Failed to load profile data');
+    } finally {
+      setPageLoading(false);
+    }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -101,7 +128,7 @@ export default function ProfilePage() {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/v1/users/me', {
+      const response = await fetch('/api/v1/users/profile', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -110,12 +137,18 @@ export default function ProfilePage() {
         body: JSON.stringify({
           fullName: formData.fullName,
           avatar: avatar,
+          bio: formData.bio,
+          website: formData.website,
+          location: formData.location,
+          socialLinks: formData.socialLinks,
         }),
       });
 
       const result = await response.json();
       if (result.success) {
         setSuccess('Profile updated successfully!');
+        // Reload profile data to ensure consistency
+        await loadProfileData();
       } else {
         setError(result.error || 'Failed to update profile');
       }
@@ -125,6 +158,19 @@ export default function ProfilePage() {
       setLoading(false);
     }
   };
+
+  if (pageLoading) {
+    return (
+      <DashboardLayout activeTab="profile" onTabChange={() => {}}>
+        <div className="p-6 flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading profile...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout activeTab="profile" onTabChange={() => {}}>

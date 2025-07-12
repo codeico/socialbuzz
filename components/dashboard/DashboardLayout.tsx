@@ -1,13 +1,11 @@
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Home,
   User,
   CreditCard,
   Settings,
   LogOut,
-  Users,
-  DollarSign,
-  FileText,
   Shield,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
@@ -25,39 +23,22 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   onTabChange,
 }) => {
   const { user, logout } = useAuth();
+  const router = useRouter();
 
+  // User dashboard tabs only
   const userTabs = [
-    { id: 'overview', label: 'Overview', icon: Home },
-    { id: 'profile', label: 'Profile', icon: User },
-    { id: 'transactions', label: 'Transactions', icon: CreditCard },
-    { id: 'settings', label: 'Settings', icon: Settings },
+    { id: 'overview', label: 'Overview', icon: Home, path: '/dashboard' },
+    { id: 'profile', label: 'Profile', icon: User, path: '/dashboard/profile' },
+    { id: 'transactions', label: 'Transactions', icon: CreditCard, path: '/dashboard/transactions' },
+    { id: 'settings', label: 'Settings', icon: Settings, path: '/dashboard/settings' },
   ];
 
-  const adminTabs = [
-    { id: 'overview', label: 'Overview', icon: Home },
-    { id: 'users', label: 'Users', icon: Users },
-    { id: 'transactions', label: 'Transactions', icon: CreditCard },
-    { id: 'payouts', label: 'Payouts', icon: DollarSign },
-    { id: 'reports', label: 'Reports', icon: FileText },
-    { id: 'settings', label: 'Settings', icon: Settings },
-  ];
-
-  const superAdminTabs = [
-    ...adminTabs,
-    { id: 'admin', label: 'Admin Panel', icon: Shield },
-  ];
-
-  const getTabs = () => {
-    if (user?.role === 'super_admin') {
-      return superAdminTabs;
+  const handleTabClick = (tab: any) => {
+    router.push(tab.path);
+    if (onTabChange) {
+      onTabChange(tab.id);
     }
-    if (user?.role === 'admin') {
-      return adminTabs;
-    }
-    return userTabs;
   };
-
-  const tabs = getTabs();
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -70,12 +51,25 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
               </h1>
             </div>
             <div className="flex items-center space-x-4">
+              {/* Show admin panel link for admins */}
+              {user && ['admin', 'super_admin'].includes(user.role || '') && (
+                <button
+                  onClick={() => router.push('/admin')}
+                  className="text-indigo-600 hover:text-indigo-700 text-sm font-medium px-3 py-2 rounded-md hover:bg-indigo-50 transition-colors"
+                >
+                  <Shield className="w-4 h-4 inline mr-2" />
+                  Admin Panel
+                </button>
+              )}
               <span className="text-sm text-gray-700">
                 Welcome, {user?.fullName}
               </span>
               <button
-                onClick={logout}
-                className="inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-500 bg-white"
+                onClick={() => {
+                  logout();
+                  router.push('/');
+                }}
+                className="inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-500 bg-white hover:bg-gray-50 hover:text-gray-700 transition-colors"
               >
                 <LogOut className="w-4 h-4 mr-2" />
                 Logout
@@ -90,14 +84,14 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           <div className="flex">
             <div className="w-64 bg-white rounded-lg shadow-sm border border-gray-200 h-fit">
               <nav className="p-4 space-y-2">
-                {tabs.map((tab) => {
+                {userTabs.map((tab) => {
                   const Icon = tab.icon;
                   return (
                     <button
                       key={tab.id}
-                      onClick={() => onTabChange(tab.id)}
+                      onClick={() => handleTabClick(tab)}
                       className={cn(
-                        'w-full flex items-center px-3 py-2 text-sm font-medium rounded-md',
+                        'w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors cursor-pointer',
                         activeTab === tab.id
                           ? 'bg-indigo-100 text-indigo-700'
                           : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',

@@ -19,22 +19,34 @@ import {
 interface Creator {
   id: string;
   username: string;
-  fullName: string;
+  displayName: string;
   avatar: string;
   bio: string;
-  totalEarnings: number;
-  supporterCount: number;
-  isVerified: boolean;
   category: string;
+  isVerified: boolean;
+  stats: {
+    totalDonations: number;
+    totalSupporters: number;
+    avgDonationAmount: number;
+    lastDonationAt?: string;
+  };
+  socialLinks: Record<string, string>;
+  joinedAt: string;
 }
 
 export default function ExplorePage() {
   const [creators, setCreators] = useState<Creator[]>([]);
-  const [filteredCreators, setFilteredCreators] = useState<Creator[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortBy, setSortBy] = useState('popular');
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 12,
+    total: 0,
+    totalPages: 0,
+  });
 
   const categories = [
     { id: 'all', name: 'All Categories' },
@@ -50,130 +62,54 @@ export default function ExplorePage() {
 
   useEffect(() => {
     loadCreators();
-  }, []);
+  }, [selectedCategory, sortBy, pagination.page]);
 
   useEffect(() => {
-    filterAndSortCreators();
-  }, [creators, searchQuery, selectedCategory, sortBy]);
+    const debounceTimer = setTimeout(() => {
+      if (searchQuery !== '') {
+        loadCreators();
+      }
+    }, 300);
+    return () => clearTimeout(debounceTimer);
+  }, [searchQuery]);
 
   const loadCreators = async () => {
     try {
-      // Mock data - in real app, this would be an API call
-      const mockCreators: Creator[] = [
-        {
-          id: '1',
-          username: 'johndoe',
-          fullName: 'John Doe',
-          avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-          bio: 'Content creator passionate about technology and education',
-          totalEarnings: 1250000,
-          supporterCount: 42,
-          isVerified: true,
-          category: 'tech',
-        },
-        {
-          id: '2',
-          username: 'artlover',
-          fullName: 'Sarah Wilson',
-          avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
-          bio: 'Digital artist creating amazing illustrations',
-          totalEarnings: 850000,
-          supporterCount: 28,
-          isVerified: false,
-          category: 'art',
-        },
-        {
-          id: '3',
-          username: 'musicmaker',
-          fullName: 'Mike Johnson',
-          avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
-          bio: 'Musician and producer sharing my musical journey',
-          totalEarnings: 2100000,
-          supporterCount: 89,
-          isVerified: true,
-          category: 'music',
-        },
-        {
-          id: '4',
-          username: 'gamerpro',
-          fullName: 'Alex Chen',
-          avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop&crop=face',
-          bio: 'Professional gamer and streaming content',
-          totalEarnings: 1800000,
-          supporterCount: 156,
-          isVerified: true,
-          category: 'gaming',
-        },
-        {
-          id: '5',
-          username: 'educator',
-          fullName: 'Lisa Anderson',
-          avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
-          bio: 'Teaching programming and web development',
-          totalEarnings: 950000,
-          supporterCount: 67,
-          isVerified: false,
-          category: 'education',
-        },
-        {
-          id: '6',
-          username: 'lifestyle',
-          fullName: 'Emma Davis',
-          avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face',
-          bio: 'Lifestyle blogger sharing daily inspirations',
-          totalEarnings: 720000,
-          supporterCount: 34,
-          isVerified: false,
-          category: 'lifestyle',
-        },
-      ];
-      
-      setCreators(mockCreators);
+      setLoading(true);
+      setError('');
+
+      const params = new URLSearchParams({
+        page: pagination.page.toString(),
+        limit: pagination.limit.toString(),
+        sort: sortBy,
+      });
+
+      if (selectedCategory !== 'all') {
+        params.append('category', selectedCategory);
+      }
+
+      if (searchQuery) {
+        params.append('search', searchQuery);
+      }
+
+      const response = await fetch(`/api/v1/creators?${params.toString()}`);
+      const data = await response.json();
+
+      if (data.success) {
+        setCreators(data.data);
+        setPagination(data.pagination);
+        setError('');
+      } else {
+        setError('Failed to load creators');
+      }
     } catch (error) {
+      setError('Failed to load creators');
       console.error('Error loading creators:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const filterAndSortCreators = () => {
-    let filtered = creators;
-
-    // Filter by search query
-    if (searchQuery) {
-      filtered = filtered.filter(creator =>
-        creator.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        creator.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        creator.bio.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-
-    // Filter by category
-    if (selectedCategory !== 'all') {
-      filtered = filtered.filter(creator => creator.category === selectedCategory);
-    }
-
-    // Sort creators
-    switch (sortBy) {
-      case 'popular':
-        filtered.sort((a, b) => b.supporterCount - a.supporterCount);
-        break;
-      case 'earnings':
-        filtered.sort((a, b) => b.totalEarnings - a.totalEarnings);
-        break;
-      case 'name':
-        filtered.sort((a, b) => a.fullName.localeCompare(b.fullName));
-        break;
-      case 'recent':
-        // In real app, this would sort by creation date
-        filtered.sort((a, b) => Math.random() - 0.5);
-        break;
-      default:
-        break;
-    }
-
-    setFilteredCreators(filtered);
-  };
 
   if (loading) {
     return (
@@ -181,6 +117,25 @@ export default function ExplorePage() {
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading creators...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="bg-red-100 rounded-full p-4 w-16 h-16 mx-auto mb-4">
+            <svg className="h-8 w-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Error loading creators</h3>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <Button onClick={() => loadCreators()}>
+            Try Again
+          </Button>
         </div>
       </div>
     );
@@ -281,14 +236,14 @@ export default function ExplorePage() {
           <div>
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-semibold text-gray-900">
-                {filteredCreators.length} Creator{filteredCreators.length !== 1 ? 's' : ''} Found
+                {pagination.total} Creator{pagination.total !== 1 ? 's' : ''} Found
               </h2>
               <div className="text-sm text-gray-600">
-                Showing {filteredCreators.length} of {creators.length} creators
+                Showing {creators.length} of {pagination.total} creators
               </div>
             </div>
 
-            {filteredCreators.length === 0 ? (
+            {creators.length === 0 ? (
               <Card>
                 <CardContent className="text-center py-12">
                   <div className="text-gray-500">
@@ -300,13 +255,13 @@ export default function ExplorePage() {
               </Card>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredCreators.map(creator => (
+                {creators.map(creator => (
                   <Card key={creator.id} className="hover:shadow-lg transition-shadow">
                     <CardHeader className="text-center">
                       <div className="relative inline-block">
                         <img
                           src={creator.avatar}
-                          alt={creator.fullName}
+                          alt={creator.displayName}
                           className="w-20 h-20 rounded-full mx-auto object-cover"
                         />
                         {creator.isVerified && (
@@ -315,7 +270,7 @@ export default function ExplorePage() {
                           </div>
                         )}
                       </div>
-                      <CardTitle className="mt-4">{creator.fullName}</CardTitle>
+                      <CardTitle className="mt-4">{creator.displayName}</CardTitle>
                       <CardDescription>@{creator.username}</CardDescription>
                     </CardHeader>
                     
@@ -328,11 +283,11 @@ export default function ExplorePage() {
                         <div className="flex items-center justify-between text-sm">
                           <div className="flex items-center text-gray-500">
                             <Users size={16} className="mr-1" />
-                            {creator.supporterCount} supporters
+                            {creator.stats.totalSupporters} supporters
                           </div>
                           <div className="flex items-center text-gray-500">
                             <TrendingUp size={16} className="mr-1" />
-                            {formatCurrency(creator.totalEarnings)}
+                            {formatCurrency(creator.stats.totalDonations)}
                           </div>
                         </div>
                         

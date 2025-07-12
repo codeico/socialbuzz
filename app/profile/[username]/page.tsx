@@ -21,19 +21,25 @@ import {
 interface UserProfile {
   id: string;
   username: string;
-  fullName: string;
-  avatar?: string;
-  bio?: string;
-  location?: string;
-  website?: string;
-  socialLinks?: {
-    twitter?: string;
-    instagram?: string;
-    youtube?: string;
-  };
-  totalEarnings: number;
-  createdAt: string;
+  email: string;
+  displayName: string;
+  avatar: string;
   isVerified: boolean;
+  isOnboarded: boolean;
+  role: string;
+  profile: {
+    bio: string;
+    category: string;
+    social_links: Record<string, string>;
+    bank_account: Record<string, string>;
+  } | null;
+  stats: {
+    total_donations: number;
+    total_supporters: number;
+    avg_donation_amount: number;
+    last_donation_at: string | null;
+  };
+  joinedAt: string;
 }
 
 export default function ProfilePage() {
@@ -42,6 +48,7 @@ export default function ProfilePage() {
   
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [donationModal, setDonationModal] = useState(false);
   const [donationAmount, setDonationAmount] = useState('');
   const [donationMessage, setDonationMessage] = useState('');
@@ -56,26 +63,20 @@ export default function ProfilePage() {
 
   const loadProfile = async () => {
     try {
-      // In a real app, this would fetch from your API
-      // For now, we'll use mock data
-      setProfile({
-        id: '1',
-        username: username,
-        fullName: 'John Doe',
-        avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-        bio: 'Content creator passionate about technology and education. Sharing knowledge through tutorials and live streams.',
-        location: 'Jakarta, Indonesia',
-        website: 'https://johndoe.com',
-        socialLinks: {
-          twitter: 'https://twitter.com/johndoe',
-          instagram: 'https://instagram.com/johndoe',
-          youtube: 'https://youtube.com/johndoe',
-        },
-        totalEarnings: 1250000,
-        createdAt: '2024-01-15T00:00:00Z',
-        isVerified: true,
-      });
+      setLoading(true);
+      setError('');
+
+      const response = await fetch(`/api/v1/users/username/${username}`);
+      const data = await response.json();
+
+      if (data.success) {
+        setProfile(data.data);
+        setError('');
+      } else {
+        setError(data.error || 'User not found');
+      }
     } catch (error) {
+      setError('Failed to load profile');
       console.error('Error loading profile:', error);
     } finally {
       setLoading(false);
@@ -123,8 +124,8 @@ export default function ProfilePage() {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: `Support ${profile?.fullName} on SocialBuzz`,
-          text: `Check out ${profile?.fullName}'s profile and show your support!`,
+          title: `Support ${profile?.displayName} on SocialBuzz`,
+          text: `Check out ${profile?.displayName}'s profile and show your support!`,
           url: window.location.href,
         });
       } catch (error) {
@@ -143,6 +144,25 @@ export default function ProfilePage() {
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading profile...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="bg-red-100 rounded-full p-4 w-16 h-16 mx-auto mb-4">
+            <svg className="h-8 w-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Profile Error</h1>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <Button onClick={() => loadProfile()}>
+            Try Again
+          </Button>
         </div>
       </div>
     );
@@ -169,7 +189,7 @@ export default function ProfilePage() {
               <div className="relative">
                 <img
                   src={profile.avatar || '/default-avatar.png'}
-                  alt={profile.fullName}
+                  alt={profile.displayName}
                   className="w-20 h-20 rounded-full object-cover"
                 />
                 {profile.isVerified && (
@@ -179,18 +199,18 @@ export default function ProfilePage() {
                 )}
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">{profile.fullName}</h1>
+                <h1 className="text-2xl font-bold text-gray-900">{profile.displayName}</h1>
                 <p className="text-gray-600">@{profile.username}</p>
                 <div className="flex items-center space-x-4 mt-2 text-sm text-gray-500">
-                  {profile.location && (
+                  {profile.profile?.category && (
                     <div className="flex items-center">
                       <MapPin size={16} className="mr-1" />
-                      {profile.location}
+                      {profile.profile.category}
                     </div>
                   )}
                   <div className="flex items-center">
                     <Calendar size={16} className="mr-1" />
-                    Joined {formatDate(profile.createdAt)}
+                    Joined {formatDate(profile.joinedAt)}
                   </div>
                 </div>
               </div>
@@ -221,26 +241,26 @@ export default function ProfilePage() {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-700 whitespace-pre-line">
-                  {profile.bio || 'This user hasn\'t added a bio yet.'}
+                  {profile.profile?.bio || 'This user hasn\'t added a bio yet.'}
                 </p>
                 
-                {profile.website && (
+                {profile.profile?.social_links?.website && (
                   <div className="mt-4">
                     <a
-                      href={profile.website}
+                      href={profile.profile.social_links.website}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center text-indigo-600 hover:text-indigo-500"
                     >
                       <LinkIcon size={16} className="mr-2" />
-                      {profile.website}
+                      {profile.profile.social_links.website}
                     </a>
                   </div>
                 )}
                 
-                {profile.socialLinks && (
+                {profile.profile?.social_links && (
                   <div className="mt-4 space-y-2">
-                    {Object.entries(profile.socialLinks).map(([platform, url]) => (
+                    {Object.entries(profile.profile.social_links).filter(([platform, url]) => platform !== 'website' && url).map(([platform, url]) => (
                       <a
                         key={platform}
                         href={url}
@@ -317,7 +337,7 @@ export default function ProfilePage() {
                     <Gift size={20} className="mr-2 text-gray-500" />
                     <span className="text-sm text-gray-600">Total Received</span>
                   </div>
-                  <span className="font-semibold">{formatCurrency(profile.totalEarnings)}</span>
+                  <span className="font-semibold">{formatCurrency(profile.stats.total_donations)}</span>
                 </div>
                 
                 <div className="flex items-center justify-between">
@@ -325,7 +345,7 @@ export default function ProfilePage() {
                     <Users size={20} className="mr-2 text-gray-500" />
                     <span className="text-sm text-gray-600">Supporters</span>
                   </div>
-                  <span className="font-semibold">42</span>
+                  <span className="font-semibold">{profile.stats.total_supporters}</span>
                 </div>
                 
                 <div className="flex items-center justify-between">
@@ -341,7 +361,7 @@ export default function ProfilePage() {
             {/* Support Button */}
             <Card>
               <CardHeader>
-                <CardTitle>Support {profile.fullName}</CardTitle>
+                <CardTitle>Support {profile.displayName}</CardTitle>
                 <CardDescription>
                   Show your appreciation with a donation
                 </CardDescription>

@@ -1,15 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
-import { withAuth } from '@/lib/middleware';
-import { handleCors } from '@/lib/middleware';
+import { verifyToken } from '@/lib/auth';
+import { supabaseAdmin } from '@/lib/supabase';
 
-export async function OPTIONS(req: NextRequest) {
-  return handleCors(req) || new NextResponse(null, { status: 200 });
-}
-
-export const GET = withAuth(async (req) => {
+export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url);
+    const token = request.headers.get('authorization')?.replace('Bearer ', '');
+    if (!token) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const decoded = verifyToken(token);
+    if (!decoded) {
+      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
     const sortBy = searchParams.get('sortBy') || 'created_at';
@@ -17,10 +22,10 @@ export const GET = withAuth(async (req) => {
 
     const offset = (page - 1) * limit;
 
-    const { data, error, count } = await supabase
+    const { data, error, count } = await supabaseAdmin
       .from('payout_requests')
       .select('*', { count: 'exact' })
-      .eq('user_id', req.user.id)
+      .eq('user_id', decoded.userId)
       .order(sortBy, { ascending: sortOrder === 'asc' })
       .range(offset, offset + limit - 1);
 
@@ -56,11 +61,21 @@ export const GET = withAuth(async (req) => {
       { status: 500 }
     );
   }
-});
+}
 
-export const POST = withAuth(async (req) => {
+export async function POST(request: NextRequest) {
   try {
-    const body = await req.json();
+    const token = request.headers.get('authorization')?.replace('Bearer ', '');
+    if (!token) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const decoded = verifyToken(token);
+    if (!decoded) {
+      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+    }
+
+    const body = await request.json();
     const { amount, bankAccount } = body;
 
     if (!amount || !bankAccount) {
@@ -78,10 +93,10 @@ export const POST = withAuth(async (req) => {
     }
 
     // Check user balance
-    const { data: user, error: userError } = await supabase
+    const { data: user, error: userError } = await supabaseAdmin
       .from('users')
       .select('balance')
-      .eq('id', req.user.id)
+      .eq('id', decoded.userId)
       .single();
 
     if (userError || !user) {
@@ -99,10 +114,10 @@ export const POST = withAuth(async (req) => {
     }
 
     // Create payout request
-    const { data: payoutRequest, error: payoutError } = await supabase
+    const { data: payoutRequest, error: payoutError } = await supabaseAdmin
       .from('payout_requests')
       .insert({
-        user_id: req.user.id,
+        user_id: decoded.userId,
         amount: amount,
         currency: 'IDR',
         bank_account: bankAccount,
@@ -120,15 +135,18 @@ export const POST = withAuth(async (req) => {
     }
 
     // Update user balance
-    const { error: balanceError } = await supabase
+    const { error: balanceError } = await supabaseAdmin
       .from('users')
-      .update({ balance: user.balance - amount })
-      .eq('id', req.user.id);
+      .update({ 
+        balance: user.balance - amount,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', decoded.userId);
 
     if (balanceError) {
       console.error('Error updating user balance:', balanceError);
       // Rollback payout request if balance update fails
-      await supabase
+      await supabaseAdmin
         .from('payout_requests')
         .delete()
         .eq('id', payoutRequest.id);
@@ -150,4 +168,4 @@ export const POST = withAuth(async (req) => {
       { status: 500 }
     );
   }
-});
+}

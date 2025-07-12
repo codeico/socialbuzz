@@ -1,1 +1,12 @@
-{}
+{
+  "/api/v1/users/me/route": "app/api/v1/users/me/route.js",
+  "/api/v1/users/transactions/route": "app/api/v1/users/transactions/route.js",
+  "/api/v1/users/profile/route": "app/api/v1/users/profile/route.js",
+  "/auth/login/page": "app/auth/login/page.js",
+  "/dashboard/page": "app/dashboard/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/dashboard/profile/page": "app/dashboard/profile/page.js",
+  "/admin/page": "app/admin/page.js",
+  "/dashboard/transactions/page": "app/dashboard/transactions/page.js",
+  "/widget/[creatorId]/page": "app/widget/[creatorId]/page.js"
+}
