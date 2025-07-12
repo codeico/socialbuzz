@@ -75,7 +75,7 @@ export async function GET(request: NextRequest) {
       .eq('status', 'pending');
 
     // Calculate growth percentages
-    const userGrowth = usersLastMonth ? ((totalUsers - usersLastMonth) / usersLastMonth) * 100 : 0;
+    const userGrowth = usersLastMonth && totalUsers ? (((totalUsers || 0) - usersLastMonth) / usersLastMonth) * 100 : 0;
     const revenueGrowth = revenueLastMonth ? ((totalRevenue - revenueLastMonth) / revenueLastMonth) * 100 : 0;
 
     // Get recent activity
@@ -105,7 +105,13 @@ export async function GET(request: NextRequest) {
       .limit(2);
 
     // Format recent activity
-    const recentActivity = [];
+    const recentActivity: Array<{
+      id: string;
+      type: 'user_registered' | 'transaction_completed' | 'payout_requested';
+      user: string;
+      amount?: number;
+      timestamp: string;
+    }> = [];
 
     // Add recent users
     recentUsers?.forEach(user => {
@@ -119,10 +125,11 @@ export async function GET(request: NextRequest) {
 
     // Add recent transactions
     recentTransactions?.forEach(transaction => {
+      const userData = Array.isArray(transaction.users) ? transaction.users[0] : transaction.users;
       recentActivity.push({
         id: `transaction_${transaction.id}`,
         type: 'transaction_completed',
-        user: transaction.users?.full_name || transaction.users?.username || 'Unknown',
+        user: userData?.full_name || userData?.username || 'Unknown',
         amount: transaction.amount,
         timestamp: transaction.created_at,
       });
@@ -130,10 +137,11 @@ export async function GET(request: NextRequest) {
 
     // Add recent payouts
     recentPayouts?.forEach(payout => {
+      const userData = Array.isArray(payout.users) ? payout.users[0] : payout.users;
       recentActivity.push({
         id: `payout_${payout.id}`,
         type: 'payout_requested',
-        user: payout.users?.full_name || payout.users?.username || 'Unknown',
+        user: userData?.full_name || userData?.username || 'Unknown',
         amount: payout.amount,
         timestamp: payout.created_at,
       });
@@ -149,8 +157,8 @@ export async function GET(request: NextRequest) {
       pendingPayouts: pendingPayouts || 0,
       todayRevenue: Math.round(todayRevenue),
       todayTransactions: todayTransactionCount,
-      userGrowth: Math.round(userGrowth * 100) / 100,
-      revenueGrowth: Math.round(revenueGrowth * 100) / 100,
+      userGrowth: Number((userGrowth || 0).toFixed(2)),
+      revenueGrowth: Number((revenueGrowth || 0).toFixed(2)),
     };
 
     return NextResponse.json({
