@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -39,61 +39,53 @@ interface RecentActivity {
 }
 
 export default function AdminDashboardPage() {
-  const [stats] = useState<AdminStats>({
-    totalUsers: 1247,
-    totalRevenue: 2450000,
-    totalTransactions: 3456,
-    pendingPayouts: 12,
-    todayRevenue: 45000,
-    todayTransactions: 23,
-    userGrowth: 12.5,
-    revenueGrowth: 8.3,
+  const [stats, setStats] = useState<AdminStats>({
+    totalUsers: 0,
+    totalRevenue: 0,
+    totalTransactions: 0,
+    pendingPayouts: 0,
+    todayRevenue: 0,
+    todayTransactions: 0,
+    userGrowth: 0,
+    revenueGrowth: 0,
   });
-  const [recentActivity] = useState<RecentActivity[]>([
-    {
-      id: '1',
-      type: 'user_registered',
-      user: 'John Doe',
-      timestamp: new Date().toISOString(),
-    },
-    {
-      id: '2',
-      type: 'transaction_completed',
-      user: 'Jane Smith',
-      amount: 50000,
-      timestamp: new Date(Date.now() - 300000).toISOString(),
-    },
-    {
-      id: '3',
-      type: 'payout_requested',
-      user: 'Mike Johnson',
-      amount: 250000,
-      timestamp: new Date(Date.now() - 600000).toISOString(),
-    },
-  ]);
-  const [loading, setLoading] = useState(false);
+  const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  const loadDashboardData = async () => {
+  const loadDashboardData = useCallback(async () => {
     try {
       setLoading(true);
       setError('');
 
-      // For now, just simulate loading
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/v1/admin/dashboard', {
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
 
-      // In production, this would fetch real data:
-      // const token = localStorage.getItem('token');
-      // const response = await fetch('/api/v1/admin/dashboard/stats', {
-      //   headers: { 'Authorization': `Bearer ${token}` },
-      // });
+      const data = await response.json();
 
-      setLoading(false);
+      if (data.success) {
+        setStats(data.data.stats);
+        setRecentActivity(data.data.recentActivity);
+        setError('');
+      } else {
+        setError(data.error || 'Failed to load dashboard data');
+      }
     } catch (error) {
       setError('Failed to load dashboard data');
+      console.error('Dashboard error:', error);
+    } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadDashboardData();
+  }, [loadDashboardData]);
 
   const getActivityIcon = (type: string) => {
     switch (type) {

@@ -149,7 +149,7 @@ export default function AdminSettingsPage() {
       const data = await response.json();
 
       if (data.success) {
-        setSettings({ ...settings, ...data.data });
+        setSettings(data.data);
         setError('');
       } else {
         setError(data.error || 'Failed to load settings');
@@ -159,7 +159,7 @@ export default function AdminSettingsPage() {
     } finally {
       setLoading(false);
     }
-  }, [settings]);
+  }, []); // Remove settings dependency to prevent infinite loop
 
   useEffect(() => {
     loadSettings();
