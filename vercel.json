@@ -2,6 +2,9 @@
   "version": 2,
   "framework": "nextjs",
   "buildCommand": "npm run build",
-  "installCommand": "npm install",
-  "regions": ["sin1"]
+  "installCommand": "npm install --production=false",
+  "regions": ["sin1"],
+  "env": {
+    "SKIP_ENV_VALIDATION": "1"
+  }
 }
