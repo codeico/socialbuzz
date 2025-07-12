@@ -2,10 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const token = request.headers.get('authorization')?.replace('Bearer ', '');
     if (!token) {
@@ -28,59 +25,46 @@ export async function PATCH(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
     const { action, value } = body;
 
-    let updateData: any = {
+    const updateData: any = {
       updated_at: new Date().toISOString(),
     };
 
     switch (action) {
-      case 'toggle_verification':
-        // Get current verification status first
-        const { data: currentUser } = await supabaseAdmin
-          .from('users')
-          .select('is_verified')
-          .eq('id', id)
-          .single();
-        
-        updateData.is_verified = !currentUser?.is_verified;
-        break;
+    case 'toggle_verification':
+      // Get current verification status first
+      const { data: currentUser } = await supabaseAdmin.from('users').select('is_verified').eq('id', id).single();
 
-      case 'verify':
-        updateData.is_verified = true;
-        break;
+      updateData.is_verified = !currentUser?.is_verified;
+      break;
 
-      case 'unverify':
-        updateData.is_verified = false;
-        break;
+    case 'verify':
+      updateData.is_verified = true;
+      break;
 
-      case 'change_role':
-        if (!value || !['user', 'admin', 'super_admin'].includes(value)) {
-          return NextResponse.json(
-            { error: 'Invalid role' },
-            { status: 400 }
-          );
-        }
-        updateData.role = value;
-        break;
+    case 'unverify':
+      updateData.is_verified = false;
+      break;
 
-      case 'update_balance':
-        if (typeof value !== 'number') {
-          return NextResponse.json(
-            { error: 'Invalid balance amount' },
-            { status: 400 }
-          );
-        }
-        updateData.balance = value;
-        break;
+    case 'change_role':
+      if (!value || !['user', 'admin', 'super_admin'].includes(value)) {
+        return NextResponse.json({ error: 'Invalid role' }, { status: 400 });
+      }
+      updateData.role = value;
+      break;
 
-      default:
-        return NextResponse.json(
-          { error: 'Invalid action' },
-          { status: 400 }
-        );
+    case 'update_balance':
+      if (typeof value !== 'number') {
+        return NextResponse.json({ error: 'Invalid balance amount' }, { status: 400 });
+      }
+      updateData.balance = value;
+      break;
+
+    default:
+      return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
     }
 
     // Update user
@@ -105,17 +89,11 @@ export async function PATCH(
     });
   } catch (error) {
     console.error('Admin user update error:', error);
-    return NextResponse.json(
-      { error: 'Failed to update user' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to update user' }, { status: 500 });
   }
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const token = request.headers.get('authorization')?.replace('Bearer ', '');
     if (!token) {
@@ -138,21 +116,15 @@ export async function DELETE(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const { id } = params;
+    const { id } = await params;
 
     // Prevent self-deletion
     if (id === decoded.userId) {
-      return NextResponse.json(
-        { error: 'Cannot delete your own account' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Cannot delete your own account' }, { status: 400 });
     }
 
     // Delete user (this will cascade delete related records due to foreign key constraints)
-    const { error } = await supabaseAdmin
-      .from('users')
-      .delete()
-      .eq('id', id);
+    const { error } = await supabaseAdmin.from('users').delete().eq('id', id);
 
     if (error) {
       throw error;
@@ -164,9 +136,6 @@ export async function DELETE(
     });
   } catch (error) {
     console.error('Admin user deletion error:', error);
-    return NextResponse.json(
-      { error: 'Failed to delete user' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to delete user' }, { status: 500 });
   }
 }

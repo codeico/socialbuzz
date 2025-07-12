@@ -5,7 +5,18 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
-import { ArrowLeft, HelpCircle, Search, ChevronDown, ChevronUp, MessageCircle, Book, CreditCard, Monitor, Loader2 } from 'lucide-react';
+import {
+  ArrowLeft,
+  HelpCircle,
+  Search,
+  ChevronDown,
+  ChevronUp,
+  MessageCircle,
+  Book,
+  CreditCard,
+  Monitor,
+  Loader2,
+} from 'lucide-react';
 
 interface FAQItem {
   id: string;
@@ -67,16 +78,11 @@ export default function FAQPage() {
     return () => clearTimeout(debounceTimer);
   }, [selectedCategory, searchQuery]);
 
-
   const toggleExpanded = (itemId: string) => {
-    setExpandedItems(prev => 
-      prev.includes(itemId) 
-        ? prev.filter(id => id !== itemId)
-        : [...prev, itemId]
-    );
+    setExpandedItems(prev => (prev.includes(itemId) ? prev.filter(id => id !== itemId) : [...prev, itemId]));
   };
 
-  // Since filtering is now done on the server side via API params, 
+  // Since filtering is now done on the server side via API params,
   // we can use faqs directly as filteredFAQs
   const filteredFAQs = faqs;
 
@@ -121,7 +127,7 @@ export default function FAQPage() {
               <Input
                 placeholder="Search for answers..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={e => setSearchQuery(e.target.value)}
                 className="pl-10 text-lg"
               />
             </div>
@@ -137,7 +143,7 @@ export default function FAQPage() {
               </CardHeader>
               <CardContent className="p-0">
                 <div className="space-y-1">
-                  {categories.map((category) => (
+                  {categories.map(category => (
                     <button
                       key={category.id}
                       onClick={() => setSelectedCategory(category.id)}
@@ -202,9 +208,7 @@ export default function FAQPage() {
                   <HelpCircle className="h-12 w-12 text-red-400 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-900 mb-2">Error loading FAQs</h3>
                   <p className="text-gray-600 mb-4">{error}</p>
-                  <Button onClick={() => window.location.reload()}>
-                    Try Again
-                  </Button>
+                  <Button onClick={() => window.location.reload()}>Try Again</Button>
                 </CardContent>
               </Card>
             ) : filteredFAQs.length === 0 ? (
@@ -212,24 +216,17 @@ export default function FAQPage() {
                 <CardContent className="text-center py-12">
                   <HelpCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-900 mb-2">No results found</h3>
-                  <p className="text-gray-600">
-                    Try adjusting your search terms or browse different categories
-                  </p>
+                  <p className="text-gray-600">Try adjusting your search terms or browse different categories</p>
                 </CardContent>
               </Card>
             ) : (
               <div className="space-y-4">
-                {filteredFAQs.map((faq) => (
+                {filteredFAQs.map(faq => (
                   <Card key={faq.id} className="overflow-hidden">
-                    <button
-                      onClick={() => toggleExpanded(faq.id)}
-                      className="w-full text-left"
-                    >
+                    <button onClick={() => toggleExpanded(faq.id)} className="w-full text-left">
                       <CardHeader className="hover:bg-gray-50 transition-colors">
                         <div className="flex items-center justify-between">
-                          <CardTitle className="text-lg font-medium text-gray-900 pr-4">
-                            {faq.question}
-                          </CardTitle>
+                          <CardTitle className="text-lg font-medium text-gray-900 pr-4">{faq.question}</CardTitle>
                           {expandedItems.includes(faq.id) ? (
                             <ChevronUp className="h-5 w-5 text-gray-500 flex-shrink-0" />
                           ) : (
@@ -238,12 +235,10 @@ export default function FAQPage() {
                         </div>
                       </CardHeader>
                     </button>
-                    
+
                     {expandedItems.includes(faq.id) && (
                       <CardContent>
-                        <p className="text-gray-700 leading-relaxed">
-                          {faq.answer}
-                        </p>
+                        <p className="text-gray-700 leading-relaxed">{faq.answer}</p>
                       </CardContent>
                     )}
                   </Card>
@@ -257,19 +252,18 @@ export default function FAQPage() {
         <Card className="mt-12 border-indigo-200 bg-indigo-50">
           <CardContent className="p-6 text-center">
             <MessageCircle className="h-8 w-8 text-indigo-600 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-indigo-900 mb-2">
-              Still need help?
-            </h3>
+            <h3 className="text-lg font-semibold text-indigo-900 mb-2">Still need help?</h3>
             <p className="text-indigo-700 mb-6">
-              Can't find what you're looking for? Our support team is here to help!
+              Can&apos;t find what you&apos;re looking for? Our support team is here to help!
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
               <Link href="/contact">
-                <Button className="bg-indigo-600 hover:bg-indigo-700">
-                  Contact Support
-                </Button>
+                <Button className="bg-indigo-600 hover:bg-indigo-700">Contact Support</Button>
               </Link>
-              <Button variant="outline" className="border-indigo-600 text-indigo-600 hover:bg-indigo-600 hover:text-white">
+              <Button
+                variant="outline"
+                className="border-indigo-600 text-indigo-600 hover:bg-indigo-600 hover:text-white"
+              >
                 Send Feedback
               </Button>
             </div>

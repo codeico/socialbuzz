@@ -1,24 +1,22 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { formatCurrency, formatDate } from '@/utils/formatter';
-import { 
-  Users, 
-  DollarSign, 
-  CreditCard, 
+import {
+  Users,
+  DollarSign,
+  CreditCard,
   TrendingUp,
   Activity,
   AlertTriangle,
-  CheckCircle,
   Clock,
   ArrowUpRight,
   ArrowDownRight,
-  Eye,
   BarChart3,
-  RefreshCw
+  RefreshCw,
 } from 'lucide-react';
 
 interface AdminStats {
@@ -41,7 +39,7 @@ interface RecentActivity {
 }
 
 export default function AdminDashboardPage() {
-  const [stats, setStats] = useState<AdminStats>({
+  const [stats] = useState<AdminStats>({
     totalUsers: 1247,
     totalRevenue: 2450000,
     totalTransactions: 3456,
@@ -51,7 +49,7 @@ export default function AdminDashboardPage() {
     userGrowth: 12.5,
     revenueGrowth: 8.3,
   });
-  const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([
+  const [recentActivity] = useState<RecentActivity[]>([
     {
       id: '1',
       type: 'user_registered',
@@ -83,44 +81,43 @@ export default function AdminDashboardPage() {
 
       // For now, just simulate loading
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       // In production, this would fetch real data:
       // const token = localStorage.getItem('token');
       // const response = await fetch('/api/v1/admin/dashboard/stats', {
       //   headers: { 'Authorization': `Bearer ${token}` },
       // });
-      
+
       setLoading(false);
     } catch (error) {
       setError('Failed to load dashboard data');
-      console.error('Dashboard data fetch error:', error);
       setLoading(false);
     }
   };
 
   const getActivityIcon = (type: string) => {
     switch (type) {
-      case 'user_registered':
-        return <Users className="h-4 w-4 text-blue-600" />;
-      case 'transaction_completed':
-        return <CreditCard className="h-4 w-4 text-green-600" />;
-      case 'payout_requested':
-        return <DollarSign className="h-4 w-4 text-orange-600" />;
-      default:
-        return <Activity className="h-4 w-4 text-gray-600" />;
+    case 'user_registered':
+      return <Users className="h-4 w-4 text-blue-600" />;
+    case 'transaction_completed':
+      return <CreditCard className="h-4 w-4 text-green-600" />;
+    case 'payout_requested':
+      return <DollarSign className="h-4 w-4 text-orange-600" />;
+    default:
+      return <Activity className="h-4 w-4 text-gray-600" />;
     }
   };
 
   const getActivityText = (activity: RecentActivity) => {
     switch (activity.type) {
-      case 'user_registered':
-        return `${activity.user} registered as a new user`;
-      case 'transaction_completed':
-        return `${activity.user} completed a transaction of ${formatCurrency(activity.amount || 0)}`;
-      case 'payout_requested':
-        return `${activity.user} requested a payout of ${formatCurrency(activity.amount || 0)}`;
-      default:
-        return `${activity.user} performed an action`;
+    case 'user_registered':
+      return `${activity.user} registered as a new user`;
+    case 'transaction_completed':
+      return `${activity.user} completed a transaction of ${formatCurrency(activity.amount || 0)}`;
+    case 'payout_requested':
+      return `${activity.user} requested a payout of ${formatCurrency(activity.amount || 0)}`;
+    default:
+      return `${activity.user} performed an action`;
     }
   };
 
@@ -202,9 +199,7 @@ export default function AdminDashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.totalTransactions.toLocaleString()}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {stats.todayTransactions} today
-              </p>
+              <p className="text-xs text-muted-foreground mt-1">{stats.todayTransactions} today</p>
             </CardContent>
           </Card>
 
@@ -215,9 +210,7 @@ export default function AdminDashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.pendingPayouts}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Require attention
-              </p>
+              <p className="text-xs text-muted-foreground mt-1">Require attention</p>
             </CardContent>
           </Card>
         </div>
@@ -226,7 +219,7 @@ export default function AdminDashboardPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           <Card>
             <CardHeader>
-              <CardTitle>Today's Summary</CardTitle>
+              <CardTitle>Today&apos;s Summary</CardTitle>
               <CardDescription>Performance metrics for today</CardDescription>
             </CardHeader>
             <CardContent>
@@ -234,18 +227,14 @@ export default function AdminDashboardPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium">Revenue</p>
-                    <p className="text-2xl font-bold text-green-600">
-                      {formatCurrency(stats.todayRevenue)}
-                    </p>
+                    <p className="text-2xl font-bold text-green-600">{formatCurrency(stats.todayRevenue)}</p>
                   </div>
                   <TrendingUp className="h-8 w-8 text-green-600" />
                 </div>
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium">Transactions</p>
-                    <p className="text-2xl font-bold text-blue-600">
-                      {stats.todayTransactions}
-                    </p>
+                    <p className="text-2xl font-bold text-blue-600">{stats.todayTransactions}</p>
                   </div>
                   <Activity className="h-8 w-8 text-blue-600" />
                 </div>
@@ -261,16 +250,12 @@ export default function AdminDashboardPage() {
             <CardContent>
               <div className="space-y-4">
                 {recentActivity.length > 0 ? (
-                  recentActivity.slice(0, 5).map((activity) => (
+                  recentActivity.slice(0, 5).map(activity => (
                     <div key={activity.id} className="flex items-start space-x-3">
                       {getActivityIcon(activity.type)}
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm text-gray-900">
-                          {getActivityText(activity)}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {formatDate(activity.timestamp)}
-                        </p>
+                        <p className="text-sm text-gray-900">{getActivityText(activity)}</p>
+                        <p className="text-xs text-gray-500">{formatDate(activity.timestamp)}</p>
                       </div>
                     </div>
                   ))
@@ -290,34 +275,34 @@ export default function AdminDashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="h-20 flex-col"
-                onClick={() => window.location.href = '/admin/users'}
+                onClick={() => (window.location.href = '/admin/users')}
               >
                 <Users className="h-6 w-6 mb-2" />
                 Manage Users
               </Button>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="h-20 flex-col"
-                onClick={() => window.location.href = '/admin/transactions'}
+                onClick={() => (window.location.href = '/admin/transactions')}
               >
                 <CreditCard className="h-6 w-6 mb-2" />
                 View Transactions
               </Button>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="h-20 flex-col"
-                onClick={() => window.location.href = '/admin/payouts'}
+                onClick={() => (window.location.href = '/admin/payouts')}
               >
                 <DollarSign className="h-6 w-6 mb-2" />
                 Process Payouts
               </Button>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="h-20 flex-col"
-                onClick={() => window.location.href = '/admin/reports'}
+                onClick={() => (window.location.href = '/admin/reports')}
               >
                 <BarChart3 className="h-6 w-6 mb-2" />
                 View Reports

@@ -66,10 +66,7 @@ export async function PUT(request: NextRequest) {
     });
   } catch (error) {
     console.error('Settings update error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -122,9 +119,6 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Settings fetch error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

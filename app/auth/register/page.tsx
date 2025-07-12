@@ -97,23 +97,19 @@ export default function RegisterPage() {
             SocialBuzz
           </Link>
         </div>
-        
+
         <Card>
           <CardHeader>
             <CardTitle className="text-center">Create your account</CardTitle>
-            <CardDescription className="text-center">
-              Join SocialBuzz and start receiving support
-            </CardDescription>
+            <CardDescription className="text-center">Join SocialBuzz and start receiving support</CardDescription>
           </CardHeader>
-          
+
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               {error && (
-                <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md text-sm">
-                  {error}
-                </div>
+                <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md text-sm">{error}</div>
               )}
-              
+
               <Input
                 label="Full Name"
                 type="text"
@@ -124,7 +120,7 @@ export default function RegisterPage() {
                 fullWidth
                 placeholder="Enter your full name"
               />
-              
+
               <Input
                 label="Username"
                 type="text"
@@ -135,7 +131,7 @@ export default function RegisterPage() {
                 fullWidth
                 placeholder="Choose a username"
               />
-              
+
               <Input
                 label="Email"
                 type="email"
@@ -146,7 +142,7 @@ export default function RegisterPage() {
                 fullWidth
                 placeholder="Enter your email"
               />
-              
+
               <div className="relative">
                 <Input
                   label="Password"
@@ -166,26 +162,21 @@ export default function RegisterPage() {
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
               </div>
-              
+
               {formData.password && (
                 <div className="space-y-2">
                   <p className="text-sm text-gray-600">Password requirements:</p>
                   <ul className="space-y-1">
                     {passwordRequirements.map((req, index) => (
                       <li key={index} className="flex items-center text-sm">
-                        <Check
-                          size={16}
-                          className={`mr-2 ${req.met ? 'text-green-500' : 'text-gray-300'}`}
-                        />
-                        <span className={req.met ? 'text-green-700' : 'text-gray-500'}>
-                          {req.text}
-                        </span>
+                        <Check size={16} className={`mr-2 ${req.met ? 'text-green-500' : 'text-gray-300'}`} />
+                        <span className={req.met ? 'text-green-700' : 'text-gray-500'}>{req.text}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
               )}
-              
+
               <div className="relative">
                 <Input
                   label="Confirm Password"
@@ -205,14 +196,14 @@ export default function RegisterPage() {
                   {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
               </div>
-              
+
               <div className="flex items-start">
                 <input
                   id="accept-terms"
                   name="accept-terms"
                   type="checkbox"
                   checked={acceptTerms}
-                  onChange={(e) => setAcceptTerms(e.target.checked)}
+                  onChange={e => setAcceptTerms(e.target.checked)}
                   className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded mt-1"
                 />
                 <label htmlFor="accept-terms" className="ml-2 block text-sm text-gray-900">
@@ -226,18 +217,12 @@ export default function RegisterPage() {
                   </Link>
                 </label>
               </div>
-              
-              <Button
-                type="submit"
-                loading={loading}
-                disabled={!isFormValid()}
-                fullWidth
-                size="lg"
-              >
+
+              <Button type="submit" loading={loading} disabled={!isFormValid()} fullWidth size="lg">
                 Create account
               </Button>
             </form>
-            
+
             <div className="mt-6">
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
@@ -247,7 +232,7 @@ export default function RegisterPage() {
                   <span className="px-2 bg-white text-gray-500">Already have an account?</span>
                 </div>
               </div>
-              
+
               <div className="mt-4">
                 <Link href="/auth/login">
                   <Button variant="outline" fullWidth>
@@ -258,12 +243,9 @@ export default function RegisterPage() {
             </div>
           </CardContent>
         </Card>
-        
+
         <div className="mt-8 text-center">
-          <Link
-            href="/"
-            className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900"
-          >
+          <Link href="/" className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900">
             <ArrowLeft size={16} className="mr-2" />
             Back to home
           </Link>

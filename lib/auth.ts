@@ -10,10 +10,7 @@ export const hashPassword = async (password: string): Promise<string> => {
   return bcrypt.hash(password, saltRounds);
 };
 
-export const verifyPassword = async (
-  password: string,
-  hashedPassword: string,
-): Promise<boolean> => {
+export const verifyPassword = async (password: string, hashedPassword: string): Promise<boolean> => {
   return bcrypt.compare(password, hashedPassword);
 };
 
@@ -26,11 +23,13 @@ export const generateToken = (user: any): string => {
       role: user.role,
     },
     JWT_SECRET,
-    { expiresIn: JWT_EXPIRES_IN },
-  );
+    { expiresIn: '7d' }
+  ) as string;
 };
 
-export const verifyToken = (token: string): { userId: string; email: string; username: string; role: string } | null => {
+export const verifyToken = (
+  token: string,
+): { userId: string; email: string; username: string; role: string } | null => {
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as any;
     return {

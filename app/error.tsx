@@ -29,28 +29,18 @@ export default function Error({ error, reset }: ErrorProps) {
         </div>
 
         {/* Content */}
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">
-          Oops! Something went wrong
-        </h1>
-        <p className="text-lg text-gray-600 mb-2">
-          We encountered an unexpected error while processing your request.
-        </p>
+        <h1 className="text-3xl font-bold text-gray-900 mb-4">Oops! Something went wrong</h1>
+        <p className="text-lg text-gray-600 mb-2">We encountered an unexpected error while processing your request.</p>
         <p className="text-sm text-gray-500 mb-8">
-          Don't worry, our team has been notified and we're working on a fix.
+          Don&apos;t worry, our team has been notified and we&apos;re working on a fix.
         </p>
 
         {/* Error Details (for development) */}
         {process.env.NODE_ENV === 'development' && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 text-left">
             <h3 className="font-semibold text-red-800 mb-2">Error Details:</h3>
-            <p className="text-sm text-red-700 font-mono break-all">
-              {error.message}
-            </p>
-            {error.digest && (
-              <p className="text-xs text-red-600 mt-2">
-                Error ID: {error.digest}
-              </p>
-            )}
+            <p className="text-sm text-red-700 font-mono break-all">{error.message}</p>
+            {error.digest && <p className="text-xs text-red-600 mt-2">Error ID: {error.digest}</p>}
           </div>
         )}
 
@@ -60,7 +50,7 @@ export default function Error({ error, reset }: ErrorProps) {
             <RefreshCw className="mr-2 h-5 w-5" />
             Try Again
           </Button>
-          
+
           <div className="grid grid-cols-2 gap-4">
             <Link href="/">
               <Button variant="outline" className="w-full">

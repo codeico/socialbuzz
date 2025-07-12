@@ -43,10 +43,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Onboarding error:', error);
-    return NextResponse.json(
-      { error: 'Failed to complete onboarding' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to complete onboarding' }, { status: 500 });
   }
 }
 
@@ -65,12 +62,14 @@ export async function GET(request: NextRequest) {
     // Get user's onboarding status and profile data
     const { data: user, error: userError } = await supabaseAdmin
       .from('users')
-      .select(`
+      .select(
+        `
         id,
         username,
         email,
         full_name
-      `)
+      `,
+      )
       .eq('id', decoded.userId)
       .single();
 
@@ -95,9 +94,6 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Onboarding status error:', error);
-    return NextResponse.json(
-      { error: 'Failed to get onboarding status' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to get onboarding status' }, { status: 500 });
   }
 }

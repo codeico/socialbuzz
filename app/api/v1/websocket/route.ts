@@ -17,13 +17,16 @@ export async function GET(req: NextRequest) {
     message: 'WebSocket server should be running separately',
     endpoints: {
       connect: process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:3001',
-      status: 'Use Socket.IO client to connect'
-    }
+      status: 'Use Socket.IO client to connect',
+    },
   });
 }
 
 export async function POST(req: NextRequest) {
-  return NextResponse.json({
-    error: 'WebSocket connections should use Socket.IO client'
-  }, { status: 400 });
+  return NextResponse.json(
+    {
+      error: 'WebSocket connections should use Socket.IO client',
+    },
+    { status: 400 },
+  );
 }

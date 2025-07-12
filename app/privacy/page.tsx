@@ -36,9 +36,7 @@ export default function PrivacyPage() {
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             Your privacy is important to us. This policy explains how we collect, use, and protect your information.
           </p>
-          <p className="text-sm text-gray-500 mt-4">
-            Last updated: January 11, 2024
-          </p>
+          <p className="text-sm text-gray-500 mt-4">Last updated: January 11, 2024</p>
         </div>
 
         <div className="space-y-8">
@@ -50,8 +48,9 @@ export default function PrivacyPage() {
                 <div>
                   <h3 className="font-semibold text-green-800 mb-2">Your Privacy Matters</h3>
                   <p className="text-green-700">
-                    SocialBuzz is committed to protecting your privacy and ensuring the security of your personal information. 
-                    We only collect information necessary to provide our services and never sell your data to third parties.
+                    SocialBuzz is committed to protecting your privacy and ensuring the security of your personal
+                    information. We only collect information necessary to provide our services and never sell your data
+                    to third parties.
                   </p>
                 </div>
               </div>
@@ -69,9 +68,7 @@ export default function PrivacyPage() {
             <CardContent className="space-y-4">
               <div>
                 <h4 className="font-semibold text-gray-900 mb-2">Personal Information</h4>
-                <p className="text-gray-700 mb-3">
-                  When you create an account or use our services, we may collect:
-                </p>
+                <p className="text-gray-700 mb-3">When you create an account or use our services, we may collect:</p>
                 <ul className="list-disc list-inside space-y-2 text-gray-700 ml-4">
                   <li>Name, email address, and username</li>
                   <li>Profile information (bio, social media links, avatar)</li>
@@ -79,7 +76,7 @@ export default function PrivacyPage() {
                   <li>Communication preferences and settings</li>
                 </ul>
               </div>
-              
+
               <div>
                 <h4 className="font-semibold text-gray-900 mb-2">Usage Information</h4>
                 <p className="text-gray-700 mb-3">
@@ -104,9 +101,7 @@ export default function PrivacyPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <p className="text-gray-700">
-                We use the information we collect to:
-              </p>
+              <p className="text-gray-700">We use the information we collect to:</p>
               <ul className="list-disc list-inside space-y-2 text-gray-700 ml-4">
                 <li>Provide, maintain, and improve our services</li>
                 <li>Process payments and donations securely</li>
@@ -129,27 +124,31 @@ export default function PrivacyPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-gray-700 mb-4">
-                We do not sell, trade, or rent your personal information to third parties. We may share your information only in the following circumstances:
+                We do not sell, trade, or rent your personal information to third parties. We may share your information
+                only in the following circumstances:
               </p>
-              
+
               <div>
                 <h4 className="font-semibold text-gray-900 mb-2">Service Providers</h4>
                 <p className="text-gray-700">
-                  We may share information with trusted third-party service providers who help us operate our platform, including payment processors, hosting services, and analytics providers.
+                  We may share information with trusted third-party service providers who help us operate our platform,
+                  including payment processors, hosting services, and analytics providers.
                 </p>
               </div>
-              
+
               <div>
                 <h4 className="font-semibold text-gray-900 mb-2">Legal Requirements</h4>
                 <p className="text-gray-700">
-                  We may disclose information if required by law, court order, or government request, or to protect our rights, property, or safety.
+                  We may disclose information if required by law, court order, or government request, or to protect our
+                  rights, property, or safety.
                 </p>
               </div>
-              
+
               <div>
                 <h4 className="font-semibold text-gray-900 mb-2">Business Transfers</h4>
                 <p className="text-gray-700">
-                  In the event of a merger, acquisition, or sale of assets, user information may be transferred as part of the transaction.
+                  In the event of a merger, acquisition, or sale of assets, user information may be transferred as part
+                  of the transaction.
                 </p>
               </div>
             </CardContent>
@@ -162,7 +161,8 @@ export default function PrivacyPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-gray-700">
-                We implement appropriate security measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction:
+                We implement appropriate security measures to protect your personal information against unauthorized
+                access, alteration, disclosure, or destruction:
               </p>
               <ul className="list-disc list-inside space-y-2 text-gray-700 ml-4">
                 <li>SSL encryption for data transmission</li>
@@ -180,10 +180,8 @@ export default function PrivacyPage() {
               <CardTitle>Your Rights and Choices</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <p className="text-gray-700 mb-4">
-                You have the following rights regarding your personal information:
-              </p>
-              
+              <p className="text-gray-700 mb-4">You have the following rights regarding your personal information:</p>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <h4 className="font-semibold text-gray-900 mb-2">Access and Update</h4>
@@ -191,21 +189,22 @@ export default function PrivacyPage() {
                     You can access and update your account information through your profile settings at any time.
                   </p>
                 </div>
-                
+
                 <div>
                   <h4 className="font-semibold text-gray-900 mb-2">Data Portability</h4>
                   <p className="text-gray-700">
                     You can request a copy of your personal data in a machine-readable format.
                   </p>
                 </div>
-                
+
                 <div>
                   <h4 className="font-semibold text-gray-900 mb-2">Account Deletion</h4>
                   <p className="text-gray-700">
-                    You can request to delete your account and associated data through your settings or by contacting us.
+                    You can request to delete your account and associated data through your settings or by contacting
+                    us.
                   </p>
                 </div>
-                
+
                 <div>
                   <h4 className="font-semibold text-gray-900 mb-2">Marketing Opt-out</h4>
                   <p className="text-gray-700">
@@ -226,25 +225,33 @@ export default function PrivacyPage() {
                 We use cookies and similar tracking technologies to enhance your experience on our platform:
               </p>
               <ul className="list-disc list-inside space-y-2 text-gray-700 ml-4">
-                <li><strong>Essential Cookies:</strong> Required for basic platform functionality</li>
-                <li><strong>Analytics Cookies:</strong> Help us understand how users interact with our platform</li>
-                <li><strong>Preference Cookies:</strong> Remember your settings and preferences</li>
-                <li><strong>Marketing Cookies:</strong> Used to show relevant advertisements (with your consent)</li>
+                <li>
+                  <strong>Essential Cookies:</strong> Required for basic platform functionality
+                </li>
+                <li>
+                  <strong>Analytics Cookies:</strong> Help us understand how users interact with our platform
+                </li>
+                <li>
+                  <strong>Preference Cookies:</strong> Remember your settings and preferences
+                </li>
+                <li>
+                  <strong>Marketing Cookies:</strong> Used to show relevant advertisements (with your consent)
+                </li>
               </ul>
-              <p className="text-gray-700 mt-4">
-                You can control cookie preferences through your browser settings.
-              </p>
+              <p className="text-gray-700 mt-4">You can control cookie preferences through your browser settings.</p>
             </CardContent>
           </Card>
 
           {/* Section 7 */}
           <Card>
             <CardHeader>
-              <CardTitle>Children's Privacy</CardTitle>
+              <CardTitle>Children&apos;s Privacy</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-gray-700">
-                Our platform is not intended for children under 13 years of age. We do not knowingly collect personal information from children under 13. If you become aware that a child has provided us with personal information, please contact us immediately.
+                Our platform is not intended for children under 13 years of age. We do not knowingly collect personal
+                information from children under 13. If you become aware that a child has provided us with personal
+                information, please contact us immediately.
               </p>
             </CardContent>
           </Card>
@@ -256,7 +263,9 @@ export default function PrivacyPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-gray-700">
-                Your information may be transferred to and processed in countries other than your own. We ensure that appropriate safeguards are in place to protect your personal information in accordance with applicable data protection laws.
+                Your information may be transferred to and processed in countries other than your own. We ensure that
+                appropriate safeguards are in place to protect your personal information in accordance with applicable
+                data protection laws.
               </p>
             </CardContent>
           </Card>
@@ -268,7 +277,9 @@ export default function PrivacyPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-gray-700">
-                We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the "Last updated" date. Significant changes will be communicated through email or platform notifications.
+                We may update this Privacy Policy from time to time. We will notify you of any changes by posting the
+                new Privacy Policy on this page and updating the &quot;Last updated&quot; date. Significant changes will be
+                communicated through email or platform notifications.
               </p>
             </CardContent>
           </Card>
@@ -288,9 +299,7 @@ export default function PrivacyPage() {
                     <li>Phone: +62 21 1234 5678</li>
                     <li>Address: Jakarta, Indonesia</li>
                   </ul>
-                  <p className="text-indigo-700 mt-4">
-                    We will respond to your inquiry within 30 days.
-                  </p>
+                  <p className="text-indigo-700 mt-4">We will respond to your inquiry within 30 days.</p>
                 </div>
               </div>
             </CardContent>

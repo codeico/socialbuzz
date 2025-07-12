@@ -1,16 +1,6 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
-import {
-  Home,
-  Users,
-  CreditCard,
-  DollarSign,
-  FileText,
-  Settings,
-  LogOut,
-  Shield,
-  BarChart3,
-} from 'lucide-react';
+import { Home, Users, CreditCard, DollarSign, FileText, Settings, LogOut, Shield, BarChart3 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/utils/cn';
 
@@ -19,10 +9,7 @@ interface AdminLayoutProps {
   activeTab: string;
 }
 
-export const AdminLayout: React.FC<AdminLayoutProps> = ({
-  children,
-  activeTab,
-}) => {
+export const AdminLayout: React.FC<AdminLayoutProps> = ({ children, activeTab }) => {
   const { user, logout } = useAuth();
   const router = useRouter();
 
@@ -58,7 +45,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
         <div className="text-center">
           <Shield className="h-12 w-12 text-gray-400 mx-auto mb-4" />
           <h2 className="text-lg font-semibold text-gray-900 mb-2">Access Restricted</h2>
-          <p className="text-gray-600 mb-4">You don't have permission to access this area.</p>
+          <p className="text-gray-600 mb-4">You don&apos;t have permission to access this area.</p>
           <button
             onClick={() => router.push('/dashboard')}
             className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
@@ -79,9 +66,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
             <div className="flex items-center">
               <Shield className="h-8 w-8 text-indigo-300 mr-3" />
               <div>
-                <h1 className="text-xl font-bold text-white">
-                  Admin Panel
-                </h1>
+                <h1 className="text-xl font-bold text-white">Admin Panel</h1>
                 <p className="text-xs text-indigo-300">SocialBuzz Management</p>
               </div>
             </div>
@@ -116,12 +101,10 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
             {/* Admin Sidebar */}
             <div className="w-64 bg-white rounded-lg shadow-sm border border-gray-200 h-fit">
               <div className="p-4 border-b border-gray-200">
-                <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wider">
-                  Administration
-                </h3>
+                <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wider">Administration</h3>
               </div>
               <nav className="p-4 space-y-2">
-                {adminTabs.map((tab) => {
+                {adminTabs.map(tab => {
                   const Icon = tab.icon;
                   return (
                     <button
@@ -140,12 +123,10 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
                   );
                 })}
               </nav>
-              
+
               {/* Quick Stats in Sidebar */}
               <div className="p-4 border-t border-gray-200 mt-4">
-                <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                  Quick Stats
-                </h4>
+                <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Quick Stats</h4>
                 <div className="space-y-2 text-xs text-gray-600">
                   <div className="flex justify-between">
                     <span>Online Users</span>
@@ -165,9 +146,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
 
             {/* Admin Content */}
             <div className="flex-1 ml-6">
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 min-h-[600px]">
-                {children}
-              </div>
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 min-h-[600px]">{children}</div>
             </div>
           </div>
         </div>

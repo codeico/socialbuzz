@@ -11,20 +11,14 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-gray-900">
-                SocialBuzz
-              </h1>
+              <h1 className="text-2xl font-bold text-gray-900">SocialBuzz</h1>
             </div>
             <div className="flex items-center space-x-4">
               <Link href="/auth/login">
-                <Button variant="outline">
-                  Login
-                </Button>
+                <Button variant="outline">Login</Button>
               </Link>
               <Link href="/auth/register">
-                <Button>
-                  Get Started
-                </Button>
+                <Button>Get Started</Button>
               </Link>
             </div>
           </div>
@@ -39,8 +33,8 @@ export default function HomePage() {
               <span className="text-indigo-600"> Creators</span>
             </h1>
             <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-              Connect with your audience and receive support through secure donations.
-              Build your community and grow your passion.
+              Connect with your audience and receive support through secure donations. Build your community and grow
+              your passion.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/auth/register">
@@ -59,12 +53,8 @@ export default function HomePage() {
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Why Choose SocialBuzz?
-            </h2>
-            <p className="text-lg text-gray-600">
-              The best platform for creators and supporters to connect
-            </p>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Why Choose SocialBuzz?</h2>
+            <p className="text-lg text-gray-600">The best platform for creators and supporters to connect</p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -72,9 +62,7 @@ export default function HomePage() {
               <CardHeader>
                 <Heart className="w-10 h-10 text-indigo-600 mb-2" />
                 <CardTitle>Easy Donations</CardTitle>
-                <CardDescription>
-                  Simple and secure way to support your favorite creators
-                </CardDescription>
+                <CardDescription>Simple and secure way to support your favorite creators</CardDescription>
               </CardHeader>
             </Card>
 
@@ -82,9 +70,7 @@ export default function HomePage() {
               <CardHeader>
                 <Shield className="w-10 h-10 text-indigo-600 mb-2" />
                 <CardTitle>Secure Payments</CardTitle>
-                <CardDescription>
-                  Bank-level security with multiple payment options
-                </CardDescription>
+                <CardDescription>Bank-level security with multiple payment options</CardDescription>
               </CardHeader>
             </Card>
 
@@ -92,9 +78,7 @@ export default function HomePage() {
               <CardHeader>
                 <Zap className="w-10 h-10 text-indigo-600 mb-2" />
                 <CardTitle>Instant Payouts</CardTitle>
-                <CardDescription>
-                  Get your earnings quickly with our fast payout system
-                </CardDescription>
+                <CardDescription>Get your earnings quickly with our fast payout system</CardDescription>
               </CardHeader>
             </Card>
 
@@ -102,9 +86,7 @@ export default function HomePage() {
               <CardHeader>
                 <Users className="w-10 h-10 text-indigo-600 mb-2" />
                 <CardTitle>Community</CardTitle>
-                <CardDescription>
-                  Build lasting relationships with your supporters
-                </CardDescription>
+                <CardDescription>Build lasting relationships with your supporters</CardDescription>
               </CardHeader>
             </Card>
           </div>
@@ -113,16 +95,12 @@ export default function HomePage() {
         <div className="bg-indigo-50 py-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                Ready to Get Started?
-              </h2>
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">Ready to Get Started?</h2>
               <p className="text-lg text-gray-600 mb-8">
                 Join thousands of creators who are already building their community
               </p>
               <Link href="/auth/register">
-                <Button size="lg">
-                  Create Your Account
-                </Button>
+                <Button size="lg">Create Your Account</Button>
               </Link>
             </div>
           </div>
@@ -134,32 +112,66 @@ export default function HomePage() {
           <div className="grid md:grid-cols-4 gap-8">
             <div>
               <h3 className="text-lg font-semibold mb-4">SocialBuzz</h3>
-              <p className="text-gray-400">
-                Supporting creators and building communities worldwide.
-              </p>
+              <p className="text-gray-400">Supporting creators and building communities worldwide.</p>
             </div>
             <div>
               <h4 className="font-semibold mb-4">Platform</h4>
               <ul className="space-y-2 text-gray-400">
-                <li><Link href="/features" className="hover:text-white">Features</Link></li>
-                <li><Link href="/pricing" className="hover:text-white">Pricing</Link></li>
-                <li><Link href="/security" className="hover:text-white">Security</Link></li>
+                <li>
+                  <Link href="/features" className="hover:text-white">
+                    Features
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/pricing" className="hover:text-white">
+                    Pricing
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/security" className="hover:text-white">
+                    Security
+                  </Link>
+                </li>
               </ul>
             </div>
             <div>
               <h4 className="font-semibold mb-4">Support</h4>
               <ul className="space-y-2 text-gray-400">
-                <li><Link href="/help" className="hover:text-white">Help Center</Link></li>
-                <li><Link href="/contact" className="hover:text-white">Contact Us</Link></li>
-                <li><Link href="/status" className="hover:text-white">Status</Link></li>
+                <li>
+                  <Link href="/help" className="hover:text-white">
+                    Help Center
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/contact" className="hover:text-white">
+                    Contact Us
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/status" className="hover:text-white">
+                    Status
+                  </Link>
+                </li>
               </ul>
             </div>
             <div>
               <h4 className="font-semibold mb-4">Legal</h4>
               <ul className="space-y-2 text-gray-400">
-                <li><Link href="/terms" className="hover:text-white">Terms of Service</Link></li>
-                <li><Link href="/privacy" className="hover:text-white">Privacy Policy</Link></li>
-                <li><Link href="/cookies" className="hover:text-white">Cookie Policy</Link></li>
+                <li>
+                  <Link href="/terms" className="hover:text-white">
+                    Terms of Service
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/privacy" className="hover:text-white">
+                    Privacy Policy
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/cookies" className="hover:text-white">
+                    Cookie Policy
+                  </Link>
+                </li>
               </ul>
             </div>
           </div>

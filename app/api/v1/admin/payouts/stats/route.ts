@@ -31,9 +31,7 @@ export async function GET(request: NextRequest) {
       .select('*', { count: 'exact', head: true });
 
     // Get total amount
-    const { data: totalAmountData } = await supabaseAdmin
-      .from('payout_requests')
-      .select('amount');
+    const { data: totalAmountData } = await supabaseAdmin.from('payout_requests').select('amount');
 
     const totalAmount = totalAmountData?.reduce((sum, p) => sum + p.amount, 0) || 0;
 
@@ -86,10 +84,6 @@ export async function GET(request: NextRequest) {
       data: stats,
     });
   } catch (error) {
-    console.error('Admin payout stats error:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch payout stats' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch payout stats' }, { status: 500 });
   }
 }

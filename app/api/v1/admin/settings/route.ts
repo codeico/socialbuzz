@@ -26,10 +26,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get settings from database or return defaults
-    const { data: settings, error } = await supabaseAdmin
-      .from('system_settings')
-      .select('*')
-      .single();
+    const { data: settings, error } = await supabaseAdmin.from('system_settings').select('*').single();
 
     // Default settings if none exist
     const defaultSettings = {
@@ -92,10 +89,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Admin settings fetch error:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch settings' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch settings' }, { status: 500 });
   }
 }
 
@@ -126,17 +120,11 @@ export async function PUT(request: NextRequest) {
 
     // Validate settings
     if (!settings.platform?.name || !settings.payment?.minimum_donation) {
-      return NextResponse.json(
-        { error: 'Invalid settings data' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid settings data' }, { status: 400 });
     }
 
     // Check if settings record exists
-    const { data: existingSettings } = await supabaseAdmin
-      .from('system_settings')
-      .select('id')
-      .single();
+    const { data: existingSettings } = await supabaseAdmin.from('system_settings').select('id').single();
 
     if (existingSettings) {
       // Update existing settings
@@ -154,13 +142,11 @@ export async function PUT(request: NextRequest) {
       }
     } else {
       // Create new settings
-      const { error } = await supabaseAdmin
-        .from('system_settings')
-        .insert({
-          settings,
-          created_by: decoded.userId,
-          updated_by: decoded.userId,
-        });
+      const { error } = await supabaseAdmin.from('system_settings').insert({
+        settings,
+        created_by: decoded.userId,
+        updated_by: decoded.userId,
+      });
 
       if (error) {
         throw error;
@@ -168,16 +154,14 @@ export async function PUT(request: NextRequest) {
     }
 
     // Log the settings change
-    await supabaseAdmin
-      .from('admin_logs')
-      .insert({
-        admin_id: decoded.userId,
-        action: 'settings_update',
-        details: {
-          changed_sections: Object.keys(settings),
-          timestamp: new Date().toISOString(),
-        },
-      });
+    await supabaseAdmin.from('admin_logs').insert({
+      admin_id: decoded.userId,
+      action: 'settings_update',
+      details: {
+        changed_sections: Object.keys(settings),
+        timestamp: new Date().toISOString(),
+      },
+    });
 
     return NextResponse.json({
       success: true,
@@ -185,9 +169,6 @@ export async function PUT(request: NextRequest) {
     });
   } catch (error) {
     console.error('Admin settings update error:', error);
-    return NextResponse.json(
-      { error: 'Failed to update settings' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to update settings' }, { status: 500 });
   }
 }

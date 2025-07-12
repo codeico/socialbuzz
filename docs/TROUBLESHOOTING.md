@@ -134,11 +134,13 @@ CREATE POLICY "Authenticated users can upload avatars" ON storage.objects FOR IN
 ## Development vs Production
 
 ### Development (Current Setup):
+
 - RLS disabled untuk kemudahan testing
 - Semua policies permissive
 - Sandbox payment gateway
 
 ### Production (Recommended):
+
 - Enable RLS dengan proper policies
 - Implement proper authentication
 - Use production payment gateway URLs
@@ -148,12 +150,14 @@ CREATE POLICY "Authenticated users can upload avatars" ON storage.objects FOR IN
 ## Quick Commands
 
 ### Reset Database:
+
 ```sql
 -- Hapus semua data (HATI-HATI!)
 TRUNCATE users, user_profiles, transactions, donations, payout_requests, password_reset_tokens, notifications, file_uploads CASCADE;
 ```
 
 ### Create Test User:
+
 ```sql
 -- Buat user untuk testing
 INSERT INTO users (email, username, full_name, password_hash, role, is_verified)
@@ -161,6 +165,7 @@ VALUES ('test@example.com', 'testuser', 'Test User', '$2b$12$...', 'user', true)
 ```
 
 ### Check Recent Errors:
+
 ```sql
 -- Lihat log errors (jika ada)
 SELECT * FROM pg_stat_activity WHERE state = 'active';

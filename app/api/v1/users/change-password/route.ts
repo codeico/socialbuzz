@@ -20,17 +20,11 @@ export async function POST(request: NextRequest) {
 
     // Validate input
     if (!currentPassword || !newPassword) {
-      return NextResponse.json(
-        { error: 'Current password and new password are required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Current password and new password are required' }, { status: 400 });
     }
 
     if (newPassword.length < 8) {
-      return NextResponse.json(
-        { error: 'New password must be at least 8 characters long' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'New password must be at least 8 characters long' }, { status: 400 });
     }
 
     // Get current user data
@@ -47,10 +41,7 @@ export async function POST(request: NextRequest) {
     // Verify current password
     const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password_hash);
     if (!isCurrentPasswordValid) {
-      return NextResponse.json(
-        { error: 'Current password is incorrect' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Current password is incorrect' }, { status: 400 });
     }
 
     // Hash new password
@@ -75,9 +66,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Password change error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -5,11 +5,7 @@ import { PaginatedResponse, PaginationParams } from '@/types/common';
 export class UserService {
   static async getUserById(id: string): Promise<User | null> {
     try {
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', id)
-        .single();
+      const { data, error } = await supabase.from('users').select('*').eq('id', id).single();
 
       if (error) return null;
       return data;
@@ -21,11 +17,7 @@ export class UserService {
 
   static async getUserByEmail(email: string): Promise<User | null> {
     try {
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('email', email)
-        .single();
+      const { data, error } = await supabase.from('users').select('*').eq('email', email).single();
 
       if (error) return null;
       return data;
@@ -37,11 +29,7 @@ export class UserService {
 
   static async getUserByUsername(username: string): Promise<User | null> {
     try {
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('username', username)
-        .single();
+      const { data, error } = await supabase.from('users').select('*').eq('username', username).single();
 
       if (error) return null;
       return data;
@@ -73,11 +61,7 @@ export class UserService {
 
   static async getUserProfile(userId: string): Promise<UserProfile | null> {
     try {
-      const { data, error } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('user_id', userId)
-        .single();
+      const { data, error } = await supabase.from('user_profiles').select('*').eq('user_id', userId).single();
 
       if (error) return null;
       return data;

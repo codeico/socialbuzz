@@ -1,6 +1,7 @@
 # OBS Donation Alerts Setup Guide
 
-This guide will help you set up real-time donation alerts for your OBS streaming setup using SocialBuzz.
+This guide will help you set up real-time donation alerts for your OBS streaming
+setup using SocialBuzz.
 
 ## Prerequisites
 
@@ -14,7 +15,8 @@ This guide will help you set up real-time donation alerts for your OBS streaming
 
 1. Log in to your SocialBuzz dashboard
 2. Click on "OBS Setup" in the Quick Actions section
-3. Copy the overlay URL provided (it will look like: `https://yourdomain.com/obs/[your-creator-id]`)
+3. Copy the overlay URL provided (it will look like:
+   `https://yourdomain.com/obs/[your-creator-id]`)
 
 ### 2. Add Browser Source to OBS
 
@@ -31,7 +33,8 @@ This guide will help you set up real-time donation alerts for your OBS streaming
 
 ### 3. Configure Your Alerts
 
-1. Go to your OBS Settings page: `https://yourdomain.com/obs/[your-creator-id]/settings`
+1. Go to your OBS Settings page:
+   `https://yourdomain.com/obs/[your-creator-id]/settings`
 2. Customize your donation alerts:
    - **Theme**: Choose from Default, Neon, Minimal, or Gaming
    - **Position**: Top-left, Top-right, Bottom-left, Bottom-right, or Center
@@ -51,7 +54,8 @@ This guide will help you set up real-time donation alerts for your OBS streaming
 
 ### Sound Files
 
-The system uses `/sounds/donation-alert.mp3` for notification sounds. You can replace this file with your own custom sound:
+The system uses `/sounds/donation-alert.mp3` for notification sounds. You can
+replace this file with your own custom sound:
 
 1. Create a sound file (MP3 format recommended)
 2. Keep it under 5 seconds for best experience
@@ -59,7 +63,8 @@ The system uses `/sounds/donation-alert.mp3` for notification sounds. You can re
 
 ### Custom Themes
 
-You can create custom themes by modifying the CSS classes in the overlay component:
+You can create custom themes by modifying the CSS classes in the overlay
+component:
 
 ```css
 /* Example custom theme */
@@ -67,33 +72,38 @@ You can create custom themes by modifying the CSS classes in the overlay compone
   background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
   border: 2px solid #4f46e5;
   color: white;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
 }
 ```
 
 ### Multiple Overlays
 
-You can use the same overlay URL in multiple scenes. Each instance will receive the same donation alerts simultaneously.
+You can use the same overlay URL in multiple scenes. Each instance will receive
+the same donation alerts simultaneously.
 
 ## Troubleshooting
 
 ### Common Issues
 
 **Alert not showing up:**
+
 - Check that the browser source URL is correct
 - Verify the browser source is not hidden or filtered out
 - Make sure the creator ID in the URL matches your account
 
 **No sound:**
+
 - Check that "Control audio via OBS" is enabled in browser source settings
 - Verify sound is enabled in the OBS Settings page
 - Ensure your system audio is not muted
 
 **Alerts appearing in wrong position:**
+
 - Adjust the position setting in the OBS Settings page
 - Consider the overlay dimensions (1920x1080) when positioning
 
 **Missing donations:**
+
 - Check your internet connection
 - Verify the WebSocket connection is active (check browser console)
 - Refresh the browser source if needed
@@ -121,11 +131,13 @@ The donation alerts use WebSocket connections for real-time updates. Ensure:
 You can also embed a donation widget on your website or stream overlay page:
 
 ### Widget URL
+
 ```
 https://yourdomain.com/widget/[your-creator-id]
 ```
 
 ### Features
+
 - Real-time donation form
 - Recent donations display
 - Mobile-responsive design
@@ -147,10 +159,10 @@ const socket = io('http://localhost:3001');
 
 socket.emit('join-obs-overlay', {
   creatorId: 'your-creator-id',
-  overlayId: 'custom-overlay-id'
+  overlayId: 'custom-overlay-id',
 });
 
-socket.on('donation-alert', (donation) => {
+socket.on('donation-alert', donation => {
   console.log('New donation:', donation);
   // Handle donation notification
 });
@@ -184,12 +196,14 @@ For additional help or custom setups:
 ## Examples
 
 ### Basic Stream Setup
+
 1. Add browser source for donation alerts
 2. Position alerts in top-right corner
 3. Use default theme with 5-second duration
 4. Enable sound alerts
 
 ### Advanced Stream Setup
+
 1. Multiple browser sources for different alert types
 2. Custom CSS themes matching stream branding
 3. Conditional scene switching based on donation amounts
@@ -197,4 +211,5 @@ For additional help or custom setups:
 
 ---
 
-**Note**: Make sure to save your OBS settings after configuration and test thoroughly before going live!
+**Note**: Make sure to save your OBS settings after configuration and test
+thoroughly before going live!

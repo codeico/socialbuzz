@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useAuth } from '@/hooks/useAuth';
+import Image from 'next/image';
 import { Upload, Camera, Save, ExternalLink } from 'lucide-react';
 
 export default function ProfilePage() {
@@ -40,7 +41,7 @@ export default function ProfilePage() {
       const token = localStorage.getItem('token');
       const response = await fetch('/api/v1/users/profile', {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -92,7 +93,9 @@ export default function ProfilePage() {
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file) {
+      return;
+    }
 
     const formData = new FormData();
     formData.append('file', file);
@@ -103,7 +106,7 @@ export default function ProfilePage() {
       const response = await fetch('/api/v1/uploads', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: formData,
       });
@@ -132,7 +135,7 @@ export default function ProfilePage() {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           fullName: formData.fullName,
@@ -186,31 +189,24 @@ export default function ProfilePage() {
             <Card>
               <CardHeader>
                 <CardTitle>Profile Photo</CardTitle>
-                <CardDescription>
-                  Upload a photo that represents you
-                </CardDescription>
+                <CardDescription>Upload a photo that represents you</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex flex-col items-center">
                   <div className="relative">
-                    <img
+                    <Image
                       src={avatar || '/default-avatar.png'}
                       alt="Profile"
+                      width={128}
+                      height={128}
                       className="w-32 h-32 rounded-full object-cover border-4 border-gray-200"
                     />
                     <label className="absolute bottom-0 right-0 bg-indigo-600 text-white rounded-full p-2 cursor-pointer hover:bg-indigo-700">
                       <Camera size={16} />
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleAvatarUpload}
-                        className="hidden"
-                      />
+                      <input type="file" accept="image/*" onChange={handleAvatarUpload} className="hidden" />
                     </label>
                   </div>
-                  <p className="text-sm text-gray-500 mt-2">
-                    Click the camera icon to upload a new photo
-                  </p>
+                  <p className="text-sm text-gray-500 mt-2">Click the camera icon to upload a new photo</p>
                 </div>
               </CardContent>
             </Card>
@@ -219,9 +215,7 @@ export default function ProfilePage() {
             <Card className="lg:col-span-2">
               <CardHeader>
                 <CardTitle>Basic Information</CardTitle>
-                <CardDescription>
-                  Your basic profile information
-                </CardDescription>
+                <CardDescription>Your basic profile information</CardDescription>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-4">
@@ -230,7 +224,7 @@ export default function ProfilePage() {
                       {success}
                     </div>
                   )}
-                  
+
                   {error && (
                     <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md text-sm">
                       {error}
@@ -245,19 +239,12 @@ export default function ProfilePage() {
                       onChange={handleInputChange}
                       required
                     />
-                    
-                    <Input
-                      label="Username"
-                      value={user?.username || ''}
-                      disabled
-                      className="bg-gray-50"
-                    />
+
+                    <Input label="Username" value={user?.username || ''} disabled className="bg-gray-50" />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Bio
-                    </label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Bio</label>
                     <textarea
                       name="bio"
                       value={formData.bio}
@@ -276,7 +263,7 @@ export default function ProfilePage() {
                       onChange={handleInputChange}
                       placeholder="https://yourwebsite.com"
                     />
-                    
+
                     <Input
                       label="Location"
                       name="location"
@@ -299,37 +286,35 @@ export default function ProfilePage() {
           <Card>
             <CardHeader>
               <CardTitle>Social Links</CardTitle>
-              <CardDescription>
-                Connect your social media accounts
-              </CardDescription>
+              <CardDescription>Connect your social media accounts</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Input
                   label="Twitter"
                   value={formData.socialLinks.twitter}
-                  onChange={(e) => handleSocialLinkChange('twitter', e.target.value)}
+                  onChange={e => handleSocialLinkChange('twitter', e.target.value)}
                   placeholder="https://twitter.com/username"
                 />
-                
+
                 <Input
                   label="Instagram"
                   value={formData.socialLinks.instagram}
-                  onChange={(e) => handleSocialLinkChange('instagram', e.target.value)}
+                  onChange={e => handleSocialLinkChange('instagram', e.target.value)}
                   placeholder="https://instagram.com/username"
                 />
-                
+
                 <Input
                   label="YouTube"
                   value={formData.socialLinks.youtube}
-                  onChange={(e) => handleSocialLinkChange('youtube', e.target.value)}
+                  onChange={e => handleSocialLinkChange('youtube', e.target.value)}
                   placeholder="https://youtube.com/channel/..."
                 />
-                
+
                 <Input
                   label="TikTok"
                   value={formData.socialLinks.tiktok}
-                  onChange={(e) => handleSocialLinkChange('tiktok', e.target.value)}
+                  onChange={e => handleSocialLinkChange('tiktok', e.target.value)}
                   placeholder="https://tiktok.com/@username"
                 />
               </div>
@@ -340,21 +325,12 @@ export default function ProfilePage() {
           <Card>
             <CardHeader>
               <CardTitle>Public Profile</CardTitle>
-              <CardDescription>
-                Your public profile URL
-              </CardDescription>
+              <CardDescription>Your public profile URL</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex items-center space-x-2">
-                <Input
-                  value={`${window.location.origin}/profile/${user?.username}`}
-                  readOnly
-                  className="bg-gray-50"
-                />
-                <Button
-                  variant="outline"
-                  onClick={() => window.open(`/profile/${user?.username}`, '_blank')}
-                >
+                <Input value={`${window.location.origin}/profile/${user?.username}`} readOnly className="bg-gray-50" />
+                <Button variant="outline" onClick={() => window.open(`/profile/${user?.username}`, '_blank')}>
                   <ExternalLink size={16} />
                 </Button>
               </div>

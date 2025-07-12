@@ -29,58 +29,46 @@ export async function PATCH(request: NextRequest) {
     const { userIds, action } = body;
 
     if (!userIds || !Array.isArray(userIds) || userIds.length === 0) {
-      return NextResponse.json(
-        { error: 'User IDs array is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'User IDs array is required' }, { status: 400 });
     }
 
-    let updateData: any = {
+    const updateData: any = {
       updated_at: new Date().toISOString(),
     };
 
     switch (action) {
-      case 'verify':
-        updateData.is_verified = true;
-        break;
+    case 'verify':
+      updateData.is_verified = true;
+      break;
 
-      case 'unverify':
-        updateData.is_verified = false;
-        break;
+    case 'unverify':
+      updateData.is_verified = false;
+      break;
 
-      case 'delete':
-        // Only super admin can bulk delete
-        if (user.role !== 'super_admin') {
-          return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-        }
+    case 'delete':
+      // Only super admin can bulk delete
+      if (user.role !== 'super_admin') {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
 
-        // Prevent self-deletion
-        if (userIds.includes(decoded.userId)) {
-          return NextResponse.json(
-            { error: 'Cannot delete your own account' },
-            { status: 400 }
-          );
-        }
+      // Prevent self-deletion
+      if (userIds.includes(decoded.userId)) {
+        return NextResponse.json({ error: 'Cannot delete your own account' }, { status: 400 });
+      }
 
-        const { error: deleteError } = await supabaseAdmin
-          .from('users')
-          .delete()
-          .in('id', userIds);
+      const { error: deleteError } = await supabaseAdmin.from('users').delete().in('id', userIds);
 
-        if (deleteError) {
-          throw deleteError;
-        }
+      if (deleteError) {
+        throw deleteError;
+      }
 
-        return NextResponse.json({
-          success: true,
-          message: `${userIds.length} users deleted successfully`,
-        });
+      return NextResponse.json({
+        success: true,
+        message: `${userIds.length} users deleted successfully`,
+      });
 
-      default:
-        return NextResponse.json(
-          { error: 'Invalid action' },
-          { status: 400 }
-        );
+    default:
+      return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
     }
 
     // Update users
@@ -101,9 +89,6 @@ export async function PATCH(request: NextRequest) {
     });
   } catch (error) {
     console.error('Admin bulk user update error:', error);
-    return NextResponse.json(
-      { error: 'Failed to update users' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to update users' }, { status: 500 });
   }
 }

@@ -7,17 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useAuth } from '@/hooks/useAuth';
 import { io, Socket } from 'socket.io-client';
-import { 
-  Settings, 
-  Eye, 
-  Volume2, 
-  Palette, 
-  Monitor, 
-  TestTube,
-  Copy,
-  ExternalLink,
-  Save
-} from 'lucide-react';
+import { Settings, Eye, Volume2, Palette, Monitor, TestTube, Copy, ExternalLink, Save } from 'lucide-react';
 
 interface OBSSettings {
   theme: 'default' | 'neon' | 'minimal' | 'gaming';
@@ -122,22 +112,14 @@ export default function OBSSettings() {
               <Monitor className="mr-2 h-5 w-5" />
               OBS Setup
             </CardTitle>
-            <CardDescription>
-              Add this URL as a Browser Source in OBS Studio
-            </CardDescription>
+            <CardDescription>Add this URL as a Browser Source in OBS Studio</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Overlay URL
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Overlay URL</label>
                 <div className="flex items-center space-x-2">
-                  <Input
-                    value={overlayUrl}
-                    readOnly
-                    className="bg-gray-50 font-mono text-sm"
-                  />
+                  <Input value={overlayUrl} readOnly className="bg-gray-50 font-mono text-sm" />
                   <Button onClick={copyOverlayUrl} variant="outline">
                     <Copy className="h-4 w-4 mr-2" />
                     {copied ? 'Copied!' : 'Copy'}
@@ -153,11 +135,11 @@ export default function OBSSettings() {
                 <h4 className="font-medium text-blue-900 mb-2">OBS Studio Setup Instructions:</h4>
                 <ol className="text-sm text-blue-800 space-y-1 list-decimal list-inside">
                   <li>Open OBS Studio</li>
-                  <li>Add a new "Browser Source" to your scene</li>
+                  <li>Add a new &quot;Browser Source&quot; to your scene</li>
                   <li>Paste the URL above into the URL field</li>
                   <li>Set Width: 1920, Height: 1080</li>
-                  <li>Check "Shutdown source when not visible"</li>
-                  <li>Check "Refresh browser when scene becomes active"</li>
+                  <li>Check &quot;Shutdown source when not visible&quot;</li>
+                  <li>Check &quot;Refresh browser when scene becomes active&quot;</li>
                 </ol>
               </div>
             </div>
@@ -171,9 +153,7 @@ export default function OBSSettings() {
               <Eye className="mr-2 h-5 w-5" />
               Display Settings
             </CardTitle>
-            <CardDescription>
-              Configure what information to show in donation alerts
-            </CardDescription>
+            <CardDescription>Configure what information to show in donation alerts</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -183,7 +163,7 @@ export default function OBSSettings() {
                     type="checkbox"
                     id="showAmount"
                     checked={settings.showAmount}
-                    onChange={(e) => handleSettingChange('showAmount', e.target.checked)}
+                    onChange={e => handleSettingChange('showAmount', e.target.checked)}
                     className="rounded border-gray-300"
                   />
                   <label htmlFor="showAmount" className="text-sm font-medium text-gray-700">
@@ -196,7 +176,7 @@ export default function OBSSettings() {
                     type="checkbox"
                     id="showDonorName"
                     checked={settings.showDonorName}
-                    onChange={(e) => handleSettingChange('showDonorName', e.target.checked)}
+                    onChange={e => handleSettingChange('showDonorName', e.target.checked)}
                     className="rounded border-gray-300"
                   />
                   <label htmlFor="showDonorName" className="text-sm font-medium text-gray-700">
@@ -209,7 +189,7 @@ export default function OBSSettings() {
                     type="checkbox"
                     id="showMessage"
                     checked={settings.showMessage}
-                    onChange={(e) => handleSettingChange('showMessage', e.target.checked)}
+                    onChange={e => handleSettingChange('showMessage', e.target.checked)}
                     className="rounded border-gray-300"
                   />
                   <label htmlFor="showMessage" className="text-sm font-medium text-gray-700">
@@ -220,27 +200,23 @@ export default function OBSSettings() {
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Alert Duration (seconds)
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Alert Duration (seconds)</label>
                   <input
                     type="range"
                     min="3"
                     max="15"
                     value={settings.duration / 1000}
-                    onChange={(e) => handleSettingChange('duration', parseInt(e.target.value) * 1000)}
+                    onChange={e => handleSettingChange('duration', parseInt(e.target.value) * 1000)}
                     className="w-full"
                   />
                   <span className="text-sm text-gray-500">{settings.duration / 1000}s</span>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Font Size
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Font Size</label>
                   <select
                     value={settings.fontSize}
-                    onChange={(e) => handleSettingChange('fontSize', e.target.value)}
+                    onChange={e => handleSettingChange('fontSize', e.target.value)}
                     className="w-full p-2 border border-gray-300 rounded-md"
                   >
                     <option value="small">Small</option>
@@ -260,20 +236,16 @@ export default function OBSSettings() {
               <Palette className="mr-2 h-5 w-5" />
               Theme & Animation
             </CardTitle>
-            <CardDescription>
-              Customize the look and feel of your alerts
-            </CardDescription>
+            <CardDescription>Customize the look and feel of your alerts</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Theme
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Theme</label>
                   <select
                     value={settings.theme}
-                    onChange={(e) => handleSettingChange('theme', e.target.value)}
+                    onChange={e => handleSettingChange('theme', e.target.value)}
                     className="w-full p-2 border border-gray-300 rounded-md"
                   >
                     <option value="default">Default</option>
@@ -284,12 +256,10 @@ export default function OBSSettings() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Animation Type
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Animation Type</label>
                   <select
                     value={settings.animationType}
-                    onChange={(e) => handleSettingChange('animationType', e.target.value)}
+                    onChange={e => handleSettingChange('animationType', e.target.value)}
                     className="w-full p-2 border border-gray-300 rounded-md"
                   >
                     <option value="slide">Slide</option>
@@ -300,12 +270,10 @@ export default function OBSSettings() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Position
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Position</label>
                   <select
                     value={settings.position}
-                    onChange={(e) => handleSettingChange('position', e.target.value)}
+                    onChange={e => handleSettingChange('position', e.target.value)}
                     className="w-full p-2 border border-gray-300 rounded-md"
                   >
                     <option value="top-left">Top Left</option>
@@ -319,37 +287,31 @@ export default function OBSSettings() {
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Accent Color
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Accent Color</label>
                   <input
                     type="color"
                     value={settings.accentColor}
-                    onChange={(e) => handleSettingChange('accentColor', e.target.value)}
+                    onChange={e => handleSettingChange('accentColor', e.target.value)}
                     className="w-full h-10 border border-gray-300 rounded-md"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Background Color
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Background Color</label>
                   <input
                     type="color"
                     value={settings.backgroundColor}
-                    onChange={(e) => handleSettingChange('backgroundColor', e.target.value)}
+                    onChange={e => handleSettingChange('backgroundColor', e.target.value)}
                     className="w-full h-10 border border-gray-300 rounded-md"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Text Color
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Text Color</label>
                   <input
                     type="color"
                     value={settings.textColor}
-                    onChange={(e) => handleSettingChange('textColor', e.target.value)}
+                    onChange={e => handleSettingChange('textColor', e.target.value)}
                     className="w-full h-10 border border-gray-300 rounded-md"
                   />
                 </div>
@@ -365,9 +327,7 @@ export default function OBSSettings() {
               <Volume2 className="mr-2 h-5 w-5" />
               Sound Settings
             </CardTitle>
-            <CardDescription>
-              Configure audio alerts for donations
-            </CardDescription>
+            <CardDescription>Configure audio alerts for donations</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -376,7 +336,7 @@ export default function OBSSettings() {
                   type="checkbox"
                   id="soundEnabled"
                   checked={settings.soundEnabled}
-                  onChange={(e) => handleSettingChange('soundEnabled', e.target.checked)}
+                  onChange={e => handleSettingChange('soundEnabled', e.target.checked)}
                   className="rounded border-gray-300"
                 />
                 <label htmlFor="soundEnabled" className="text-sm font-medium text-gray-700">
@@ -386,16 +346,14 @@ export default function OBSSettings() {
 
               {settings.soundEnabled && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Sound Volume
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Sound Volume</label>
                   <input
                     type="range"
                     min="0"
                     max="1"
                     step="0.1"
                     value={settings.soundVolume}
-                    onChange={(e) => handleSettingChange('soundVolume', parseFloat(e.target.value))}
+                    onChange={e => handleSettingChange('soundVolume', parseFloat(e.target.value))}
                     className="w-full"
                   />
                   <span className="text-sm text-gray-500">{Math.round(settings.soundVolume * 100)}%</span>
@@ -412,19 +370,18 @@ export default function OBSSettings() {
               <TestTube className="mr-2 h-5 w-5" />
               Testing
             </CardTitle>
-            <CardDescription>
-              Test your donation alerts to see how they look
-            </CardDescription>
+            <CardDescription>Test your donation alerts to see how they look</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <Button onClick={sendTestDonation} className="w-full">
                 Send Test Donation
               </Button>
-              
+
               <div className="bg-yellow-50 p-4 rounded-lg">
                 <p className="text-sm text-yellow-800">
-                  <strong>Note:</strong> Make sure your OBS overlay is open in another tab to see the test donation alert.
+                  <strong>Note:</strong> Make sure your OBS overlay is open in another tab to see the test donation
+                  alert.
                 </p>
               </div>
             </div>

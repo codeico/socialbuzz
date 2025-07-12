@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
@@ -8,17 +8,17 @@ import { Button } from '@/components/ui/Button';
 import { useAuth } from '@/hooks/useAuth';
 import { usePayment } from '@/hooks/usePayment';
 import { formatCurrency, formatDate } from '@/utils/formatter';
-import { 
-  DollarSign, 
-  Users, 
-  TrendingUp, 
-  Gift, 
-  ArrowUpRight, 
+import {
+  DollarSign,
+  Users,
+  TrendingUp,
+  Gift,
+  ArrowUpRight,
   ArrowDownRight,
   Plus,
   Eye,
   Monitor,
-  Zap
+  Zap,
 } from 'lucide-react';
 
 export default function DashboardPage() {
@@ -31,9 +31,48 @@ export default function DashboardPage() {
     totalDonations: 0,
     monthlyEarnings: 0,
   });
-  const [recentTransactions, setRecentTransactions] = useState([]);
-  const [recentDonations, setRecentDonations] = useState([]);
+  const [recentTransactions, setRecentTransactions] = useState<any[]>([]);
+  const [recentDonations, setRecentDonations] = useState<any[]>([]);
   const router = useRouter();
+
+  const loadUserData = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/v1/users/me', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        setStats({
+          balance: result.data.balance || 0,
+          totalEarnings: result.data.total_earnings || 0,
+          totalDonations: result.data.total_donations || 0,
+          monthlyEarnings: 0, // Calculate from transactions
+        });
+      }
+    } catch (error) {
+      console.error('Error loading user data:', error);
+    }
+  }, []);
+
+  const loadRecentData = useCallback(async () => {
+    try {
+      const [transactionsData, donationsData] = await Promise.all([
+        getTransactions({ limit: 5, sortBy: 'created_at', sortOrder: 'desc' }),
+        getDonations({ limit: 5, sortBy: 'created_at', sortOrder: 'desc' }),
+      ]);
+
+      setRecentTransactions(transactionsData?.data || []);
+      setRecentDonations(donationsData?.data || []);
+    } catch (error) {
+      // console.error('Error loading recent data:', error);
+      setRecentTransactions([]);
+      setRecentDonations([]);
+    }
+  }, [getTransactions, getDonations]);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -47,54 +86,15 @@ export default function DashboardPage() {
       loadUserData();
       loadRecentData();
     }
-  }, [user]);
-
-  const loadUserData = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('/api/v1/users/me', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      
-      const result = await response.json();
-      if (result.success) {
-        setStats({
-          balance: result.data.balance || 0,
-          totalEarnings: result.data.total_earnings || 0,
-          totalDonations: result.data.total_donations || 0,
-          monthlyEarnings: 0, // Calculate from transactions
-        });
-      }
-    } catch (error) {
-      console.error('Error loading user data:', error);
-    }
-  };
-
-  const loadRecentData = async () => {
-    try {
-      const [transactionsData, donationsData] = await Promise.all([
-        getTransactions({ limit: 5, sortBy: 'created_at', sortOrder: 'desc' }),
-        getDonations({ limit: 5, sortBy: 'created_at', sortOrder: 'desc' }),
-      ]);
-      
-      setRecentTransactions(transactionsData.data.data || []);
-      setRecentDonations(donationsData.data.data || []);
-    } catch (error) {
-      console.error('Error loading recent data:', error);
-      setRecentTransactions([]);
-      setRecentDonations([]);
-    }
-  };
+  }, [user, loadUserData, loadRecentData]);
 
   const renderOverview = () => (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Welcome back, {user?.fullName}!</h1>
-        <p className="text-gray-600">Here's what's happening with your account today.</p>
+        <p className="text-gray-600">Here&apos;s what&apos;s happening with your account today.</p>
       </div>
-      
+
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card>
@@ -104,12 +104,10 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatCurrency(stats.balance)}</div>
-            <p className="text-xs text-muted-foreground">
-              Ready for withdrawal
-            </p>
+            <p className="text-xs text-muted-foreground">Ready for withdrawal</p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Earnings</CardTitle>
@@ -117,12 +115,10 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatCurrency(stats.totalEarnings)}</div>
-            <p className="text-xs text-muted-foreground">
-              All time earnings
-            </p>
+            <p className="text-xs text-muted-foreground">All time earnings</p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Donations</CardTitle>
@@ -130,12 +126,10 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatCurrency(stats.totalDonations)}</div>
-            <p className="text-xs text-muted-foreground">
-              Amount you've donated
-            </p>
+            <p className="text-xs text-muted-foreground">Amount you&apos;ve donated</p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">This Month</CardTitle>
@@ -143,25 +137,21 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatCurrency(stats.monthlyEarnings)}</div>
-            <p className="text-xs text-muted-foreground">
-              Monthly earnings
-            </p>
+            <p className="text-xs text-muted-foreground">Monthly earnings</p>
           </CardContent>
         </Card>
       </div>
-      
+
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
             <CardTitle>Quick Actions</CardTitle>
-            <CardDescription>
-              Common actions you can take
-            </CardDescription>
+            <CardDescription>Common actions you can take</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            <Button 
-              className="w-full justify-start" 
+            <Button
+              className="w-full justify-start"
               variant="outline"
               onClick={() => {
                 // TODO: Implement payout request modal/page
@@ -171,24 +161,24 @@ export default function DashboardPage() {
               <Plus className="mr-2 h-4 w-4" />
               Request Payout
             </Button>
-            <Button 
-              className="w-full justify-start" 
+            <Button
+              className="w-full justify-start"
               variant="outline"
               onClick={() => window.open(`/obs/${user?.id}/settings`, '_blank')}
             >
               <Monitor className="mr-2 h-4 w-4" />
               OBS Setup
             </Button>
-            <Button 
-              className="w-full justify-start" 
+            <Button
+              className="w-full justify-start"
               variant="outline"
               onClick={() => window.open(`/widget/${user?.id}`, '_blank')}
             >
               <Zap className="mr-2 h-4 w-4" />
               Donation Widget
             </Button>
-            <Button 
-              className="w-full justify-start" 
+            <Button
+              className="w-full justify-start"
               variant="outline"
               onClick={() => window.open(`/profile/${user?.username}`, '_blank')}
             >
@@ -197,18 +187,16 @@ export default function DashboardPage() {
             </Button>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader>
             <CardTitle>Recent Activity</CardTitle>
-            <CardDescription>
-              Your latest transactions
-            </CardDescription>
+            <CardDescription>Your latest transactions</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               {recentTransactions.length > 0 ? (
-                recentTransactions.map((transaction) => (
+                recentTransactions.map(transaction => (
                   <div key={transaction.id} className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
                       {transaction.type === 'donation' ? (
@@ -218,20 +206,19 @@ export default function DashboardPage() {
                       )}
                       <div>
                         <p className="text-sm font-medium">{transaction.description}</p>
-                        <p className="text-xs text-gray-500">
-                          {formatDate(transaction.created_at)}
-                        </p>
+                        <p className="text-xs text-gray-500">{formatDate(transaction.created_at)}</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className={`text-sm font-medium ${
-                        transaction.type === 'donation' ? 'text-green-600' : 'text-red-600'
-                      }`}>
-                        {transaction.type === 'donation' ? '+' : '-'}{formatCurrency(transaction.amount)}
+                      <p
+                        className={`text-sm font-medium ${
+                          transaction.type === 'donation' ? 'text-green-600' : 'text-red-600'
+                        }`}
+                      >
+                        {transaction.type === 'donation' ? '+' : '-'}
+                        {formatCurrency(transaction.amount)}
                       </p>
-                      <p className="text-xs text-gray-500 capitalize">
-                        {transaction.status}
-                      </p>
+                      <p className="text-xs text-gray-500 capitalize">{transaction.status}</p>
                     </div>
                   </div>
                 ))
@@ -247,10 +234,10 @@ export default function DashboardPage() {
 
   const renderContent = () => {
     switch (activeTab) {
-      case 'overview':
-        return renderOverview();
-      default:
-        return renderOverview();
+    case 'overview':
+      return renderOverview();
+    default:
+      return renderOverview();
     }
   };
 
@@ -271,9 +258,7 @@ export default function DashboardPage() {
 
   return (
     <DashboardLayout activeTab={activeTab} onTabChange={setActiveTab}>
-      <div className="p-6">
-        {renderContent()}
-      </div>
+      <div className="p-6">{renderContent()}</div>
     </DashboardLayout>
   );
 }

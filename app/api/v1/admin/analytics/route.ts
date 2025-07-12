@@ -31,9 +31,7 @@ export async function GET(request: NextRequest) {
     startDate.setDate(startDate.getDate() - parseInt(period));
 
     // Get total users
-    const { count: totalUsers } = await supabaseAdmin
-      .from('users')
-      .select('*', { count: 'exact', head: true });
+    const { count: totalUsers } = await supabaseAdmin.from('users').select('*', { count: 'exact', head: true });
 
     // Get new users in period
     const { count: newUsers } = await supabaseAdmin
@@ -78,14 +76,16 @@ export async function GET(request: NextRequest) {
     // Get top creators by donations
     const { data: topCreators } = await supabaseAdmin
       .from('users')
-      .select(`
+      .select(
+        `
         id,
         username,
         full_name,
         avatar,
         total_donations,
         total_earnings
-      `)
+      `,
+      )
       .eq('role', 'user')
       .order('total_donations', { ascending: false })
       .limit(10);
@@ -93,7 +93,8 @@ export async function GET(request: NextRequest) {
     // Get recent donations with recipient info
     const { data: recentDonations } = await supabaseAdmin
       .from('donations')
-      .select(`
+      .select(
+        `
         id,
         amount,
         message,
@@ -101,7 +102,8 @@ export async function GET(request: NextRequest) {
         recipient_id,
         is_anonymous,
         created_at
-      `)
+      `,
+      )
       .order('created_at', { ascending: false })
       .limit(20);
 
@@ -148,50 +150,54 @@ export async function GET(request: NextRequest) {
         periodDonationCount,
         averageDonation: totalDonationCount > 0 ? totalDonations / totalDonationCount : 0,
       },
-      topCreators: await Promise.all(topCreators?.map(async creator => {
-        // Get supporter count for each creator
-        const { count: supporterCount } = await supabaseAdmin
-          .from('donations')
-          .select('donor_id', { count: 'exact', head: true })
-          .eq('recipient_id', creator.id);
+      topCreators: await Promise.all(
+        topCreators?.map(async creator => {
+          // Get supporter count for each creator
+          const { count: supporterCount } = await supabaseAdmin
+            .from('donations')
+            .select('donor_id', { count: 'exact', head: true })
+            .eq('recipient_id', creator.id);
 
-        return {
-          id: creator.id,
-          username: creator.username,
-          displayName: creator.full_name || creator.username,
-          avatar: creator.avatar || '/default-avatar.png',
-          totalDonations: creator.total_donations || 0,
-          totalSupporters: supporterCount || 0,
-        };
-      }) || []),
-      recentDonations: await Promise.all(recentDonations?.map(async donation => {
-        // Get donor and recipient info
-        const { data: donor } = await supabaseAdmin
-          .from('users')
-          .select('username, full_name')
-          .eq('id', donation.donor_id)
-          .single();
+          return {
+            id: creator.id,
+            username: creator.username,
+            displayName: creator.full_name || creator.username,
+            avatar: creator.avatar || '/default-avatar.png',
+            totalDonations: creator.total_donations || 0,
+            totalSupporters: supporterCount || 0,
+          };
+        }) || [],
+      ),
+      recentDonations: await Promise.all(
+        recentDonations?.map(async donation => {
+          // Get donor and recipient info
+          const { data: donor } = await supabaseAdmin
+            .from('users')
+            .select('username, full_name')
+            .eq('id', donation.donor_id)
+            .single();
 
-        const { data: recipient } = await supabaseAdmin
-          .from('users')
-          .select('username, full_name, avatar')
-          .eq('id', donation.recipient_id)
-          .single();
+          const { data: recipient } = await supabaseAdmin
+            .from('users')
+            .select('username, full_name, avatar')
+            .eq('id', donation.recipient_id)
+            .single();
 
-        return {
-          id: donation.id,
-          amount: donation.amount,
-          message: donation.message,
-          supporterName: donation.is_anonymous ? 'Anonymous' : (donor?.full_name || donor?.username || 'Unknown'),
-          isAnonymous: donation.is_anonymous,
-          createdAt: donation.created_at,
-          creator: {
-            username: recipient?.username || 'unknown',
-            displayName: recipient?.full_name || recipient?.username || 'Unknown',
-            avatar: recipient?.avatar || '/default-avatar.png',
-          },
-        };
-      }) || []),
+          return {
+            id: donation.id,
+            amount: donation.amount,
+            message: donation.message,
+            supporterName: donation.is_anonymous ? 'Anonymous' : donor?.full_name || donor?.username || 'Unknown',
+            isAnonymous: donation.is_anonymous,
+            createdAt: donation.created_at,
+            creator: {
+              username: recipient?.username || 'unknown',
+              displayName: recipient?.full_name || recipient?.username || 'Unknown',
+              avatar: recipient?.avatar || '/default-avatar.png',
+            },
+          };
+        }) || [],
+      ),
       dailyAnalytics,
     };
 
@@ -200,10 +206,6 @@ export async function GET(request: NextRequest) {
       data: analytics,
     });
   } catch (error) {
-    console.error('Admin analytics error:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch analytics' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch analytics' }, { status: 500 });
   }
 }

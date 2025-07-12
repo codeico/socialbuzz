@@ -23,11 +23,10 @@ export default function NotFound() {
         </div>
 
         {/* Content */}
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">
-          Page Not Found
-        </h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-4">Page Not Found</h1>
         <p className="text-lg text-gray-600 mb-8">
-          Sorry, we couldn't find the page you're looking for. It might have been moved, deleted, or you entered the wrong URL.
+          Sorry, we couldn&apos;t find the page you&apos;re looking for. It might have been moved, deleted, or you entered the
+          wrong URL.
         </p>
 
         {/* Action Buttons */}
@@ -38,7 +37,7 @@ export default function NotFound() {
               Go Home
             </Button>
           </Link>
-          
+
           <div className="grid grid-cols-2 gap-4">
             <Link href="/explore">
               <Button variant="outline" className="w-full">

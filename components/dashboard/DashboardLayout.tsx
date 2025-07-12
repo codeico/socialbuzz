@@ -1,13 +1,6 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
-import {
-  Home,
-  User,
-  CreditCard,
-  Settings,
-  LogOut,
-  Shield,
-} from 'lucide-react';
+import { Home, User, CreditCard, Settings, LogOut, Shield } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/utils/cn';
 
@@ -17,11 +10,7 @@ interface DashboardLayoutProps {
   onTabChange: (tab: string) => void;
 }
 
-export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
-  children,
-  activeTab,
-  onTabChange,
-}) => {
+export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, activeTab, onTabChange }) => {
   const { user, logout } = useAuth();
   const router = useRouter();
 
@@ -46,9 +35,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-gray-900">
-                SocialBuzz
-              </h1>
+              <h1 className="text-2xl font-bold text-gray-900">SocialBuzz</h1>
             </div>
             <div className="flex items-center space-x-4">
               {/* Show admin panel link for admins */}
@@ -61,9 +48,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                   Admin Panel
                 </button>
               )}
-              <span className="text-sm text-gray-700">
-                Welcome, {user?.fullName}
-              </span>
+              <span className="text-sm text-gray-700">Welcome, {user?.fullName}</span>
               <button
                 onClick={() => {
                   logout();
@@ -84,7 +69,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           <div className="flex">
             <div className="w-64 bg-white rounded-lg shadow-sm border border-gray-200 h-fit">
               <nav className="p-4 space-y-2">
-                {userTabs.map((tab) => {
+                {userTabs.map(tab => {
                   const Icon = tab.icon;
                   return (
                     <button
@@ -105,9 +90,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
               </nav>
             </div>
             <div className="flex-1 ml-6">
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-                {children}
-              </div>
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200">{children}</div>
             </div>
           </div>
         </div>

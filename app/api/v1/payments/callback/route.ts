@@ -8,14 +8,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     console.log('Payment callback received:', body);
 
-    const {
-      merchantOrderId,
-      amount,
-      resultCode,
-      merchantUserInfo,
-      reference,
-      signature,
-    } = body;
+    const { merchantOrderId, amount, resultCode, merchantUserInfo, reference, signature } = body;
 
     // Validate callback signature
     if (!validateCallback(body)) {
@@ -26,11 +19,13 @@ export async function POST(request: NextRequest) {
     // Get transaction from database
     const { data: transaction, error: transactionError } = await supabaseAdmin
       .from('transactions')
-      .select(`
+      .select(
+        `
         *,
         donor:users!transactions_user_id_fkey(id, username, full_name),
         recipient:users!transactions_recipient_id_fkey(id, username, full_name)
-      `)
+      `,
+      )
       .eq('merchant_order_id', merchantOrderId)
       .single();
 
@@ -97,7 +92,7 @@ export async function POST(request: NextRequest) {
             user_id: transaction.recipient_id,
             amount_change: transaction.amount,
           }),
-          // Update donor total donations  
+          // Update donor total donations
           supabaseAdmin.rpc('update_user_donations', {
             user_id: transaction.user_id,
             amount_change: transaction.amount,
@@ -105,24 +100,21 @@ export async function POST(request: NextRequest) {
         ]);
 
         // Create notification record
-        await supabaseAdmin
-          .from('notifications')
-          .insert({
-            user_id: transaction.recipient_id,
-            type: 'donation_received',
-            title: 'New Donation Received!',
-            message: `You received ${new Intl.NumberFormat('id-ID', {
-              style: 'currency',
-              currency: 'IDR'
-            }).format(transaction.amount)} from ${transaction.is_anonymous ? 'Anonymous' : transaction.donor?.full_name}`,
-            data: {
-              donationId: transaction.id,
-              amount: transaction.amount,
-              donorName: transaction.is_anonymous ? 'Anonymous' : transaction.donor?.full_name,
-            },
-            created_at: new Date().toISOString(),
-          });
-
+        await supabaseAdmin.from('notifications').insert({
+          user_id: transaction.recipient_id,
+          type: 'donation_received',
+          title: 'New Donation Received!',
+          message: `You received ${new Intl.NumberFormat('id-ID', {
+            style: 'currency',
+            currency: 'IDR',
+          }).format(transaction.amount)} from ${transaction.is_anonymous ? 'Anonymous' : transaction.donor?.full_name}`,
+          data: {
+            donationId: transaction.id,
+            amount: transaction.amount,
+            donorName: transaction.is_anonymous ? 'Anonymous' : transaction.donor?.full_name,
+          },
+          created_at: new Date().toISOString(),
+        });
       } catch (notificationError) {
         console.error('Error sending donation notification:', notificationError);
         // Don't fail the callback if notification fails
@@ -140,12 +132,8 @@ export async function POST(request: NextRequest) {
         amount,
       },
     });
-
   } catch (error) {
     console.error('Payment callback error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

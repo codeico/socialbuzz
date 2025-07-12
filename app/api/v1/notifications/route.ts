@@ -49,10 +49,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Notifications fetch error:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch notifications' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch notifications' }, { status: 500 });
   }
 }
 
@@ -63,10 +60,7 @@ export async function POST(request: NextRequest) {
 
     // Validate required fields
     if (!user_id || !type || !title || !message) {
-      return NextResponse.json(
-        { error: 'User ID, type, title, and message are required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'User ID, type, title, and message are required' }, { status: 400 });
     }
 
     const { data: notification, error } = await supabaseAdmin
@@ -95,10 +89,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Notification creation error:', error);
-    return NextResponse.json(
-      { error: 'Failed to create notification' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to create notification' }, { status: 500 });
   }
 }
 
@@ -137,15 +128,9 @@ export async function PATCH(request: NextRequest) {
       });
     }
 
-    return NextResponse.json(
-      { error: 'Invalid action' },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
   } catch (error) {
     console.error('Notifications update error:', error);
-    return NextResponse.json(
-      { error: 'Failed to update notifications' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to update notifications' }, { status: 500 });
   }
 }

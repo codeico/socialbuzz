@@ -425,9 +425,8 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
-
 # Example curl requests:
-# 
+#
 # Get Current User:
 # curl -X GET "http://localhost:3000/api/v1/users/me" \
 #   -H "Authorization: Bearer YOUR_JWT_TOKEN"

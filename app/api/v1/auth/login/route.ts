@@ -14,31 +14,18 @@ export async function POST(req: NextRequest) {
     const { email, password } = body;
 
     if (!email || !password) {
-      return NextResponse.json(
-        { success: false, error: 'Email and password are required' },
-        { status: 400 },
-      );
+      return NextResponse.json({ success: false, error: 'Email and password are required' }, { status: 400 });
     }
 
-    const { data: user, error } = await supabaseAdmin
-      .from('users')
-      .select('*')
-      .eq('email', email)
-      .single();
+    const { data: user, error } = await supabaseAdmin.from('users').select('*').eq('email', email).single();
 
     if (error || !user) {
-      return NextResponse.json(
-        { success: false, error: 'Invalid credentials' },
-        { status: 401 },
-      );
+      return NextResponse.json({ success: false, error: 'Invalid credentials' }, { status: 401 });
     }
 
     const isPasswordValid = await verifyPassword(password, user.password_hash);
     if (!isPasswordValid) {
-      return NextResponse.json(
-        { success: false, error: 'Invalid credentials' },
-        { status: 401 },
-      );
+      return NextResponse.json({ success: false, error: 'Invalid credentials' }, { status: 401 });
     }
 
     const authUser = {
@@ -54,10 +41,7 @@ export async function POST(req: NextRequest) {
     const token = generateToken(authUser);
 
     // Update last login using admin client
-    await supabaseAdmin
-      .from('users')
-      .update({ last_login: new Date().toISOString() })
-      .eq('id', user.id);
+    await supabaseAdmin.from('users').update({ last_login: new Date().toISOString() }).eq('id', user.id);
 
     return NextResponse.json({
       success: true,
@@ -68,9 +52,6 @@ export async function POST(req: NextRequest) {
     });
   } catch (error) {
     console.error('Login error:', error);
-    return NextResponse.json(
-      { success: false, error: 'Internal server error' },
-      { status: 500 },
-    );
+    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
   }
 }

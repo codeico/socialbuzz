@@ -7,11 +7,7 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get('category');
     const search = searchParams.get('search');
 
-    let query = supabaseAdmin
-      .from('faqs')
-      .select('*')
-      .eq('is_active', true)
-      .order('sort_order', { ascending: true });
+    let query = supabaseAdmin.from('faqs').select('*').eq('is_active', true).order('sort_order', { ascending: true });
 
     if (category && category !== 'all') {
       query = query.eq('category', category);
@@ -33,10 +29,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('FAQ fetch error:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch FAQs' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch FAQs' }, { status: 500 });
   }
 }
 
@@ -47,10 +40,7 @@ export async function POST(request: NextRequest) {
 
     // Validate required fields
     if (!question || !answer || !category) {
-      return NextResponse.json(
-        { error: 'Question, answer, and category are required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Question, answer, and category are required' }, { status: 400 });
     }
 
     const { data: faq, error } = await supabaseAdmin
@@ -78,9 +68,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('FAQ creation error:', error);
-    return NextResponse.json(
-      { error: 'Failed to create FAQ' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to create FAQ' }, { status: 500 });
   }
 }

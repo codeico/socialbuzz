@@ -36,7 +36,8 @@ export async function GET(request: NextRequest) {
 
     let query = supabaseAdmin
       .from('transactions')
-      .select(`
+      .select(
+        `
         *,
         user:users!transactions_user_id_fkey (
           username,
@@ -47,7 +48,9 @@ export async function GET(request: NextRequest) {
           username,
           full_name
         )
-      `, { count: 'exact' })
+      `,
+        { count: 'exact' },
+      )
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
 
@@ -69,20 +72,20 @@ export async function GET(request: NextRequest) {
       let startDate: Date;
 
       switch (dateRange) {
-        case 'today':
-          startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-          break;
-        case 'week':
-          startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-          break;
-        case 'month':
-          startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-          break;
-        case 'year':
-          startDate = new Date(now.getFullYear(), 0, 1);
-          break;
-        default:
-          startDate = new Date(0);
+      case 'today':
+        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        break;
+      case 'week':
+        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        break;
+      case 'month':
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        break;
+      case 'year':
+        startDate = new Date(now.getFullYear(), 0, 1);
+        break;
+      default:
+        startDate = new Date(0);
       }
 
       query = query.gte('created_at', startDate.toISOString());
@@ -106,9 +109,6 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Admin transactions fetch error:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch transactions' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch transactions' }, { status: 500 });
   }
 }

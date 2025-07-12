@@ -4,11 +4,11 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { formatCurrency, formatDate } from '@/utils/formatter';
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  Users, 
-  DollarSign, 
+import {
+  TrendingUp,
+  TrendingDown,
+  Users,
+  DollarSign,
   Activity,
   Eye,
   UserPlus,
@@ -17,7 +17,7 @@ import {
   Calendar,
   BarChart3,
   PieChart,
-  LineChart
+  LineChart,
 } from 'lucide-react';
 
 interface AnalyticsData {
@@ -61,7 +61,7 @@ export function Analytics() {
   const loadAnalytics = async () => {
     try {
       setLoading(true);
-      
+
       // Mock analytics data
       const mockAnalytics: AnalyticsData = {
         overview: {
@@ -146,10 +146,12 @@ export function Analytics() {
   };
 
   const renderOverviewCards = () => {
-    if (!analytics) return null;
+    if (!analytics) {
+      return null;
+    }
 
     const { overview } = analytics;
-    
+
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card>
@@ -160,8 +162,7 @@ export function Analytics() {
           <CardContent>
             <div className="text-2xl font-bold">{overview.totalUsers.toLocaleString()}</div>
             <div className="flex items-center text-xs text-muted-foreground">
-              <TrendingUp className="h-3 w-3 mr-1 text-green-500" />
-              +{overview.newUsersToday} today
+              <TrendingUp className="h-3 w-3 mr-1 text-green-500" />+{overview.newUsersToday} today
             </div>
           </CardContent>
         </Card>
@@ -174,8 +175,7 @@ export function Analytics() {
           <CardContent>
             <div className="text-2xl font-bold">{formatCurrency(overview.totalRevenue)}</div>
             <div className="flex items-center text-xs text-muted-foreground">
-              <TrendingUp className="h-3 w-3 mr-1 text-green-500" />
-              +{overview.growthRate}% vs last month
+              <TrendingUp className="h-3 w-3 mr-1 text-green-500" />+{overview.growthRate}% vs last month
             </div>
           </CardContent>
         </Card>
@@ -187,9 +187,7 @@ export function Analytics() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{overview.totalTransactions.toLocaleString()}</div>
-            <div className="text-xs text-muted-foreground">
-              Avg: {formatCurrency(overview.averageTransaction)}
-            </div>
+            <div className="text-xs text-muted-foreground">Avg: {formatCurrency(overview.averageTransaction)}</div>
           </CardContent>
         </Card>
 
@@ -210,7 +208,9 @@ export function Analytics() {
   };
 
   const renderTopCreators = () => {
-    if (!analytics) return null;
+    if (!analytics) {
+      return null;
+    }
 
     return (
       <Card>
@@ -243,7 +243,9 @@ export function Analytics() {
   };
 
   const renderRevenueByCategory = () => {
-    if (!analytics) return null;
+    if (!analytics) {
+      return null;
+    }
 
     return (
       <Card>
@@ -253,17 +255,16 @@ export function Analytics() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {analytics.revenueMetrics.categories.map((category) => (
+            {analytics.revenueMetrics.categories.map(category => (
               <div key={category.category} className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span>{category.category}</span>
-                  <span>{formatCurrency(category.revenue)} ({category.percentage}%)</span>
+                  <span>
+                    {formatCurrency(category.revenue)} ({category.percentage}%)
+                  </span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div 
-                    className="bg-indigo-600 h-2 rounded-full" 
-                    style={{ width: `${category.percentage}%` }}
-                  />
+                  <div className="bg-indigo-600 h-2 rounded-full" style={{ width: `${category.percentage}%` }} />
                 </div>
               </div>
             ))}
@@ -274,7 +275,9 @@ export function Analytics() {
   };
 
   const renderPaymentMethods = () => {
-    if (!analytics) return null;
+    if (!analytics) {
+      return null;
+    }
 
     return (
       <Card>
@@ -284,17 +287,16 @@ export function Analytics() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {analytics.transactionMetrics.methods.map((method) => (
+            {analytics.transactionMetrics.methods.map(method => (
               <div key={method.method} className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span>{method.method}</span>
-                  <span>{method.count.toLocaleString()} ({method.percentage}%)</span>
+                  <span>
+                    {method.count.toLocaleString()} ({method.percentage}%)
+                  </span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div 
-                    className="bg-green-600 h-2 rounded-full" 
-                    style={{ width: `${method.percentage}%` }}
-                  />
+                  <div className="bg-green-600 h-2 rounded-full" style={{ width: `${method.percentage}%` }} />
                 </div>
               </div>
             ))}
@@ -305,7 +307,9 @@ export function Analytics() {
   };
 
   const renderUserRetention = () => {
-    if (!analytics) return null;
+    if (!analytics) {
+      return null;
+    }
 
     return (
       <Card>
@@ -315,17 +319,14 @@ export function Analytics() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {analytics.userMetrics.retention.map((retention) => (
+            {analytics.userMetrics.retention.map(retention => (
               <div key={retention.period} className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span>{retention.period}</span>
                   <span>{retention.rate}%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div 
-                    className="bg-blue-600 h-2 rounded-full" 
-                    style={{ width: `${retention.rate}%` }}
-                  />
+                  <div className="bg-blue-600 h-2 rounded-full" style={{ width: `${retention.rate}%` }} />
                 </div>
               </div>
             ))}
@@ -345,7 +346,7 @@ export function Analytics() {
         <div className="flex items-center space-x-4">
           <select
             value={timeRange}
-            onChange={(e) => setTimeRange(e.target.value)}
+            onChange={e => setTimeRange(e.target.value)}
             className="px-3 py-2 border border-gray-300 rounded-md"
           >
             <option value="7d">Last 7 days</option>
@@ -386,7 +387,7 @@ export function Analytics() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                {analytics?.transactionMetrics.averageAmounts.map((range) => (
+                {analytics?.transactionMetrics.averageAmounts.map(range => (
                   <div key={range.range} className="text-center">
                     <div className="text-2xl font-bold text-indigo-600">{range.count.toLocaleString()}</div>
                     <div className="text-sm text-gray-600">{range.range}</div>
@@ -409,11 +410,15 @@ export function Analytics() {
                   <div className="text-sm text-gray-600">Monthly Growth</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-blue-600">{analytics?.overview.activeUsers.toLocaleString()}</div>
+                  <div className="text-3xl font-bold text-blue-600">
+                    {analytics?.overview.activeUsers.toLocaleString()}
+                  </div>
                   <div className="text-sm text-gray-600">Active Users</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-purple-600">{formatCurrency(analytics?.overview.averageTransaction || 0)}</div>
+                  <div className="text-3xl font-bold text-purple-600">
+                    {formatCurrency(analytics?.overview.averageTransaction || 0)}
+                  </div>
                   <div className="text-sm text-gray-600">Avg Transaction</div>
                 </div>
               </div>

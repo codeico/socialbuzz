@@ -1,16 +1,15 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { formatCurrency, formatDate } from '@/utils/formatter';
-import { 
-  CreditCard, 
-  Search, 
-  Filter, 
-  Download, 
+import {
+  CreditCard,
+  Search,
+  Download,
   RefreshCw,
   CheckCircle,
   XCircle,
@@ -19,7 +18,7 @@ import {
   TrendingUp,
   TrendingDown,
   Eye,
-  MoreHorizontal
+  MoreHorizontal,
 } from 'lucide-react';
 
 interface Transaction {
@@ -81,12 +80,26 @@ export default function AdminTransactionsPage() {
     totalPages: 0,
   });
 
-  useEffect(() => {
-    loadTransactions();
-    loadStats();
-  }, [pagination.page, searchQuery, filterType, filterStatus, dateRange]);
+  const loadStats = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/v1/admin/transactions/stats', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-  const loadTransactions = async () => {
+      const data = await response.json();
+
+      if (data.success) {
+        setStats(data.data);
+      }
+    } catch (error) {
+      // console.error('Stats fetch error:', error);
+    }
+  }, []);
+
+  const loadTransactions = useCallback(async () => {
     try {
       setLoading(true);
       setError('');
@@ -96,15 +109,23 @@ export default function AdminTransactionsPage() {
         limit: pagination.limit.toString(),
       });
 
-      if (searchQuery) params.append('search', searchQuery);
-      if (filterType !== 'all') params.append('type', filterType);
-      if (filterStatus !== 'all') params.append('status', filterStatus);
-      if (dateRange !== 'all') params.append('date_range', dateRange);
+      if (searchQuery) {
+        params.append('search', searchQuery);
+      }
+      if (filterType !== 'all') {
+        params.append('type', filterType);
+      }
+      if (filterStatus !== 'all') {
+        params.append('status', filterStatus);
+      }
+      if (dateRange !== 'all') {
+        params.append('date_range', dateRange);
+      }
 
       const token = localStorage.getItem('token');
       const response = await fetch(`/api/v1/admin/transactions?${params.toString()}`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -119,30 +140,15 @@ export default function AdminTransactionsPage() {
       }
     } catch (error) {
       setError('Failed to load transactions');
-      console.error('Transactions fetch error:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [pagination.page, pagination.limit, searchQuery, filterType, filterStatus, dateRange]);
 
-  const loadStats = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('/api/v1/admin/transactions/stats', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        setStats(data.data);
-      }
-    } catch (error) {
-      console.error('Stats fetch error:', error);
-    }
-  };
+  useEffect(() => {
+    loadTransactions();
+    loadStats();
+  }, [loadTransactions, loadStats]);
 
   const handleTransactionAction = async (transactionId: string, action: string) => {
     try {
@@ -151,7 +157,7 @@ export default function AdminTransactionsPage() {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ action }),
       });
@@ -166,22 +172,29 @@ export default function AdminTransactionsPage() {
       }
     } catch (error) {
       setError('Action failed');
-      console.error('Transaction action error:', error);
     }
   };
 
   const exportTransactions = async () => {
     try {
       const params = new URLSearchParams();
-      if (searchQuery) params.append('search', searchQuery);
-      if (filterType !== 'all') params.append('type', filterType);
-      if (filterStatus !== 'all') params.append('status', filterStatus);
-      if (dateRange !== 'all') params.append('date_range', dateRange);
+      if (searchQuery) {
+        params.append('search', searchQuery);
+      }
+      if (filterType !== 'all') {
+        params.append('type', filterType);
+      }
+      if (filterStatus !== 'all') {
+        params.append('status', filterStatus);
+      }
+      if (dateRange !== 'all') {
+        params.append('date_range', dateRange);
+      }
 
       const token = localStorage.getItem('token');
       const response = await fetch(`/api/v1/admin/transactions/export?${params.toString()}`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -197,53 +210,71 @@ export default function AdminTransactionsPage() {
         window.URL.revokeObjectURL(url);
       }
     } catch (error) {
-      console.error('Export error:', error);
+      // console.error('Export error:', error);
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'completed': return <CheckCircle className="h-4 w-4 text-green-600" />;
-      case 'failed': return <XCircle className="h-4 w-4 text-red-600" />;
-      case 'pending': return <Clock className="h-4 w-4 text-yellow-600" />;
-      case 'cancelled': return <AlertCircle className="h-4 w-4 text-gray-600" />;
-      default: return <Clock className="h-4 w-4 text-gray-600" />;
+    case 'completed':
+      return <CheckCircle className="h-4 w-4 text-green-600" />;
+    case 'failed':
+      return <XCircle className="h-4 w-4 text-red-600" />;
+    case 'pending':
+      return <Clock className="h-4 w-4 text-yellow-600" />;
+    case 'cancelled':
+      return <AlertCircle className="h-4 w-4 text-gray-600" />;
+    default:
+      return <Clock className="h-4 w-4 text-gray-600" />;
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'completed': return 'bg-green-100 text-green-800';
-      case 'failed': return 'bg-red-100 text-red-800';
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'cancelled': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
+    case 'completed':
+      return 'bg-green-100 text-green-800';
+    case 'failed':
+      return 'bg-red-100 text-red-800';
+    case 'pending':
+      return 'bg-yellow-100 text-yellow-800';
+    case 'cancelled':
+      return 'bg-gray-100 text-gray-800';
+    default:
+      return 'bg-gray-100 text-gray-800';
     }
   };
 
   const getTypeIcon = (type: string) => {
     switch (type) {
-      case 'donation': return <TrendingUp className="h-4 w-4 text-green-600" />;
-      case 'payout': return <TrendingDown className="h-4 w-4 text-blue-600" />;
-      case 'fee': return <CreditCard className="h-4 w-4 text-purple-600" />;
-      default: return <CreditCard className="h-4 w-4 text-gray-600" />;
+    case 'donation':
+      return <TrendingUp className="h-4 w-4 text-green-600" />;
+    case 'payout':
+      return <TrendingDown className="h-4 w-4 text-blue-600" />;
+    case 'fee':
+      return <CreditCard className="h-4 w-4 text-purple-600" />;
+    default:
+      return <CreditCard className="h-4 w-4 text-gray-600" />;
     }
   };
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case 'donation': return 'bg-green-100 text-green-800';
-      case 'payout': return 'bg-blue-100 text-blue-800';
-      case 'fee': return 'bg-purple-100 text-purple-800';
-      default: return 'bg-gray-100 text-gray-800';
+    case 'donation':
+      return 'bg-green-100 text-green-800';
+    case 'payout':
+      return 'bg-blue-100 text-blue-800';
+    case 'fee':
+      return 'bg-purple-100 text-purple-800';
+    default:
+      return 'bg-gray-100 text-gray-800';
     }
   };
 
   if (loading && transactions.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-indigo-600"></div>
           <p className="text-gray-600">Loading transactions...</p>
         </div>
       </div>
@@ -258,15 +289,15 @@ export default function AdminTransactionsPage() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Transaction Management</h1>
-              <p className="text-gray-600 mt-2">Monitor and manage all platform transactions</p>
+              <p className="mt-2 text-gray-600">Monitor and manage all platform transactions</p>
             </div>
             <div className="flex gap-3">
               <Button onClick={loadTransactions} variant="outline" disabled={loading}>
-                <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
                 Refresh
               </Button>
               <Button onClick={exportTransactions} variant="outline">
-                <Download className="h-4 w-4 mr-2" />
+                <Download className="mr-2 h-4 w-4" />
                 Export
               </Button>
             </div>
@@ -274,7 +305,7 @@ export default function AdminTransactionsPage() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+        <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-3 lg:grid-cols-6">
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center">
@@ -351,21 +382,21 @@ export default function AdminTransactionsPage() {
         {/* Filters */}
         <Card className="mb-6">
           <CardContent className="p-6">
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
               <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <Input
                   placeholder="Search transactions..."
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={e => setSearchQuery(e.target.value)}
                   className="pl-10"
                 />
               </div>
 
               <select
                 value={filterType}
-                onChange={(e) => setFilterType(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                onChange={e => setFilterType(e.target.value)}
+                className="rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:ring-indigo-500"
               >
                 <option value="all">All Types</option>
                 <option value="donation">Donations</option>
@@ -375,8 +406,8 @@ export default function AdminTransactionsPage() {
 
               <select
                 value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                onChange={e => setFilterStatus(e.target.value)}
+                className="rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:ring-indigo-500"
               >
                 <option value="all">All Status</option>
                 <option value="pending">Pending</option>
@@ -387,8 +418,8 @@ export default function AdminTransactionsPage() {
 
               <select
                 value={dateRange}
-                onChange={(e) => setDateRange(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                onChange={e => setDateRange(e.target.value)}
+                className="rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:ring-indigo-500"
               >
                 <option value="all">All Time</option>
                 <option value="today">Today</option>
@@ -434,64 +465,56 @@ export default function AdminTransactionsPage() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b">
-                    <th className="text-left p-4 font-medium text-gray-900">ID</th>
-                    <th className="text-left p-4 font-medium text-gray-900">Type</th>
-                    <th className="text-left p-4 font-medium text-gray-900">User</th>
-                    <th className="text-left p-4 font-medium text-gray-900">Amount</th>
-                    <th className="text-left p-4 font-medium text-gray-900">Status</th>
-                    <th className="text-left p-4 font-medium text-gray-900">Payment Method</th>
-                    <th className="text-left p-4 font-medium text-gray-900">Date</th>
-                    <th className="text-left p-4 font-medium text-gray-900">Actions</th>
+                    <th className="p-4 text-left font-medium text-gray-900">ID</th>
+                    <th className="p-4 text-left font-medium text-gray-900">Type</th>
+                    <th className="p-4 text-left font-medium text-gray-900">User</th>
+                    <th className="p-4 text-left font-medium text-gray-900">Amount</th>
+                    <th className="p-4 text-left font-medium text-gray-900">Status</th>
+                    <th className="p-4 text-left font-medium text-gray-900">Payment Method</th>
+                    <th className="p-4 text-left font-medium text-gray-900">Date</th>
+                    <th className="p-4 text-left font-medium text-gray-900">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {transactions.map((transaction) => (
+                  {transactions.map(transaction => (
                     <tr key={transaction.id} className="border-b hover:bg-gray-50">
                       <td className="p-4">
                         <div className="text-sm">
-                          <p className="font-mono text-xs text-gray-500">
-                            {transaction.id.substring(0, 8)}...
-                          </p>
-                          <p className="font-mono text-xs text-gray-400">
-                            {transaction.merchant_order_id}
-                          </p>
+                          <p className="font-mono text-xs text-gray-500">{transaction.id.substring(0, 8)}...</p>
+                          <p className="font-mono text-xs text-gray-400">{transaction.merchant_order_id}</p>
                         </div>
                       </td>
                       <td className="p-4">
                         <div className="flex items-center">
                           {getTypeIcon(transaction.type)}
-                          <span className={`ml-2 inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getTypeColor(transaction.type)}`}>
+                          <span
+                            className={`ml-2 inline-flex rounded-full px-2 py-1 text-xs font-semibold ${getTypeColor(transaction.type)}`}
+                          >
                             {transaction.type.toUpperCase()}
                           </span>
                         </div>
                       </td>
                       <td className="p-4">
                         <div className="text-sm">
-                          <p className="font-medium text-gray-900">
-                            {transaction.user?.full_name || 'Unknown'}
-                          </p>
+                          <p className="font-medium text-gray-900">{transaction.user?.full_name || 'Unknown'}</p>
                           <p className="text-gray-500">@{transaction.user?.username || 'unknown'}</p>
                           {transaction.recipient && (
-                            <p className="text-xs text-gray-400">
-                              → {transaction.recipient.full_name}
-                            </p>
+                            <p className="text-xs text-gray-400">→ {transaction.recipient.full_name}</p>
                           )}
                         </div>
                       </td>
                       <td className="p-4">
                         <div className="text-sm">
-                          <p className="font-bold text-gray-900">
-                            {formatCurrency(transaction.amount)}
-                          </p>
-                          <p className="text-gray-500 text-xs">
-                            {transaction.currency}
-                          </p>
+                          <p className="font-bold text-gray-900">{formatCurrency(transaction.amount)}</p>
+                          <p className="text-xs text-gray-500">{transaction.currency}</p>
                         </div>
                       </td>
                       <td className="p-4">
                         <div className="flex items-center">
                           {getStatusIcon(transaction.status)}
-                          <span className={`ml-2 inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(transaction.status)}`}>
+                          <span
+                            className={`ml-2 inline-flex rounded-full px-2 py-1 text-xs font-semibold ${getStatusColor(transaction.status)}`}
+                          >
                             {transaction.status.toUpperCase()}
                           </span>
                         </div>
@@ -504,13 +527,11 @@ export default function AdminTransactionsPage() {
                       <td className="p-4">
                         <div className="text-sm">
                           <p>{formatDate(transaction.created_at)}</p>
-                          <p className="text-gray-500 text-xs">
+                          <p className="text-xs text-gray-500">
                             {new Date(transaction.created_at).toLocaleTimeString()}
                           </p>
                           {transaction.completed_at && (
-                            <p className="text-green-600 text-xs">
-                              Completed: {formatDate(transaction.completed_at)}
-                            </p>
+                            <p className="text-xs text-green-600">Completed: {formatDate(transaction.completed_at)}</p>
                           )}
                         </div>
                       </td>
@@ -550,7 +571,7 @@ export default function AdminTransactionsPage() {
 
             {/* Pagination */}
             {pagination.totalPages > 1 && (
-              <div className="flex items-center justify-between mt-6">
+              <div className="mt-6 flex items-center justify-between">
                 <div className="text-sm text-gray-500">
                   Page {pagination.page} of {pagination.totalPages}
                 </div>

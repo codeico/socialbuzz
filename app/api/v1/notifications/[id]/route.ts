@@ -2,10 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const token = request.headers.get('authorization')?.replace('Bearer ', '');
     if (!token) {
@@ -17,7 +14,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
     const { is_read } = body;
 
@@ -36,10 +33,7 @@ export async function PATCH(
 
     if (error) {
       if (error.code === 'PGRST116') {
-        return NextResponse.json(
-          { error: 'Notification not found' },
-          { status: 404 }
-        );
+        return NextResponse.json({ error: 'Notification not found' }, { status: 404 });
       }
       throw error;
     }
@@ -51,17 +45,11 @@ export async function PATCH(
     });
   } catch (error) {
     console.error('Notification update error:', error);
-    return NextResponse.json(
-      { error: 'Failed to update notification' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to update notification' }, { status: 500 });
   }
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const token = request.headers.get('authorization')?.replace('Bearer ', '');
     if (!token) {
@@ -73,14 +61,10 @@ export async function DELETE(
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await params;
 
     // Delete notification
-    const { error } = await supabaseAdmin
-      .from('notifications')
-      .delete()
-      .eq('id', id)
-      .eq('user_id', decoded.userId); // Ensure user can only delete their own notifications
+    const { error } = await supabaseAdmin.from('notifications').delete().eq('id', id).eq('user_id', decoded.userId); // Ensure user can only delete their own notifications
 
     if (error) {
       throw error;
@@ -92,9 +76,6 @@ export async function DELETE(
     });
   } catch (error) {
     console.error('Notification deletion error:', error);
-    return NextResponse.json(
-      { error: 'Failed to delete notification' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to delete notification' }, { status: 500 });
   }
 }

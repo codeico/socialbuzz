@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
     };
 
     // Get additional data based on type
-    let additionalData: any = {};
+    const additionalData: any = {};
 
     if (type === 'overview' || type === 'revenue') {
       additionalData.revenueData = await getRevenueData(startDate.toISOString(), endDate.toISOString());
@@ -82,10 +82,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Admin reports error:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch reports' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch reports' }, { status: 500 });
   }
 }
 
@@ -123,9 +120,7 @@ async function getStats(startDate: string, endDate: string) {
     .lt('created_at', endDate);
 
   // Average transaction amount
-  const averageTransactionAmount = totalTransactions && totalTransactions > 0 
-    ? totalRevenue / totalTransactions 
-    : 0;
+  const averageTransactionAmount = totalTransactions && totalTransactions > 0 ? totalRevenue / totalTransactions : 0;
 
   // Success rate
   const { count: completedTransactions } = await supabaseAdmin
@@ -135,9 +130,8 @@ async function getStats(startDate: string, endDate: string) {
     .gte('created_at', startDate)
     .lt('created_at', endDate);
 
-  const successRate = totalTransactions && totalTransactions > 0 
-    ? (completedTransactions || 0) / totalTransactions * 100 
-    : 0;
+  const successRate =
+    totalTransactions && totalTransactions > 0 ? ((completedTransactions || 0) / totalTransactions) * 100 : 0;
 
   return {
     totalRevenue,
@@ -160,7 +154,7 @@ async function getRevenueData(startDate: string, endDate: string) {
 
   // Group by date
   const revenueByDate: { [key: string]: { revenue: number; transactions: number } } = {};
-  
+
   data?.forEach(transaction => {
     const date = transaction.created_at.split('T')[0];
     if (!revenueByDate[date]) {
@@ -180,7 +174,8 @@ async function getRevenueData(startDate: string, endDate: string) {
 async function getTopCreators(startDate: string, endDate: string) {
   const { data } = await supabaseAdmin
     .from('transactions')
-    .select(`
+    .select(
+      `
       recipient_id,
       amount,
       recipient:users!transactions_recipient_id_fkey (
@@ -188,7 +183,8 @@ async function getTopCreators(startDate: string, endDate: string) {
         full_name,
         total_earnings
       )
-    `)
+    `,
+    )
     .eq('status', 'completed')
     .eq('type', 'donation')
     .not('recipient_id', 'is', null)
@@ -197,14 +193,14 @@ async function getTopCreators(startDate: string, endDate: string) {
 
   // Group by recipient
   const creatorStats: { [key: string]: any } = {};
-  
+
   data?.forEach(transaction => {
     const recipientId = transaction.recipient_id;
     if (!creatorStats[recipientId]) {
       creatorStats[recipientId] = {
         id: recipientId,
-        username: transaction.recipient?.username || 'unknown',
-        full_name: transaction.recipient?.full_name || 'Unknown',
+        username: (transaction.recipient as any)?.username || 'unknown',
+        full_name: (transaction.recipient as any)?.full_name || 'Unknown',
         total_earnings: 0,
         donation_count: 0,
       };
@@ -221,7 +217,8 @@ async function getTopCreators(startDate: string, endDate: string) {
 async function getTopDonors(startDate: string, endDate: string) {
   const { data } = await supabaseAdmin
     .from('transactions')
-    .select(`
+    .select(
+      `
       user_id,
       amount,
       user:users!transactions_user_id_fkey (
@@ -229,7 +226,8 @@ async function getTopDonors(startDate: string, endDate: string) {
         full_name,
         total_donations
       )
-    `)
+    `,
+    )
     .eq('status', 'completed')
     .eq('type', 'donation')
     .gte('created_at', startDate)
@@ -237,14 +235,14 @@ async function getTopDonors(startDate: string, endDate: string) {
 
   // Group by user
   const donorStats: { [key: string]: any } = {};
-  
+
   data?.forEach(transaction => {
     const userId = transaction.user_id;
     if (!donorStats[userId]) {
       donorStats[userId] = {
         id: userId,
-        username: transaction.user?.username || 'unknown',
-        full_name: transaction.user?.full_name || 'Unknown',
+        username: (transaction.user as any)?.username || 'unknown',
+        full_name: (transaction.user as any)?.full_name || 'Unknown',
         total_donations: 0,
         donation_count: 0,
       };
@@ -288,6 +286,8 @@ async function getTransactionTrends(startDate: string, endDate: string) {
 }
 
 function calculateGrowth(current: number, previous: number): number {
-  if (previous === 0) return current > 0 ? 100 : 0;
+  if (previous === 0) {
+    return current > 0 ? 100 : 0;
+  }
   return ((current - previous) / previous) * 100;
 }

@@ -1,14 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
-import { withAuth } from '@/lib/middleware';
-import { handleCors } from '@/lib/middleware';
+import { supabaseAdmin } from '@/lib/supabase';
+import { verifyToken } from '@/lib/auth';
 
 export async function OPTIONS(req: NextRequest) {
-  return handleCors(req) || new NextResponse(null, { status: 200 });
+  return new NextResponse(null, { 
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    }
+  });
 }
 
-export const GET = withAuth(async (req) => {
+export async function GET(req: NextRequest) {
   try {
+    // Check authentication
+    const token = req.headers.get('authorization')?.replace('Bearer ', '');
+    if (!token) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const decoded = verifyToken(token);
+    if (!decoded) {
+      return NextResponse.json({ success: false, error: 'Invalid token' }, { status: 401 });
+    }
+
     const { searchParams } = new URL(req.url);
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
@@ -17,7 +34,7 @@ export const GET = withAuth(async (req) => {
 
     const offset = (page - 1) * limit;
 
-    const { data, error, count } = await supabase
+    const { data, error, count } = await supabaseAdmin
       .from('transactions')
       .select(`
         *,
@@ -28,16 +45,13 @@ export const GET = withAuth(async (req) => {
           avatar
         )
       `, { count: 'exact' })
-      .or(`user_id.eq.${req.user.id},recipient_id.eq.${req.user.id}`)
+      .or(`user_id.eq.${decoded.userId},recipient_id.eq.${decoded.userId}`)
       .order(sortBy, { ascending: sortOrder === 'asc' })
       .range(offset, offset + limit - 1);
 
     if (error) {
       console.error('Error fetching transactions:', error);
-      return NextResponse.json(
-        { success: false, error: 'Failed to fetch transactions' },
-        { status: 500 }
-      );
+      return NextResponse.json({ success: false, error: 'Failed to fetch transactions' }, { status: 500 });
     }
 
     const total = count || 0;
@@ -59,9 +73,6 @@ export const GET = withAuth(async (req) => {
     });
   } catch (error) {
     console.error('Get transactions error:', error);
-    return NextResponse.json(
-      { success: false, error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
   }
-});
+}

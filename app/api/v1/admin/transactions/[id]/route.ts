@@ -2,10 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const token = request.headers.get('authorization')?.replace('Bearer ', '');
     if (!token) {
@@ -28,7 +25,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
     const { action } = body;
 
@@ -40,53 +37,38 @@ export async function PATCH(
       .single();
 
     if (transactionError || !transaction) {
-      return NextResponse.json(
-        { error: 'Transaction not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Transaction not found' }, { status: 404 });
     }
 
-    let updateData: any = {
+    const updateData: any = {
       updated_at: new Date().toISOString(),
     };
 
     switch (action) {
-      case 'approve':
-        if (transaction.status !== 'pending') {
-          return NextResponse.json(
-            { error: 'Only pending transactions can be approved' },
-            { status: 400 }
-          );
-        }
-        updateData.status = 'completed';
-        updateData.completed_at = new Date().toISOString();
-        break;
+    case 'approve':
+      if (transaction.status !== 'pending') {
+        return NextResponse.json({ error: 'Only pending transactions can be approved' }, { status: 400 });
+      }
+      updateData.status = 'completed';
+      updateData.completed_at = new Date().toISOString();
+      break;
 
-      case 'cancel':
-        if (!['pending', 'failed'].includes(transaction.status)) {
-          return NextResponse.json(
-            { error: 'Only pending or failed transactions can be cancelled' },
-            { status: 400 }
-          );
-        }
-        updateData.status = 'cancelled';
-        break;
+    case 'cancel':
+      if (!['pending', 'failed'].includes(transaction.status)) {
+        return NextResponse.json({ error: 'Only pending or failed transactions can be cancelled' }, { status: 400 });
+      }
+      updateData.status = 'cancelled';
+      break;
 
-      case 'retry':
-        if (transaction.status !== 'failed') {
-          return NextResponse.json(
-            { error: 'Only failed transactions can be retried' },
-            { status: 400 }
-          );
-        }
-        updateData.status = 'pending';
-        break;
+    case 'retry':
+      if (transaction.status !== 'failed') {
+        return NextResponse.json({ error: 'Only failed transactions can be retried' }, { status: 400 });
+      }
+      updateData.status = 'pending';
+      break;
 
-      default:
-        return NextResponse.json(
-          { error: 'Invalid action' },
-          { status: 400 }
-        );
+    default:
+      return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
     }
 
     // Update transaction
@@ -104,23 +86,39 @@ export async function PATCH(
     // If transaction is completed and it's a donation, update user balances
     if (action === 'approve' && transaction.type === 'donation' && transaction.recipient_id) {
       // Add to recipient's balance and earnings
-      await supabaseAdmin
+      const { data: recipient } = await supabaseAdmin
         .from('users')
-        .update({
-          balance: supabaseAdmin.sql`balance + ${transaction.amount}`,
-          total_earnings: supabaseAdmin.sql`total_earnings + ${transaction.amount}`,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', transaction.recipient_id);
+        .select('balance, total_earnings')
+        .eq('id', transaction.recipient_id)
+        .single();
+      
+      if (recipient) {
+        await supabaseAdmin
+          .from('users')
+          .update({
+            balance: (recipient.balance || 0) + transaction.amount,
+            total_earnings: (recipient.total_earnings || 0) + transaction.amount,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', transaction.recipient_id);
+      }
 
       // Update donor's total donations
-      await supabaseAdmin
+      const { data: donor } = await supabaseAdmin
         .from('users')
-        .update({
-          total_donations: supabaseAdmin.sql`total_donations + ${transaction.amount}`,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', transaction.user_id);
+        .select('total_donations')
+        .eq('id', transaction.user_id)
+        .single();
+      
+      if (donor) {
+        await supabaseAdmin
+          .from('users')
+          .update({
+            total_donations: (donor.total_donations || 0) + transaction.amount,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', transaction.user_id);
+      }
     }
 
     return NextResponse.json({
@@ -130,9 +128,6 @@ export async function PATCH(
     });
   } catch (error) {
     console.error('Admin transaction update error:', error);
-    return NextResponse.json(
-      { error: 'Failed to update transaction' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to update transaction' }, { status: 500 });
   }
 }

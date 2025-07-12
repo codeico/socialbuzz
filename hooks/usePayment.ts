@@ -22,7 +22,7 @@ export const usePayment = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(data),
       });
@@ -50,7 +50,7 @@ export const usePayment = () => {
     try {
       const token = localStorage.getItem('token');
       const queryParams = new URLSearchParams();
-      
+
       if (params.page) queryParams.append('page', params.page.toString());
       if (params.limit) queryParams.append('limit', params.limit.toString());
       if (params.sortBy) queryParams.append('sortBy', params.sortBy);
@@ -58,7 +58,7 @@ export const usePayment = () => {
 
       const response = await fetch(`/api/v1/users/transactions?${queryParams}`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -96,7 +96,7 @@ export const usePayment = () => {
     try {
       const token = localStorage.getItem('token');
       const queryParams = new URLSearchParams();
-      
+
       if (params.page) queryParams.append('page', params.page.toString());
       if (params.limit) queryParams.append('limit', params.limit.toString());
       if (params.sortBy) queryParams.append('sortBy', params.sortBy);
@@ -104,7 +104,7 @@ export const usePayment = () => {
 
       const response = await fetch(`/api/v1/users/donations?${queryParams}`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -135,10 +135,7 @@ export const usePayment = () => {
     }
   };
 
-  const createPayoutRequest = async (data: {
-    amount: number;
-    bankAccount: PayoutRequest['bankAccount'];
-  }) => {
+  const createPayoutRequest = async (data: { amount: number; bankAccount: PayoutRequest['bankAccount'] }) => {
     setLoading(true);
     setError(null);
 
@@ -148,7 +145,7 @@ export const usePayment = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(data),
       });
@@ -176,7 +173,7 @@ export const usePayment = () => {
     try {
       const token = localStorage.getItem('token');
       const queryParams = new URLSearchParams();
-      
+
       if (params.page) queryParams.append('page', params.page.toString());
       if (params.limit) queryParams.append('limit', params.limit.toString());
       if (params.sortBy) queryParams.append('sortBy', params.sortBy);
@@ -184,7 +181,7 @@ export const usePayment = () => {
 
       const response = await fetch(`/api/v1/users/payout-requests?${queryParams}`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 

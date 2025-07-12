@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import Image from 'next/image';
 import { formatCurrency } from '@/utils/formatter';
 import { io, Socket } from 'socket.io-client';
 import { DonationNotification } from '@/lib/websocket';
@@ -45,12 +46,7 @@ export default function DonationWidget() {
 
   const predefinedAmounts = [10000, 25000, 50000, 100000, 250000, 500000];
 
-  useEffect(() => {
-    loadCreatorData();
-    initializeWebSocket();
-  }, [creatorId]);
-
-  const loadCreatorData = async () => {
+  const loadCreatorData = useCallback(async () => {
     try {
       // Mock creator data - in real app, fetch from API
       const mockCreator: Creator = {
@@ -67,9 +63,9 @@ export default function DonationWidget() {
     } catch (error) {
       console.error('Error loading creator:', error);
     }
-  };
+  }, [creatorId]);
 
-  const initializeWebSocket = () => {
+  const initializeWebSocket = useCallback(() => {
     const newSocket = io(process.env.NEXT_PUBLIC_WS_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000', {
       transports: ['websocket', 'polling'],
     });
@@ -82,7 +78,7 @@ export default function DonationWidget() {
       });
     });
 
-    newSocket.on('widget-connected', (data) => {
+    newSocket.on('widget-connected', data => {
       console.log('Widget connected:', data);
     });
 
@@ -94,7 +90,12 @@ export default function DonationWidget() {
     setSocket(newSocket);
 
     return () => newSocket.disconnect();
-  };
+  }, [creatorId]);
+
+  useEffect(() => {
+    loadCreatorData();
+    initializeWebSocket();
+  }, [loadCreatorData, initializeWebSocket]);
 
   const handleAmountSelect = (amount: number) => {
     setDonationForm(prev => ({ ...prev, amount: amount.toString() }));
@@ -135,7 +136,7 @@ export default function DonationWidget() {
         // Redirect to payment page
         window.open(result.data.paymentUrl, '_blank');
         setShowSuccess(true);
-        
+
         // Reset form
         setDonationForm({
           amount: '',
@@ -175,9 +176,11 @@ export default function DonationWidget() {
           <div className="bg-gradient-to-r from-indigo-500 to-purple-600 h-20"></div>
           <CardContent className="relative pt-0">
             <div className="flex items-start space-x-4 -mt-10">
-              <img
+              <Image
                 src={creator.avatar}
                 alt={creator.fullName}
+                width={80}
+                height={80}
                 className="w-20 h-20 rounded-full border-4 border-white shadow-lg"
               />
               <div className="flex-1 pt-12">
@@ -193,7 +196,7 @@ export default function DonationWidget() {
                 <p className="text-sm text-gray-500 mt-2">{creator.bio}</p>
               </div>
             </div>
-            
+
             {/* Stats */}
             <div className="grid grid-cols-2 gap-4 mt-6">
               <div className="text-center">
@@ -223,7 +226,7 @@ export default function DonationWidget() {
                 <span className="font-medium">Thank you for your donation! 🎉</span>
               </div>
               <p className="text-sm text-green-600 mt-1">
-                Your payment is being processed. The creator will be notified once it's completed.
+                Your payment is being processed. The creator will be notified once it&apos;s completed.
               </p>
             </CardContent>
           </Card>
@@ -236,21 +239,17 @@ export default function DonationWidget() {
               <Gift className="mr-2 h-5 w-5" />
               Support {creator.fullName}
             </CardTitle>
-            <CardDescription>
-              Show your appreciation with a donation
-            </CardDescription>
+            <CardDescription>Show your appreciation with a donation</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Amount Selection */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
-                Choose Amount
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-3">Choose Amount</label>
               <div className="grid grid-cols-3 gap-2 mb-3">
-                {predefinedAmounts.map((amount) => (
+                {predefinedAmounts.map(amount => (
                   <Button
                     key={amount}
-                    variant={donationForm.amount === amount.toString() ? "default" : "outline"}
+                    variant={donationForm.amount === amount.toString() ? 'primary' : 'outline'}
                     onClick={() => handleAmountSelect(amount)}
                     className="text-sm"
                   >
@@ -261,7 +260,7 @@ export default function DonationWidget() {
               <Input
                 placeholder="Custom amount (min Rp 5,000)"
                 value={donationForm.amount}
-                onChange={(e) => handleInputChange('amount', e.target.value)}
+                onChange={e => handleInputChange('amount', e.target.value)}
                 type="number"
                 min="5000"
               />
@@ -269,40 +268,34 @@ export default function DonationWidget() {
 
             {/* Message */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Message (Optional)
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Message (Optional)</label>
               <textarea
                 placeholder="Say something nice to the creator..."
                 value={donationForm.message}
-                onChange={(e) => handleInputChange('message', e.target.value)}
+                onChange={e => handleInputChange('message', e.target.value)}
                 rows={3}
                 className="w-full p-3 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 resize-none"
                 maxLength={200}
               />
-              <p className="text-xs text-gray-500 mt-1">
-                {donationForm.message.length}/200 characters
-              </p>
+              <p className="text-xs text-gray-500 mt-1">{donationForm.message.length}/200 characters</p>
             </div>
 
             {/* Donor Info */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Your Name
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Your Name</label>
               <Input
                 placeholder="Enter your name"
                 value={donationForm.donorName}
-                onChange={(e) => handleInputChange('donorName', e.target.value)}
+                onChange={e => handleInputChange('donorName', e.target.value)}
                 disabled={donationForm.isAnonymous}
               />
-              
+
               <div className="flex items-center space-x-2 mt-2">
                 <input
                   type="checkbox"
                   id="anonymous"
                   checked={donationForm.isAnonymous}
-                  onChange={(e) => handleInputChange('isAnonymous', e.target.checked)}
+                  onChange={e => handleInputChange('isAnonymous', e.target.checked)}
                   className="rounded border-gray-300"
                 />
                 <label htmlFor="anonymous" className="text-sm text-gray-600">
@@ -312,11 +305,7 @@ export default function DonationWidget() {
             </div>
 
             {/* Donate Button */}
-            <Button
-              onClick={handleDonate}
-              disabled={isLoading || !donationForm.amount}
-              className="w-full py-3 text-lg"
-            >
+            <Button onClick={handleDonate} disabled={isLoading || !donationForm.amount} className="w-full py-3 text-lg">
               {isLoading ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
@@ -340,32 +329,24 @@ export default function DonationWidget() {
                 <MessageCircle className="mr-2 h-5 w-5" />
                 Recent Donations
               </CardTitle>
-              <CardDescription>
-                Latest support from the community
-              </CardDescription>
+              <CardDescription>Latest support from the community</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {recentDonations.map((donation) => (
+                {recentDonations.map(donation => (
                   <div key={donation.id} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
                     <div className="w-8 h-8 bg-gradient-to-br from-pink-400 to-red-500 rounded-full flex items-center justify-center">
                       <Heart className="h-4 w-4 text-white" />
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center space-x-2">
-                        <span className="font-medium text-indigo-600">
-                          {formatCurrency(donation.amount)}
-                        </span>
+                        <span className="font-medium text-indigo-600">{formatCurrency(donation.amount)}</span>
                         <span className="text-sm text-gray-600">
                           from {donation.isAnonymous ? 'Anonymous' : donation.donorName}
                         </span>
                       </div>
-                      {donation.message && (
-                        <p className="text-sm text-gray-600 mt-1">"{donation.message}"</p>
-                      )}
-                      <p className="text-xs text-gray-400 mt-1">
-                        {new Date(donation.timestamp).toLocaleTimeString()}
-                      </p>
+                      {donation.message && <p className="text-sm text-gray-600 mt-1">&quot;{donation.message}&quot;</p>}
+                      <p className="text-xs text-gray-400 mt-1">{new Date(donation.timestamp).toLocaleTimeString()}</p>
                     </div>
                   </div>
                 ))}
@@ -377,7 +358,7 @@ export default function DonationWidget() {
         {/* Footer */}
         <div className="text-center text-sm text-gray-500">
           <p>Powered by SocialBuzz</p>
-          <p>Secure payments • Real-time notifications</p>
+          <p>Secure payments &bull; Real-time notifications</p>
         </div>
       </div>
     </div>

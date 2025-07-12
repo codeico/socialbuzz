@@ -34,14 +34,14 @@ class WebSocketManager {
       },
     });
 
-    this.io.on('connection', (socket) => {
+    this.io.on('connection', socket => {
       console.log('Client connected:', socket.id);
 
       // Handle creator joining their room for OBS overlay
-      socket.on('join-creator-room', async (data) => {
+      socket.on('join-creator-room', async data => {
         try {
           const { creatorId, token } = data;
-          
+
           // Verify token if provided (for authenticated connections)
           if (token) {
             const decoded = verifyToken(token);
@@ -64,7 +64,7 @@ class WebSocketManager {
           this.creatorRooms.set(creatorId, rooms);
 
           console.log(`Creator ${creatorId} joined room: ${roomName}`);
-          
+
           // Send queued donations if any
           const queuedDonations = this.donationQueue.get(creatorId) || [];
           if (queuedDonations.length > 0) {
@@ -82,12 +82,12 @@ class WebSocketManager {
       });
 
       // Handle OBS overlay connection
-      socket.on('join-obs-overlay', (data) => {
+      socket.on('join-obs-overlay', data => {
         try {
           const { creatorId, overlayId } = data;
           const roomName = `obs-${creatorId}`;
           socket.join(roomName);
-          
+
           console.log(`OBS overlay ${overlayId} joined room: ${roomName}`);
           socket.emit('overlay-connected', { roomName, creatorId, overlayId });
         } catch (error) {
@@ -97,12 +97,12 @@ class WebSocketManager {
       });
 
       // Handle donation widget connection
-      socket.on('join-donation-widget', (data) => {
+      socket.on('join-donation-widget', data => {
         try {
           const { creatorId, widgetId } = data;
           const roomName = `widget-${creatorId}`;
           socket.join(roomName);
-          
+
           console.log(`Donation widget ${widgetId} joined room: ${roomName}`);
           socket.emit('widget-connected', { roomName, creatorId, widgetId });
         } catch (error) {
@@ -112,7 +112,7 @@ class WebSocketManager {
       });
 
       // Handle test donation (for testing purposes)
-      socket.on('test-donation', (data) => {
+      socket.on('test-donation', data => {
         try {
           const { creatorId } = data;
           const testDonation: DonationNotification = {
@@ -146,16 +146,18 @@ class WebSocketManager {
 
   // Broadcast donation to all connected clients for a creator
   broadcastDonation(donation: DonationNotification) {
-    if (!this.io) return;
+    if (!this.io) {
+      return;
+    }
 
     const creatorId = donation.creatorId;
-    
+
     // Send to creator's main room
     this.io.to(`creator-${creatorId}`).emit('donation-alert', donation);
-    
+
     // Send to OBS overlay
     this.io.to(`obs-${creatorId}`).emit('donation-alert', donation);
-    
+
     // Send to donation widget
     this.io.to(`widget-${creatorId}`).emit('donation-alert', donation);
 

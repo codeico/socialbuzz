@@ -30,14 +30,11 @@ export async function POST(request: NextRequest) {
 
     // Validate email settings
     if (!emailSettings.smtp_host || !emailSettings.smtp_username || !emailSettings.smtp_password) {
-      return NextResponse.json(
-        { error: 'Missing required email configuration' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Missing required email configuration' }, { status: 400 });
     }
 
     // Create transporter
-    const transporter = nodemailer.createTransporter({
+    const transporter = nodemailer.createTransport({
       host: emailSettings.smtp_host,
       port: emailSettings.smtp_port,
       secure: emailSettings.smtp_secure,
@@ -78,17 +75,15 @@ export async function POST(request: NextRequest) {
     await transporter.sendMail(testEmail);
 
     // Log the test
-    await supabaseAdmin
-      .from('admin_logs')
-      .insert({
-        admin_id: decoded.userId,
-        action: 'email_test',
-        details: {
-          smtp_host: emailSettings.smtp_host,
-          test_sent_to: user.email,
-          timestamp: new Date().toISOString(),
-        },
-      });
+    await supabaseAdmin.from('admin_logs').insert({
+      admin_id: decoded.userId,
+      action: 'email_test',
+      details: {
+        smtp_host: emailSettings.smtp_host,
+        test_sent_to: user.email,
+        timestamp: new Date().toISOString(),
+      },
+    });
 
     return NextResponse.json({
       success: true,
@@ -96,9 +91,9 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Email test error:', error);
-    
+
     let errorMessage = 'Failed to send test email';
-    
+
     // Provide more specific error messages
     if (error instanceof Error) {
       if (error.message.includes('Authentication failed')) {
@@ -114,9 +109,6 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    return NextResponse.json(
-      { error: errorMessage },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

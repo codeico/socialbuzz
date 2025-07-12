@@ -36,9 +36,7 @@ export default function TermsPage() {
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             Please read these terms carefully before using SocialBuzz platform
           </p>
-          <p className="text-sm text-gray-500 mt-4">
-            Last updated: January 11, 2024
-          </p>
+          <p className="text-sm text-gray-500 mt-4">Last updated: January 11, 2024</p>
         </div>
 
         {/* Important Notice */}
@@ -49,8 +47,8 @@ export default function TermsPage() {
               <div>
                 <h3 className="font-semibold text-yellow-800 mb-2">Important Notice</h3>
                 <p className="text-yellow-700">
-                  By accessing and using SocialBuzz, you accept and agree to be bound by the terms and provision of this agreement. 
-                  If you do not agree to abide by the above, please do not use this service.
+                  By accessing and using SocialBuzz, you accept and agree to be bound by the terms and provision of this
+                  agreement. If you do not agree to abide by the above, please do not use this service.
                 </p>
               </div>
             </div>
@@ -62,16 +60,20 @@ export default function TermsPage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center">
-                <span className="bg-indigo-100 text-indigo-600 rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold mr-3">1</span>
+                <span className="bg-indigo-100 text-indigo-600 rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold mr-3">
+                  1
+                </span>
                 Acceptance of Terms
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-gray-700">
-                By accessing and using SocialBuzz ("the Platform", "we", "us", or "our"), you ("User", "you", or "your") agree to comply with and be bound by these Terms of Service ("Terms").
+                By accessing and using SocialBuzz (&quot;the Platform&quot;, &quot;we&quot;, &quot;us&quot;, or &quot;our&quot;), you (&quot;User&quot;, &quot;you&quot;, or &quot;your&quot;)
+                agree to comply with and be bound by these Terms of Service (&quot;Terms&quot;).
               </p>
               <p className="text-gray-700">
-                These Terms apply to all users of the Platform, including creators, supporters, and visitors. If you disagree with any part of these terms, you may not access the Platform.
+                These Terms apply to all users of the Platform, including creators, supporters, and visitors. If you
+                disagree with any part of these terms, you may not access the Platform.
               </p>
             </CardContent>
           </Card>
@@ -80,13 +82,16 @@ export default function TermsPage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center">
-                <span className="bg-indigo-100 text-indigo-600 rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold mr-3">2</span>
+                <span className="bg-indigo-100 text-indigo-600 rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold mr-3">
+                  2
+                </span>
                 Platform Description
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-gray-700">
-                SocialBuzz is a platform that connects content creators with supporters through a donation-based system. The Platform allows:
+                SocialBuzz is a platform that connects content creators with supporters through a donation-based system.
+                The Platform allows:
               </p>
               <ul className="list-disc list-inside space-y-2 text-gray-700 ml-4">
                 <li>Creators to set up profiles and receive donations from supporters</li>
@@ -101,7 +106,9 @@ export default function TermsPage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center">
-                <span className="bg-indigo-100 text-indigo-600 rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold mr-3">3</span>
+                <span className="bg-indigo-100 text-indigo-600 rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold mr-3">
+                  3
+                </span>
                 User Accounts and Registration
               </CardTitle>
             </CardHeader>
@@ -123,14 +130,14 @@ export default function TermsPage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center">
-                <span className="bg-indigo-100 text-indigo-600 rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold mr-3">4</span>
+                <span className="bg-indigo-100 text-indigo-600 rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold mr-3">
+                  4
+                </span>
                 Creator Obligations
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <p className="text-gray-700">
-                As a creator on the Platform, you agree to:
-              </p>
+              <p className="text-gray-700">As a creator on the Platform, you agree to:</p>
               <ul className="list-disc list-inside space-y-2 text-gray-700 ml-4">
                 <li>Create original content or have proper rights to shared content</li>
                 <li>Not engage in fraudulent, misleading, or deceptive practices</li>
@@ -146,13 +153,16 @@ export default function TermsPage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center">
-                <span className="bg-indigo-100 text-indigo-600 rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold mr-3">5</span>
+                <span className="bg-indigo-100 text-indigo-600 rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold mr-3">
+                  5
+                </span>
                 Payment Terms
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-gray-700">
-                Payment processing is handled by licensed third-party payment providers. By using our payment services, you agree to:
+                Payment processing is handled by licensed third-party payment providers. By using our payment services,
+                you agree to:
               </p>
               <ul className="list-disc list-inside space-y-2 text-gray-700 ml-4">
                 <li>Platform fee of 5% on all successful donations</li>
@@ -169,7 +179,9 @@ export default function TermsPage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center">
-                <span className="bg-indigo-100 text-indigo-600 rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold mr-3">6</span>
+                <span className="bg-indigo-100 text-indigo-600 rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold mr-3">
+                  6
+                </span>
                 Prohibited Content and Conduct
               </CardTitle>
             </CardHeader>
@@ -193,16 +205,20 @@ export default function TermsPage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center">
-                <span className="bg-indigo-100 text-indigo-600 rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold mr-3">7</span>
+                <span className="bg-indigo-100 text-indigo-600 rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold mr-3">
+                  7
+                </span>
                 Intellectual Property
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-gray-700">
-                The Platform and its original content, features, and functionality are owned by SocialBuzz and are protected by international copyright, trademark, and other intellectual property laws.
+                The Platform and its original content, features, and functionality are owned by SocialBuzz and are
+                protected by international copyright, trademark, and other intellectual property laws.
               </p>
               <p className="text-gray-700">
-                Users retain ownership of content they create and share on the Platform but grant SocialBuzz a limited license to display, distribute, and promote such content as necessary for Platform operations.
+                Users retain ownership of content they create and share on the Platform but grant SocialBuzz a limited
+                license to display, distribute, and promote such content as necessary for Platform operations.
               </p>
             </CardContent>
           </Card>
@@ -211,13 +227,17 @@ export default function TermsPage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center">
-                <span className="bg-indigo-100 text-indigo-600 rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold mr-3">8</span>
+                <span className="bg-indigo-100 text-indigo-600 rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold mr-3">
+                  8
+                </span>
                 Privacy and Data Protection
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-gray-700">
-                Your privacy is important to us. Our Privacy Policy explains how we collect, use, and protect your information when you use the Platform. By using SocialBuzz, you consent to the collection and use of information in accordance with our Privacy Policy.
+                Your privacy is important to us. Our Privacy Policy explains how we collect, use, and protect your
+                information when you use the Platform. By using SocialBuzz, you consent to the collection and use of
+                information in accordance with our Privacy Policy.
               </p>
             </CardContent>
           </Card>
@@ -226,16 +246,20 @@ export default function TermsPage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center">
-                <span className="bg-indigo-100 text-indigo-600 rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold mr-3">9</span>
+                <span className="bg-indigo-100 text-indigo-600 rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold mr-3">
+                  9
+                </span>
                 Termination
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-gray-700">
-                We may terminate or suspend your account and access to the Platform immediately, without prior notice, for conduct that we believe violates these Terms or is harmful to other users, us, or third parties.
+                We may terminate or suspend your account and access to the Platform immediately, without prior notice,
+                for conduct that we believe violates these Terms or is harmful to other users, us, or third parties.
               </p>
               <p className="text-gray-700">
-                You may terminate your account at any time by contacting us. Upon termination, your right to use the Platform will cease immediately.
+                You may terminate your account at any time by contacting us. Upon termination, your right to use the
+                Platform will cease immediately.
               </p>
             </CardContent>
           </Card>
@@ -244,13 +268,17 @@ export default function TermsPage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center">
-                <span className="bg-indigo-100 text-indigo-600 rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold mr-3">10</span>
+                <span className="bg-indigo-100 text-indigo-600 rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold mr-3">
+                  10
+                </span>
                 Limitation of Liability
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-gray-700">
-                SocialBuzz shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including without limitation, loss of profits, data, use, goodwill, or other intangible losses, resulting from your use of the Platform.
+                SocialBuzz shall not be liable for any indirect, incidental, special, consequential, or punitive
+                damages, including without limitation, loss of profits, data, use, goodwill, or other intangible losses,
+                resulting from your use of the Platform.
               </p>
             </CardContent>
           </Card>
@@ -259,16 +287,20 @@ export default function TermsPage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center">
-                <span className="bg-indigo-100 text-indigo-600 rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold mr-3">11</span>
+                <span className="bg-indigo-100 text-indigo-600 rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold mr-3">
+                  11
+                </span>
                 Changes to Terms
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-gray-700">
-                We reserve the right to modify or replace these Terms at any time. If a revision is material, we will provide at least 30 days notice prior to any new terms taking effect.
+                We reserve the right to modify or replace these Terms at any time. If a revision is material, we will
+                provide at least 30 days notice prior to any new terms taking effect.
               </p>
               <p className="text-gray-700">
-                Your continued use of the Platform after changes become effective constitutes acceptance of the revised Terms.
+                Your continued use of the Platform after changes become effective constitutes acceptance of the revised
+                Terms.
               </p>
             </CardContent>
           </Card>

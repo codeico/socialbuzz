@@ -1,9 +1,6 @@
 import { z } from 'zod';
 
-export const emailSchema = z
-  .string()
-  .email('Invalid email format')
-  .min(1, 'Email is required');
+export const emailSchema = z.string().email('Invalid email format').min(1, 'Email is required');
 
 export const passwordSchema = z
   .string()
@@ -61,12 +58,14 @@ export const updateProfileSchema = z.object({
   bio: z.string().max(500, 'Bio must be at most 500 characters').optional(),
   website: z.string().url('Invalid website URL').optional().or(z.literal('')),
   location: z.string().max(100, 'Location must be at most 100 characters').optional(),
-  socialLinks: z.object({
-    twitter: z.string().url('Invalid Twitter URL').optional().or(z.literal('')),
-    instagram: z.string().url('Invalid Instagram URL').optional().or(z.literal('')),
-    youtube: z.string().url('Invalid YouTube URL').optional().or(z.literal('')),
-    tiktok: z.string().url('Invalid TikTok URL').optional().or(z.literal('')),
-  }).optional(),
+  socialLinks: z
+    .object({
+      twitter: z.string().url('Invalid Twitter URL').optional().or(z.literal('')),
+      instagram: z.string().url('Invalid Instagram URL').optional().or(z.literal('')),
+      youtube: z.string().url('Invalid YouTube URL').optional().or(z.literal('')),
+      tiktok: z.string().url('Invalid TikTok URL').optional().or(z.literal('')),
+    })
+    .optional(),
 });
 
 export type LoginFormData = z.infer<typeof loginSchema>;

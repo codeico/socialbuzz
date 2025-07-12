@@ -1,23 +1,24 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import Image from 'next/image';
 import { formatCurrency, formatDate } from '@/utils/formatter';
-import { 
-  Search, 
-  Filter, 
-  Check, 
-  X, 
-  Eye, 
-  DollarSign, 
+import {
+  Search,
+  Filter,
+  Check,
+  X,
+  Eye,
+  DollarSign,
   AlertCircle,
   Clock,
   ChevronLeft,
   ChevronRight,
   Download,
-  CreditCard
+  CreditCard,
 } from 'lucide-react';
 
 interface PayoutRequest {
@@ -65,14 +66,51 @@ export function PayoutManagement({ onPayoutSelect }: PayoutManagementProps) {
     loadPayouts();
   }, [pagination.page, sortBy, sortOrder]);
 
+  const filterPayouts = useCallback(() => {
+    let filtered = [...payouts];
+
+    // Search filter
+    if (searchQuery) {
+      filtered = filtered.filter(
+        payout =>
+          payout.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          payout.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          payout.bankDetails.bankName.toLowerCase().includes(searchQuery.toLowerCase()),
+      );
+    }
+
+    // Status filter
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(payout => payout.status === statusFilter);
+    }
+
+    // Sort
+    filtered.sort((a, b) => {
+      const aVal = a[sortBy as keyof PayoutRequest];
+      const bVal = b[sortBy as keyof PayoutRequest];
+
+      if (typeof aVal === 'string' && typeof bVal === 'string') {
+        return sortOrder === 'desc' ? bVal.localeCompare(aVal) : aVal.localeCompare(bVal);
+      }
+
+      if (typeof aVal === 'number' && typeof bVal === 'number') {
+        return sortOrder === 'desc' ? bVal - aVal : aVal - bVal;
+      }
+
+      return 0;
+    });
+
+    setFilteredPayouts(filtered);
+  }, [payouts, searchQuery, statusFilter, sortBy, sortOrder]);
+
   useEffect(() => {
     filterPayouts();
-  }, [payouts, searchQuery, statusFilter]);
+  }, [filterPayouts]);
 
   const loadPayouts = async () => {
     try {
       setLoading(true);
-      
+
       // Mock payout requests data
       const mockPayouts: PayoutRequest[] = [
         {
@@ -181,59 +219,24 @@ export function PayoutManagement({ onPayoutSelect }: PayoutManagementProps) {
     }
   };
 
-  const filterPayouts = () => {
-    let filtered = [...payouts];
-
-    // Search filter
-    if (searchQuery) {
-      filtered = filtered.filter(payout =>
-        payout.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        payout.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        payout.bankDetails.bankName.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-
-    // Status filter
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(payout => payout.status === statusFilter);
-    }
-
-    // Sort
-    filtered.sort((a, b) => {
-      let aVal = a[sortBy as keyof PayoutRequest];
-      let bVal = b[sortBy as keyof PayoutRequest];
-      
-      if (typeof aVal === 'string' && typeof bVal === 'string') {
-        return sortOrder === 'desc' ? bVal.localeCompare(aVal) : aVal.localeCompare(bVal);
-      }
-      
-      if (typeof aVal === 'number' && typeof bVal === 'number') {
-        return sortOrder === 'desc' ? bVal - aVal : aVal - bVal;
-      }
-      
-      return 0;
-    });
-
-    setFilteredPayouts(filtered);
-  };
 
   const handlePayoutAction = async (payoutId: string, action: 'approve' | 'reject', reason?: string) => {
     try {
       const newStatus = action === 'approve' ? 'approved' : 'rejected';
-      
-      setPayouts(prev => 
-        prev.map(payout => 
-          payout.id === payoutId 
-            ? { 
-                ...payout, 
-                status: newStatus,
-                processedAt: new Date().toISOString(),
-                rejectionReason: action === 'reject' ? reason : undefined
-              } 
-            : payout
-        )
+
+      setPayouts(prev =>
+        prev.map(payout =>
+          payout.id === payoutId
+            ? {
+              ...payout,
+              status: newStatus,
+              processedAt: new Date().toISOString(),
+              rejectionReason: action === 'reject' ? reason : undefined,
+            }
+            : payout,
+        ),
       );
-      
+
       alert(`Payout ${action}d successfully`);
     } catch (error) {
       console.error(`Error ${action}ing payout:`, error);
@@ -243,17 +246,17 @@ export function PayoutManagement({ onPayoutSelect }: PayoutManagementProps) {
 
   const handleProcessPayout = async (payoutId: string) => {
     try {
-      setPayouts(prev => 
-        prev.map(payout => 
-          payout.id === payoutId 
-            ? { 
-                ...payout, 
-                status: 'processing'
-              } 
-            : payout
-        )
+      setPayouts(prev =>
+        prev.map(payout =>
+          payout.id === payoutId
+            ? {
+              ...payout,
+              status: 'processing',
+            }
+            : payout,
+        ),
       );
-      
+
       alert('Payout is now being processed');
     } catch (error) {
       console.error('Error processing payout:', error);
@@ -263,45 +266,41 @@ export function PayoutManagement({ onPayoutSelect }: PayoutManagementProps) {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'approved':
-        return 'bg-blue-100 text-blue-800';
-      case 'processing':
-        return 'bg-indigo-100 text-indigo-800';
-      case 'completed':
-        return 'bg-green-100 text-green-800';
-      case 'rejected':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
+    case 'pending':
+      return 'bg-yellow-100 text-yellow-800';
+    case 'approved':
+      return 'bg-blue-100 text-blue-800';
+    case 'processing':
+      return 'bg-indigo-100 text-indigo-800';
+    case 'completed':
+      return 'bg-green-100 text-green-800';
+    case 'rejected':
+      return 'bg-red-100 text-red-800';
+    default:
+      return 'bg-gray-100 text-gray-800';
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'pending':
-        return <Clock className="h-4 w-4" />;
-      case 'approved':
-        return <Check className="h-4 w-4" />;
-      case 'processing':
-        return <DollarSign className="h-4 w-4" />;
-      case 'completed':
-        return <Check className="h-4 w-4" />;
-      case 'rejected':
-        return <X className="h-4 w-4" />;
-      default:
-        return <AlertCircle className="h-4 w-4" />;
+    case 'pending':
+      return <Clock className="h-4 w-4" />;
+    case 'approved':
+      return <Check className="h-4 w-4" />;
+    case 'processing':
+      return <DollarSign className="h-4 w-4" />;
+    case 'completed':
+      return <Check className="h-4 w-4" />;
+    case 'rejected':
+      return <X className="h-4 w-4" />;
+    default:
+      return <AlertCircle className="h-4 w-4" />;
     }
   };
 
-  const totalPendingAmount = payouts
-    .filter(p => p.status === 'pending')
-    .reduce((sum, p) => sum + p.amount, 0);
+  const totalPendingAmount = payouts.filter(p => p.status === 'pending').reduce((sum, p) => sum + p.amount, 0);
 
-  const totalProcessingAmount = payouts
-    .filter(p => p.status === 'processing')
-    .reduce((sum, p) => sum + p.amount, 0);
+  const totalProcessingAmount = payouts.filter(p => p.status === 'processing').reduce((sum, p) => sum + p.amount, 0);
 
   return (
     <div className="space-y-6">
@@ -321,7 +320,7 @@ export function PayoutManagement({ onPayoutSelect }: PayoutManagementProps) {
             <p className="text-xs text-gray-500">{formatCurrency(totalPendingAmount)}</p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Processing</CardTitle>
@@ -331,7 +330,7 @@ export function PayoutManagement({ onPayoutSelect }: PayoutManagementProps) {
             <p className="text-xs text-gray-500">{formatCurrency(totalProcessingAmount)}</p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Completed</CardTitle>
@@ -341,7 +340,7 @@ export function PayoutManagement({ onPayoutSelect }: PayoutManagementProps) {
             <p className="text-xs text-gray-500">This month</p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Rejected</CardTitle>
@@ -369,16 +368,16 @@ export function PayoutManagement({ onPayoutSelect }: PayoutManagementProps) {
                 <Input
                   placeholder="Search payouts..."
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={e => setSearchQuery(e.target.value)}
                   className="pl-10"
                 />
               </div>
             </div>
-            
+
             <div>
               <select
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
+                onChange={e => setStatusFilter(e.target.value)}
                 className="w-full p-2 border border-gray-300 rounded-md"
               >
                 <option value="all">All Status</option>
@@ -389,11 +388,11 @@ export function PayoutManagement({ onPayoutSelect }: PayoutManagementProps) {
                 <option value="rejected">Rejected</option>
               </select>
             </div>
-            
+
             <div>
               <select
                 value={`${sortBy}-${sortOrder}`}
-                onChange={(e) => {
+                onChange={e => {
                   const [field, order] = e.target.value.split('-');
                   setSortBy(field);
                   setSortOrder(order);
@@ -416,9 +415,7 @@ export function PayoutManagement({ onPayoutSelect }: PayoutManagementProps) {
           <div className="flex items-center justify-between">
             <div>
               <CardTitle>Payout Requests ({filteredPayouts.length})</CardTitle>
-              <CardDescription>
-                Review and process creator payout requests
-              </CardDescription>
+              <CardDescription>Review and process creator payout requests</CardDescription>
             </div>
             <Button variant="outline">
               <Download className="mr-2 h-4 w-4" />
@@ -438,18 +435,19 @@ export function PayoutManagement({ onPayoutSelect }: PayoutManagementProps) {
             </div>
           ) : (
             <div className="space-y-4">
-              {filteredPayouts.map((payout) => (
-                <div key={payout.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
+              {filteredPayouts.map(payout => (
+                <div
+                  key={payout.id}
+                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
+                >
                   <div className="flex items-center space-x-4">
-                    <img
-                      src={payout.avatar}
-                      alt={payout.fullName}
-                      className="w-12 h-12 rounded-full object-cover"
-                    />
+                    <Image src={payout.avatar} alt={payout.fullName} width={48} height={48} className="w-12 h-12 rounded-full object-cover" />
                     <div>
                       <div className="flex items-center space-x-2">
                         <p className="font-medium text-gray-900">{payout.fullName}</p>
-                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(payout.status)}`}>
+                        <span
+                          className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(payout.status)}`}
+                        >
                           {getStatusIcon(payout.status)}
                           <span className="ml-1">{payout.status}</span>
                         </span>
@@ -457,45 +455,30 @@ export function PayoutManagement({ onPayoutSelect }: PayoutManagementProps) {
                       <p className="text-sm text-gray-600">@{payout.username}</p>
                       <div className="flex items-center space-x-2 text-sm text-gray-500">
                         <CreditCard className="h-4 w-4" />
-                        <span>{payout.bankDetails.bankName} - {payout.bankDetails.accountNumber}</span>
+                        <span>
+                          {payout.bankDetails.bankName} - {payout.bankDetails.accountNumber}
+                        </span>
                       </div>
-                      <p className="text-xs text-gray-500">
-                        Requested: {formatDate(payout.requestedAt)}
-                      </p>
+                      <p className="text-xs text-gray-500">Requested: {formatDate(payout.requestedAt)}</p>
                       {payout.rejectionReason && (
-                        <p className="text-xs text-red-600 mt-1">
-                          Reason: {payout.rejectionReason}
-                        </p>
+                        <p className="text-xs text-red-600 mt-1">Reason: {payout.rejectionReason}</p>
                       )}
                     </div>
                   </div>
-                  
+
                   <div className="text-right">
-                    <p className="text-lg font-bold text-gray-900">
-                      {formatCurrency(payout.amount)}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      Fee: {formatCurrency(payout.fee)}
-                    </p>
-                    <p className="text-sm font-medium text-green-600">
-                      Net: {formatCurrency(payout.netAmount)}
-                    </p>
-                    
+                    <p className="text-lg font-bold text-gray-900">{formatCurrency(payout.amount)}</p>
+                    <p className="text-sm text-gray-600">Fee: {formatCurrency(payout.fee)}</p>
+                    <p className="text-sm font-medium text-green-600">Net: {formatCurrency(payout.netAmount)}</p>
+
                     <div className="flex items-center space-x-2 mt-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => onPayoutSelect?.(payout)}
-                      >
+                      <Button size="sm" variant="outline" onClick={() => onPayoutSelect?.(payout)}>
                         <Eye className="h-4 w-4" />
                       </Button>
-                      
+
                       {payout.status === 'pending' && (
                         <>
-                          <Button
-                            size="sm"
-                            onClick={() => handlePayoutAction(payout.id, 'approve')}
-                          >
+                          <Button size="sm" onClick={() => handlePayoutAction(payout.id, 'approve')}>
                             <Check className="h-4 w-4 mr-1" />
                             Approve
                           </Button>
@@ -514,12 +497,9 @@ export function PayoutManagement({ onPayoutSelect }: PayoutManagementProps) {
                           </Button>
                         </>
                       )}
-                      
+
                       {payout.status === 'approved' && (
-                        <Button
-                          size="sm"
-                          onClick={() => handleProcessPayout(payout.id)}
-                        >
+                        <Button size="sm" onClick={() => handleProcessPayout(payout.id)}>
                           <DollarSign className="h-4 w-4 mr-1" />
                           Process
                         </Button>
@@ -530,14 +510,15 @@ export function PayoutManagement({ onPayoutSelect }: PayoutManagementProps) {
               ))}
             </div>
           )}
-          
+
           {/* Pagination */}
           {pagination.totalPages > 1 && (
             <div className="flex items-center justify-between mt-6">
               <div className="text-sm text-gray-700">
-                Showing {((pagination.page - 1) * pagination.limit) + 1} to {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} requests
+                Showing {(pagination.page - 1) * pagination.limit + 1} to{' '}
+                {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} requests
               </div>
-              
+
               <div className="flex items-center space-x-2">
                 <Button
                   variant="outline"
@@ -546,11 +527,11 @@ export function PayoutManagement({ onPayoutSelect }: PayoutManagementProps) {
                 >
                   <ChevronLeft size={16} />
                 </Button>
-                
+
                 <span className="text-sm text-gray-700">
                   Page {pagination.page} of {pagination.totalPages}
                 </span>
-                
+
                 <Button
                   variant="outline"
                   onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}

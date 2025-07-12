@@ -83,13 +83,9 @@ export default function ContactPage() {
               <CheckCircle className="h-8 w-8 text-green-600" />
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Message Sent!</h2>
-            <p className="text-gray-600 mb-6">
-              Thank you for contacting us. We'll get back to you within 24 hours.
-            </p>
+            <p className="text-gray-600 mb-6">Thank you for contacting us. We&apos;ll get back to you within 24 hours.</p>
             <Link href="/">
-              <Button className="w-full">
-                Back to Home
-              </Button>
+              <Button className="w-full">Back to Home</Button>
             </Link>
           </CardContent>
         </Card>
@@ -126,7 +122,7 @@ export default function ContactPage() {
           </div>
           <h1 className="text-4xl font-bold text-gray-900 mb-4">Contact Us</h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Have a question or need help? We're here for you 24/7
+            Have a question or need help? We&apos;re here for you 24/7
           </p>
         </div>
 
@@ -160,9 +156,7 @@ export default function ContactPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Category
-                    </label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
                     <select
                       name="category"
                       value={formData.category}
@@ -170,7 +164,7 @@ export default function ContactPage() {
                       className="w-full p-3 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
                       required
                     >
-                      {categories.map((category) => (
+                      {categories.map(category => (
                         <option key={category.value} value={category.value}>
                           {category.label}
                         </option>
@@ -188,9 +182,7 @@ export default function ContactPage() {
                   />
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Message
-                    </label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Message</label>
                     <textarea
                       name="message"
                       value={formData.message}
@@ -208,11 +200,7 @@ export default function ContactPage() {
                     </div>
                   )}
 
-                  <Button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-full"
-                  >
+                  <Button type="submit" disabled={isSubmitting} className="w-full">
                     {isSubmitting ? (
                       <>
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
@@ -243,7 +231,7 @@ export default function ContactPage() {
                   <div>
                     <p className="font-medium text-gray-900">Email</p>
                     <p className="text-gray-600">support@socialbuzz.com</p>
-                    <p className="text-sm text-gray-500">We'll respond within 24 hours</p>
+                    <p className="text-sm text-gray-500">We&apos;ll respond within 24 hours</p>
                   </div>
                 </div>
 
@@ -344,9 +332,7 @@ export default function ContactPage() {
                   <MessageCircle className="h-8 w-8 text-blue-600" />
                 </div>
                 <h3 className="font-semibold text-gray-900 mb-2">Live Chat</h3>
-                <p className="text-gray-600 text-sm mb-4">
-                  Chat with our support team in real-time
-                </p>
+                <p className="text-gray-600 text-sm mb-4">Chat with our support team in real-time</p>
                 <Button variant="outline" className="w-full">
                   Start Chat
                 </Button>
@@ -357,9 +343,7 @@ export default function ContactPage() {
                   <Phone className="h-8 w-8 text-purple-600" />
                 </div>
                 <h3 className="font-semibold text-gray-900 mb-2">WhatsApp</h3>
-                <p className="text-gray-600 text-sm mb-4">
-                  Message us on WhatsApp for quick support
-                </p>
+                <p className="text-gray-600 text-sm mb-4">Message us on WhatsApp for quick support</p>
                 <Button variant="outline" className="w-full">
                   Send Message
                 </Button>
@@ -370,9 +354,7 @@ export default function ContactPage() {
                   <Mail className="h-8 w-8 text-orange-600" />
                 </div>
                 <h3 className="font-semibold text-gray-900 mb-2">Email</h3>
-                <p className="text-gray-600 text-sm mb-4">
-                  Send detailed inquiries via email
-                </p>
+                <p className="text-gray-600 text-sm mb-4">Send detailed inquiries via email</p>
                 <Button variant="outline" className="w-full">
                   Send Email
                 </Button>

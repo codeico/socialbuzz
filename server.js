@@ -39,14 +39,14 @@ app.prepare().then(() => {
     },
   });
 
-  io.on('connection', (socket) => {
+  io.on('connection', socket => {
     console.log('Client connected:', socket.id);
 
     // Handle creator joining their room for OBS overlay
-    socket.on('join-creator-room', async (data) => {
+    socket.on('join-creator-room', async data => {
       try {
         const { creatorId, token } = data;
-        
+
         const roomName = `creator-${creatorId}`;
         socket.join(roomName);
 
@@ -60,7 +60,7 @@ app.prepare().then(() => {
         creatorRooms.set(creatorId, rooms);
 
         console.log(`Creator ${creatorId} joined room: ${roomName}`);
-        
+
         // Send queued donations if any
         const queuedDonations = donationQueue.get(creatorId) || [];
         if (queuedDonations.length > 0) {
@@ -78,12 +78,12 @@ app.prepare().then(() => {
     });
 
     // Handle OBS overlay connection
-    socket.on('join-obs-overlay', (data) => {
+    socket.on('join-obs-overlay', data => {
       try {
         const { creatorId, overlayId } = data;
         const roomName = `obs-${creatorId}`;
         socket.join(roomName);
-        
+
         console.log(`OBS overlay ${overlayId} joined room: ${roomName}`);
         socket.emit('overlay-connected', { roomName, creatorId, overlayId });
       } catch (error) {
@@ -93,12 +93,12 @@ app.prepare().then(() => {
     });
 
     // Handle donation widget connection
-    socket.on('join-donation-widget', (data) => {
+    socket.on('join-donation-widget', data => {
       try {
         const { creatorId, widgetId } = data;
         const roomName = `widget-${creatorId}`;
         socket.join(roomName);
-        
+
         console.log(`Donation widget ${widgetId} joined room: ${roomName}`);
         socket.emit('widget-connected', { roomName, creatorId, widgetId });
       } catch (error) {
@@ -108,7 +108,7 @@ app.prepare().then(() => {
     });
 
     // Handle test donation
-    socket.on('test-donation', (data) => {
+    socket.on('test-donation', data => {
       try {
         const { creatorId } = data;
         const testDonation = {
@@ -137,10 +137,10 @@ app.prepare().then(() => {
     });
 
     // Handle real donation notification
-    socket.on('donation-notification', (donation) => {
+    socket.on('donation-notification', donation => {
       try {
         const creatorId = donation.creatorId;
-        
+
         // Broadcast to all rooms for this creator
         io.to(`creator-${creatorId}`).emit('donation-alert', donation);
         io.to(`obs-${creatorId}`).emit('donation-alert', donation);
@@ -154,7 +154,7 @@ app.prepare().then(() => {
 
     socket.on('disconnect', () => {
       console.log('Client disconnected:', socket.id);
-      
+
       // Clean up creator rooms
       creatorRooms.forEach((rooms, creatorId) => {
         const updatedRooms = rooms.filter(room => room.socketId !== socket.id);
@@ -168,7 +168,7 @@ app.prepare().then(() => {
   });
 
   // Start server
-  server.listen(port, (err) => {
+  server.listen(port, err => {
     if (err) throw err;
     console.log(`> Next.js server with Socket.IO ready on http://${hostname}:${port}`);
   });

@@ -1,21 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
     const offset = (page - 1) * limit;
 
     // Get donations for this user
-    const { data: donations, error, count } = await supabaseAdmin
+    const {
+      data: donations,
+      error,
+      count,
+    } = await supabaseAdmin
       .from('donations')
-      .select(`
+      .select(
+        `
         id,
         amount,
         message,
@@ -23,7 +25,9 @@ export async function GET(
         created_at,
         supporter_name,
         supporter_email
-      `, { count: 'exact' })
+      `,
+        { count: 'exact' },
+      )
       .eq('creator_id', id)
       .eq('status', 'completed')
       .order('created_at', { ascending: false })
@@ -34,15 +38,16 @@ export async function GET(
     }
 
     // Transform donations data
-    const transformedDonations = donations?.map(donation => ({
-      id: donation.id,
-      amount: donation.amount,
-      message: donation.message || '',
-      isAnonymous: donation.is_anonymous,
-      supporterName: donation.is_anonymous ? 'Anonymous' : donation.supporter_name,
-      supporterEmail: donation.is_anonymous ? null : donation.supporter_email,
-      createdAt: donation.created_at,
-    })) || [];
+    const transformedDonations =
+      donations?.map(donation => ({
+        id: donation.id,
+        amount: donation.amount,
+        message: donation.message || '',
+        isAnonymous: donation.is_anonymous,
+        supporterName: donation.is_anonymous ? 'Anonymous' : donation.supporter_name,
+        supporterEmail: donation.is_anonymous ? null : donation.supporter_email,
+        createdAt: donation.created_at,
+      })) || [];
 
     return NextResponse.json({
       success: true,
@@ -56,9 +61,6 @@ export async function GET(
     });
   } catch (error) {
     console.error('User donations fetch error:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch user donations' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch user donations' }, { status: 500 });
   }
 }

@@ -38,7 +38,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       const response = await fetch('/api/v1/users/me', {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -87,7 +87,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  const register = async (credentials: RegisterCredentials): Promise<ApiResponse<{ user: AuthUser; token: string }>> => {
+  const register = async (
+    credentials: RegisterCredentials
+  ): Promise<ApiResponse<{ user: AuthUser; token: string }>> => {
     try {
       const response = await fetch('/api/v1/auth/register', {
         method: 'POST',
@@ -134,9 +136,5 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     updateUser,
   };
 
-  return React.createElement(
-    AuthContext.Provider,
-    { value: contextValue },
-    children
-  );
+  return React.createElement(AuthContext.Provider, { value: contextValue }, children);
 };

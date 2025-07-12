@@ -36,11 +36,7 @@ export class PaymentService {
 
       if (error) throw error;
 
-      const donor = await supabase
-        .from('users')
-        .select('email, full_name')
-        .eq('id', donorId)
-        .single();
+      const donor = await supabase.from('users').select('email, full_name').eq('id', donorId).single();
 
       if (!donor.data) throw new Error('Donor not found');
 
@@ -115,11 +111,7 @@ export class PaymentService {
 
   static async getTransactionById(id: string): Promise<Transaction | null> {
     try {
-      const { data, error } = await supabase
-        .from('transactions')
-        .select('*')
-        .eq('id', id)
-        .single();
+      const { data, error } = await supabase.from('transactions').select('*').eq('id', id).single();
 
       if (error) return null;
       return data;
@@ -199,11 +191,7 @@ export class PaymentService {
     try {
       const { userId, amount, bankAccount } = data;
 
-      const { data: user } = await supabase
-        .from('users')
-        .select('balance')
-        .eq('id', userId)
-        .single();
+      const { data: user } = await supabase.from('users').select('balance').eq('id', userId).single();
 
       if (!user || user.balance < amount) {
         throw new Error('Insufficient balance');
@@ -235,14 +223,15 @@ export class PaymentService {
     }
   }
 
-  static async getPayoutRequests(userId?: string, params: PaginationParams = {}): Promise<PaginatedResponse<PayoutRequest>> {
+  static async getPayoutRequests(
+    userId?: string,
+    params: PaginationParams = {}
+  ): Promise<PaginatedResponse<PayoutRequest>> {
     try {
       const { page = 1, limit = 10, sortBy = 'created_at', sortOrder = 'desc' } = params;
       const offset = (page - 1) * limit;
 
-      let query = supabase
-        .from('payout_requests')
-        .select('*', { count: 'exact' });
+      let query = supabase.from('payout_requests').select('*', { count: 'exact' });
 
       if (userId) {
         query = query.eq('user_id', userId);

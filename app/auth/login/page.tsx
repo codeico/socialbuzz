@@ -55,23 +55,19 @@ export default function LoginPage() {
             SocialBuzz
           </Link>
         </div>
-        
+
         <Card>
           <CardHeader>
             <CardTitle className="text-center">Welcome back</CardTitle>
-            <CardDescription className="text-center">
-              Sign in to your account to continue
-            </CardDescription>
+            <CardDescription className="text-center">Sign in to your account to continue</CardDescription>
           </CardHeader>
-          
+
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               {error && (
-                <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md text-sm">
-                  {error}
-                </div>
+                <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md text-sm">{error}</div>
               )}
-              
+
               <Input
                 label="Email"
                 type="email"
@@ -82,7 +78,7 @@ export default function LoginPage() {
                 fullWidth
                 placeholder="Enter your email"
               />
-              
+
               <div className="relative">
                 <Input
                   label="Password"
@@ -102,7 +98,7 @@ export default function LoginPage() {
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
               </div>
-              
+
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <input
@@ -115,15 +111,12 @@ export default function LoginPage() {
                     Remember me
                   </label>
                 </div>
-                
-                <Link
-                  href="/auth/forgot-password"
-                  className="text-sm text-indigo-600 hover:text-indigo-500"
-                >
+
+                <Link href="/auth/forgot-password" className="text-sm text-indigo-600 hover:text-indigo-500">
                   Forgot password?
                 </Link>
               </div>
-              
+
               <Button
                 type="submit"
                 loading={loading}
@@ -134,17 +127,17 @@ export default function LoginPage() {
                 Sign in
               </Button>
             </form>
-            
+
             <div className="mt-6">
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-gray-300" />
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white text-gray-500">Don't have an account?</span>
+                  <span className="px-2 bg-white text-gray-500">Don&apos;t have an account?</span>
                 </div>
               </div>
-              
+
               <div className="mt-4">
                 <Link href="/auth/register">
                   <Button variant="outline" fullWidth>
@@ -155,12 +148,9 @@ export default function LoginPage() {
             </div>
           </CardContent>
         </Card>
-        
+
         <div className="mt-8 text-center">
-          <Link
-            href="/"
-            className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900"
-          >
+          <Link href="/" className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900">
             <ArrowLeft size={16} className="mr-2" />
             Back to home
           </Link>

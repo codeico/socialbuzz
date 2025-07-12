@@ -142,13 +142,13 @@ paths:
                   example: Donation
                 additionalParam:
                   type: string
-                  example: ""
+                  example: ''
                 paymentCode:
                   type: string
-                  example: "01"
+                  example: '01'
                 resultCode:
                   type: string
-                  example: "00"
+                  example: '00'
                 merchantUserId:
                   type: string
                   example: user123
@@ -160,16 +160,16 @@ paths:
                   example: a1b2c3d4e5f6
                 publisherOrderId:
                   type: string
-                  example: "123456"
+                  example: '123456'
                 spUserHash:
                   type: string
-                  example: "hash123"
+                  example: 'hash123'
                 settlementDate:
                   type: string
-                  example: "2024-01-01 12:00:00"
+                  example: '2024-01-01 12:00:00'
                 issuerCode:
                   type: string
-                  example: "MANDIRI"
+                  example: 'MANDIRI'
       responses:
         '200':
           description: Callback processed successfully
@@ -248,7 +248,7 @@ components:
         metadata:
           type: object
           nullable: true
-          example: { "message": "Keep up the great work!", "isAnonymous": false }
+          example: { 'message': 'Keep up the great work!', 'isAnonymous': false }
         createdAt:
           type: string
           format: date-time
@@ -278,9 +278,8 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
-
 # Example curl requests:
-# 
+#
 # Create Payment:
 # curl -X POST "http://localhost:3000/api/v1/payment/create" \
 #   -H "Content-Type: application/json" \

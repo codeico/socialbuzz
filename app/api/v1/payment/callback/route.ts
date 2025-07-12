@@ -17,10 +17,7 @@ export async function POST(req: NextRequest) {
     // Validate callback signature and data
     if (!validateCallback(body)) {
       console.error('Invalid payment callback:', body);
-      return NextResponse.json(
-        { success: false, error: 'Invalid callback signature' },
-        { status: 400 },
-      );
+      return NextResponse.json({ success: false, error: 'Invalid callback signature' }, { status: 400 });
     }
 
     // Find the transaction by merchant order ID
@@ -32,10 +29,7 @@ export async function POST(req: NextRequest) {
 
     if (transactionError || !transaction) {
       console.error('Transaction not found:', body.merchantOrderId);
-      return NextResponse.json(
-        { success: false, error: 'Transaction not found' },
-        { status: 404 },
-      );
+      return NextResponse.json({ success: false, error: 'Transaction not found' }, { status: 404 });
     }
 
     // Check if transaction is already processed
@@ -63,10 +57,7 @@ export async function POST(req: NextRequest) {
 
     if (updateError) {
       console.error('Failed to update transaction:', updateError);
-      return NextResponse.json(
-        { success: false, error: 'Failed to update transaction' },
-        { status: 500 },
-      );
+      return NextResponse.json({ success: false, error: 'Failed to update transaction' }, { status: 500 });
     }
 
     // If payment is successful, process the donation
@@ -82,10 +73,7 @@ export async function POST(req: NextRequest) {
     });
   } catch (error) {
     console.error('Payment callback error:', error);
-    return NextResponse.json(
-      { success: false, error: 'Internal server error' },
-      { status: 500 },
-    );
+    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
   }
 }
 

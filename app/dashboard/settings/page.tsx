@@ -6,16 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useAuth } from '@/hooks/useAuth';
-import { 
-  Bell, 
-  Shield, 
-  CreditCard, 
-  Eye, 
-  EyeOff, 
-  Save,
-  Trash2,
-  AlertTriangle
-} from 'lucide-react';
+import { Bell, Shield, CreditCard, Eye, EyeOff, Save, Trash2, AlertTriangle } from 'lucide-react';
 
 export default function SettingsPage() {
   const { user, logout } = useAuth();
@@ -80,7 +71,7 @@ export default function SettingsPage() {
     }));
   };
 
-  const togglePasswordVisibility = (field: string) => {
+  const togglePasswordVisibility = (field: keyof typeof showPasswords) => {
     setShowPasswords(prev => ({
       ...prev,
       [field]: !prev[field],
@@ -99,7 +90,7 @@ export default function SettingsPage() {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           notifications,
@@ -141,7 +132,7 @@ export default function SettingsPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           currentPassword: passwordData.currentPassword,
@@ -167,18 +158,18 @@ export default function SettingsPage() {
   };
 
   const handleDeleteAccount = async () => {
-    const confirmed = window.confirm(
-      'Are you sure you want to delete your account? This action cannot be undone.'
-    );
+    const confirmed = window.confirm('Are you sure you want to delete your account? This action cannot be undone.');
 
-    if (!confirmed) return;
+    if (!confirmed) {
+      return;
+    }
 
     try {
       const token = localStorage.getItem('token');
       const response = await fetch('/api/v1/users/me', {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -202,16 +193,10 @@ export default function SettingsPage() {
           </div>
 
           {success && (
-            <div className="bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-md">
-              {success}
-            </div>
+            <div className="bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-md">{success}</div>
           )}
-          
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md">
-              {error}
-            </div>
-          )}
+
+          {error && <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md">{error}</div>}
 
           {/* Notifications */}
           <Card>
@@ -220,9 +205,7 @@ export default function SettingsPage() {
                 <Bell size={20} className="mr-2" />
                 Notifications
               </CardTitle>
-              <CardDescription>
-                Choose what notifications you want to receive
-              </CardDescription>
+              <CardDescription>Choose what notifications you want to receive</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
@@ -233,11 +216,11 @@ export default function SettingsPage() {
                 <input
                   type="checkbox"
                   checked={notifications.email}
-                  onChange={(e) => handleNotificationChange('email', e.target.checked)}
+                  onChange={e => handleNotificationChange('email', e.target.checked)}
                   className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                 />
               </div>
-              
+
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium">Push Notifications</p>
@@ -246,11 +229,11 @@ export default function SettingsPage() {
                 <input
                   type="checkbox"
                   checked={notifications.push}
-                  onChange={(e) => handleNotificationChange('push', e.target.checked)}
+                  onChange={e => handleNotificationChange('push', e.target.checked)}
                   className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                 />
               </div>
-              
+
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium">Donation Notifications</p>
@@ -259,11 +242,11 @@ export default function SettingsPage() {
                 <input
                   type="checkbox"
                   checked={notifications.donations}
-                  onChange={(e) => handleNotificationChange('donations', e.target.checked)}
+                  onChange={e => handleNotificationChange('donations', e.target.checked)}
                   className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                 />
               </div>
-              
+
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium">Payout Notifications</p>
@@ -272,11 +255,11 @@ export default function SettingsPage() {
                 <input
                   type="checkbox"
                   checked={notifications.payouts}
-                  onChange={(e) => handleNotificationChange('payouts', e.target.checked)}
+                  onChange={e => handleNotificationChange('payouts', e.target.checked)}
                   className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                 />
               </div>
-              
+
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium">Marketing Emails</p>
@@ -285,7 +268,7 @@ export default function SettingsPage() {
                 <input
                   type="checkbox"
                   checked={notifications.marketing}
-                  onChange={(e) => handleNotificationChange('marketing', e.target.checked)}
+                  onChange={e => handleNotificationChange('marketing', e.target.checked)}
                   className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                 />
               </div>
@@ -299,9 +282,7 @@ export default function SettingsPage() {
                 <Shield size={20} className="mr-2" />
                 Privacy
               </CardTitle>
-              <CardDescription>
-                Control your privacy and visibility settings
-              </CardDescription>
+              <CardDescription>Control your privacy and visibility settings</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
@@ -312,11 +293,11 @@ export default function SettingsPage() {
                 <input
                   type="checkbox"
                   checked={privacy.profileVisible}
-                  onChange={(e) => handlePrivacyChange('profileVisible', e.target.checked)}
+                  onChange={e => handlePrivacyChange('profileVisible', e.target.checked)}
                   className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                 />
               </div>
-              
+
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium">Show Earnings</p>
@@ -325,11 +306,11 @@ export default function SettingsPage() {
                 <input
                   type="checkbox"
                   checked={privacy.showEarnings}
-                  onChange={(e) => handlePrivacyChange('showEarnings', e.target.checked)}
+                  onChange={e => handlePrivacyChange('showEarnings', e.target.checked)}
                   className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                 />
               </div>
-              
+
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium">Show Donation History</p>
@@ -338,7 +319,7 @@ export default function SettingsPage() {
                 <input
                   type="checkbox"
                   checked={privacy.showDonations}
-                  onChange={(e) => handlePrivacyChange('showDonations', e.target.checked)}
+                  onChange={e => handlePrivacyChange('showDonations', e.target.checked)}
                   className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                 />
               </div>
@@ -352,9 +333,7 @@ export default function SettingsPage() {
                 <CreditCard size={20} className="mr-2" />
                 Bank Account
               </CardTitle>
-              <CardDescription>
-                Add your bank account for payouts
-              </CardDescription>
+              <CardDescription>Add your bank account for payouts</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -365,7 +344,7 @@ export default function SettingsPage() {
                   onChange={handleBankAccountChange}
                   placeholder="e.g., Bank Mandiri"
                 />
-                
+
                 <Input
                   label="Account Number"
                   name="accountNumber"
@@ -374,7 +353,7 @@ export default function SettingsPage() {
                   placeholder="e.g., 1234567890"
                 />
               </div>
-              
+
               <Input
                 label="Account Holder Name"
                 name="accountHolderName"
@@ -389,9 +368,7 @@ export default function SettingsPage() {
           <Card>
             <CardHeader>
               <CardTitle>Change Password</CardTitle>
-              <CardDescription>
-                Update your account password
-              </CardDescription>
+              <CardDescription>Update your account password</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="relative">
@@ -410,7 +387,7 @@ export default function SettingsPage() {
                   {showPasswords.current ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
               </div>
-              
+
               <div className="relative">
                 <Input
                   label="New Password"
@@ -427,7 +404,7 @@ export default function SettingsPage() {
                   {showPasswords.new ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
               </div>
-              
+
               <div className="relative">
                 <Input
                   label="Confirm New Password"
@@ -444,7 +421,7 @@ export default function SettingsPage() {
                   {showPasswords.confirm ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
               </div>
-              
+
               <Button
                 onClick={handleChangePassword}
                 disabled={!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword}
@@ -471,9 +448,7 @@ export default function SettingsPage() {
                 <AlertTriangle size={20} className="mr-2" />
                 Danger Zone
               </CardTitle>
-              <CardDescription>
-                Irreversible and destructive actions
-              </CardDescription>
+              <CardDescription>Irreversible and destructive actions</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="bg-red-50 border border-red-200 rounded-md p-4">
@@ -484,10 +459,7 @@ export default function SettingsPage() {
                       Once you delete your account, there is no going back. Please be certain.
                     </p>
                   </div>
-                  <Button
-                    variant="destructive"
-                    onClick={handleDeleteAccount}
-                  >
+                  <Button variant="destructive" onClick={handleDeleteAccount}>
                     <Trash2 size={16} className="mr-2" />
                     Delete Account
                   </Button>

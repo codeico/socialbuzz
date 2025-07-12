@@ -28,9 +28,7 @@ export const verifyCallbackSignature = (
   return calculatedSignature === receivedSignature;
 };
 
-export const createPaymentRequest = async (
-  paymentData: DuitkuPaymentRequest,
-): Promise<DuitkuPaymentResponse> => {
+export const createPaymentRequest = async (paymentData: DuitkuPaymentRequest): Promise<DuitkuPaymentResponse> => {
   try {
     const signature = generateSignature(
       DUITKU_MERCHANT_CODE,
@@ -54,15 +52,11 @@ export const createPaymentRequest = async (
       expiryPeriod: paymentData.expiryPeriod || 1440, // 24 hours default
     };
 
-    const response = await axios.post(
-      `${DUITKU_BASE_URL}/merchant/createinvoice`,
-      requestData,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-        },
+    const response = await axios.post(`${DUITKU_BASE_URL}/merchant/createinvoice`, requestData, {
+      headers: {
+        'Content-Type': 'application/json',
       },
-    );
+    });
 
     return response.data;
   } catch (error) {
@@ -73,12 +67,7 @@ export const createPaymentRequest = async (
 
 export const checkPaymentStatus = async (merchantOrderId: string): Promise<any> => {
   try {
-    const signature = generateSignature(
-      DUITKU_MERCHANT_CODE,
-      merchantOrderId,
-      0,
-      DUITKU_API_KEY,
-    );
+    const signature = generateSignature(DUITKU_MERCHANT_CODE, merchantOrderId, 0, DUITKU_API_KEY);
 
     const requestData = {
       merchantCode: DUITKU_MERCHANT_CODE,
@@ -86,15 +75,11 @@ export const checkPaymentStatus = async (merchantOrderId: string): Promise<any> 
       signature: signature,
     };
 
-    const response = await axios.post(
-      `${DUITKU_BASE_URL}/merchant/transactionStatus`,
-      requestData,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-        },
+    const response = await axios.post(`${DUITKU_BASE_URL}/merchant/transactionStatus`, requestData, {
+      headers: {
+        'Content-Type': 'application/json',
       },
-    );
+    });
 
     return response.data;
   } catch (error) {

@@ -1,22 +1,14 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Modal } from '@/components/ui/Modal';
 import { formatCurrency, formatDate } from '@/utils/formatter';
-import { 
-  Heart, 
-  Share2, 
-  MapPin, 
-  Link as LinkIcon, 
-  Calendar,
-  Gift,
-  Users,
-  Star
-} from 'lucide-react';
+import Image from 'next/image';
+import { Heart, Share2, MapPin, Link as LinkIcon, Calendar, Gift, Users, Star } from 'lucide-react';
 
 interface UserProfile {
   id: string;
@@ -45,7 +37,7 @@ interface UserProfile {
 export default function ProfilePage() {
   const params = useParams();
   const username = params.username as string;
-  
+
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -55,13 +47,7 @@ export default function ProfilePage() {
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('bank_transfer');
 
-  useEffect(() => {
-    if (username) {
-      loadProfile();
-    }
-  }, [username]);
-
-  const loadProfile = async () => {
+  const loadProfile = useCallback(async () => {
     try {
       setLoading(true);
       setError('');
@@ -77,25 +63,33 @@ export default function ProfilePage() {
       }
     } catch (error) {
       setError('Failed to load profile');
-      console.error('Error loading profile:', error);
+      // console.error('Error loading profile:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [username]);
+
+  useEffect(() => {
+    if (username) {
+      loadProfile();
+    }
+  }, [username, loadProfile]);
 
   const handleDonation = async () => {
-    if (!donationAmount || !profile) return;
-    
+    if (!donationAmount || !profile) {
+      return;
+    }
+
     try {
       // In a real app, this would call your payment API
       const amount = parseFloat(donationAmount);
-      
+
       // Create payment request
       const response = await fetch('/api/v1/payment/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
         body: JSON.stringify({
           recipientId: profile.id,
@@ -105,9 +99,9 @@ export default function ProfilePage() {
           isAnonymous: isAnonymous,
         }),
       });
-      
+
       const data = await response.json();
-      
+
       if (data.success) {
         // Redirect to payment URL
         window.location.href = data.data.paymentUrl;
@@ -155,14 +149,17 @@ export default function ProfilePage() {
         <div className="text-center">
           <div className="bg-red-100 rounded-full p-4 w-16 h-16 mx-auto mb-4">
             <svg className="h-8 w-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Profile Error</h1>
           <p className="text-gray-600 mb-4">{error}</p>
-          <Button onClick={() => loadProfile()}>
-            Try Again
-          </Button>
+          <Button onClick={() => loadProfile()}>Try Again</Button>
         </div>
       </div>
     );
@@ -186,18 +183,13 @@ export default function ProfilePage() {
         <div className="max-w-4xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <div className="relative">
-                <img
-                  src={profile.avatar || '/default-avatar.png'}
-                  alt={profile.displayName}
-                  className="w-20 h-20 rounded-full object-cover"
-                />
-                {profile.isVerified && (
-                  <div className="absolute -bottom-1 -right-1 bg-blue-500 text-white rounded-full p-1">
-                    <Star size={12} />
-                  </div>
-                )}
-              </div>
+              <Image
+                src={profile.avatar || '/default-avatar.png'}
+                alt={profile.displayName}
+                width={80}
+                height={80}
+                className="w-20 h-20 rounded-full object-cover"
+              />
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">{profile.displayName}</h1>
                 <p className="text-gray-600">@{profile.username}</p>
@@ -243,7 +235,7 @@ export default function ProfilePage() {
                 <p className="text-gray-700 whitespace-pre-line">
                   {profile.profile?.bio || 'This user hasn\'t added a bio yet.'}
                 </p>
-                
+
                 {profile.profile?.social_links?.website && (
                   <div className="mt-4">
                     <a
@@ -257,21 +249,23 @@ export default function ProfilePage() {
                     </a>
                   </div>
                 )}
-                
+
                 {profile.profile?.social_links && (
                   <div className="mt-4 space-y-2">
-                    {Object.entries(profile.profile.social_links).filter(([platform, url]) => platform !== 'website' && url).map(([platform, url]) => (
-                      <a
-                        key={platform}
-                        href={url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center text-indigo-600 hover:text-indigo-500 mr-4"
-                      >
-                        <LinkIcon size={16} className="mr-2" />
-                        {platform.charAt(0).toUpperCase() + platform.slice(1)}
-                      </a>
-                    ))}
+                    {Object.entries(profile.profile.social_links)
+                      .filter(([platform, url]) => platform !== 'website' && url)
+                      .map(([platform, url]) => (
+                        <a
+                          key={platform}
+                          href={url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center text-indigo-600 hover:text-indigo-500 mr-4"
+                        >
+                          <LinkIcon size={16} className="mr-2" />
+                          {platform.charAt(0).toUpperCase() + platform.slice(1)}
+                        </a>
+                      ))}
                   </div>
                 )}
               </CardContent>
@@ -281,9 +275,7 @@ export default function ProfilePage() {
             <Card>
               <CardHeader>
                 <CardTitle>Recent Supporters</CardTitle>
-                <CardDescription>
-                  People who have recently supported this creator
-                </CardDescription>
+                <CardDescription>People who have recently supported this creator</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -303,7 +295,7 @@ export default function ProfilePage() {
                       <p className="text-sm text-gray-500">Keep up the great work!</p>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                       <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-teal-600 rounded-full flex items-center justify-center text-white font-semibold">
@@ -339,7 +331,7 @@ export default function ProfilePage() {
                   </div>
                   <span className="font-semibold">{formatCurrency(profile.stats.total_donations)}</span>
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <Users size={20} className="mr-2 text-gray-500" />
@@ -347,7 +339,7 @@ export default function ProfilePage() {
                   </div>
                   <span className="font-semibold">{profile.stats.total_supporters}</span>
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <Heart size={20} className="mr-2 text-gray-500" />
@@ -362,16 +354,10 @@ export default function ProfilePage() {
             <Card>
               <CardHeader>
                 <CardTitle>Support {profile.displayName}</CardTitle>
-                <CardDescription>
-                  Show your appreciation with a donation
-                </CardDescription>
+                <CardDescription>Show your appreciation with a donation</CardDescription>
               </CardHeader>
               <CardContent>
-                <Button
-                  onClick={() => setDonationModal(true)}
-                  className="w-full"
-                  size="lg"
-                >
+                <Button onClick={() => setDonationModal(true)} className="w-full" size="lg">
                   <Heart size={20} className="mr-2" />
                   Send Support
                 </Button>
@@ -382,34 +368,25 @@ export default function ProfilePage() {
       </div>
 
       {/* Donation Modal */}
-      <Modal
-        isOpen={donationModal}
-        onClose={() => setDonationModal(false)}
-        title="Support this Creator"
-        size="md"
-      >
+      <Modal isOpen={donationModal} onClose={() => setDonationModal(false)} title="Support this Creator" size="md">
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Donation Amount (IDR)
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Donation Amount (IDR)</label>
             <Input
               type="number"
               value={donationAmount}
-              onChange={(e) => setDonationAmount(e.target.value)}
+              onChange={e => setDonationAmount(e.target.value)}
               placeholder="Enter amount (min. 1,000)"
               min="1000"
               fullWidth
             />
           </div>
-          
+
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Payment Method
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Payment Method</label>
             <select
               value={paymentMethod}
-              onChange={(e) => setPaymentMethod(e.target.value)}
+              onChange={e => setPaymentMethod(e.target.value)}
               className="w-full p-2 border border-gray-300 rounded-md"
             >
               <option value="bank_transfer">Bank Transfer</option>
@@ -417,39 +394,33 @@ export default function ProfilePage() {
               <option value="e_wallet">E-Wallet</option>
             </select>
           </div>
-          
+
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Message (Optional)
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Message (Optional)</label>
             <textarea
               value={donationMessage}
-              onChange={(e) => setDonationMessage(e.target.value)}
+              onChange={e => setDonationMessage(e.target.value)}
               placeholder="Leave a message of support..."
               className="w-full p-2 border border-gray-300 rounded-md"
               rows={3}
             />
           </div>
-          
+
           <div className="flex items-center">
             <input
               type="checkbox"
               id="anonymous"
               checked={isAnonymous}
-              onChange={(e) => setIsAnonymous(e.target.checked)}
+              onChange={e => setIsAnonymous(e.target.checked)}
               className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
             />
             <label htmlFor="anonymous" className="ml-2 block text-sm text-gray-900">
               Make this donation anonymous
             </label>
           </div>
-          
+
           <div className="flex space-x-3 pt-4">
-            <Button
-              variant="outline"
-              onClick={() => setDonationModal(false)}
-              className="flex-1"
-            >
+            <Button variant="outline" onClick={() => setDonationModal(false)} className="flex-1">
               Cancel
             </Button>
             <Button

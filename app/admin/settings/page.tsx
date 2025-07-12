@@ -1,30 +1,24 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { 
-  Settings,
+import {
   Save,
   RefreshCw,
   Shield,
   DollarSign,
   Mail,
   Globe,
-  Database,
   Bell,
-  Users,
-  Lock,
   AlertTriangle,
   Check,
-  X,
   Eye,
   EyeOff,
-  Key,
   Server,
-  Zap
+  Zap,
 } from 'lucide-react';
 
 interface SystemSettings {
@@ -140,11 +134,7 @@ export default function AdminSettingsPage() {
   const [showPasswords, setShowPasswords] = useState(false);
   const [testingConnection, setTestingConnection] = useState(false);
 
-  useEffect(() => {
-    loadSettings();
-  }, []);
-
-  const loadSettings = async () => {
+  const loadSettings = useCallback(async () => {
     try {
       setLoading(true);
       setError('');
@@ -152,7 +142,7 @@ export default function AdminSettingsPage() {
       const token = localStorage.getItem('token');
       const response = await fetch('/api/v1/admin/settings', {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -166,11 +156,14 @@ export default function AdminSettingsPage() {
       }
     } catch (error) {
       setError('Failed to load settings');
-      console.error('Settings fetch error:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [settings]);
+
+  useEffect(() => {
+    loadSettings();
+  }, [loadSettings]);
 
   const saveSettings = async () => {
     try {
@@ -183,7 +176,7 @@ export default function AdminSettingsPage() {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(settings),
       });
@@ -198,7 +191,6 @@ export default function AdminSettingsPage() {
       }
     } catch (error) {
       setError('Failed to save settings');
-      console.error('Settings save error:', error);
     } finally {
       setSaving(false);
     }
@@ -212,13 +204,13 @@ export default function AdminSettingsPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(settings.email),
       });
 
       const data = await response.json();
-      
+
       if (data.success) {
         setSuccess('Email connection test successful');
       } else {
@@ -231,7 +223,7 @@ export default function AdminSettingsPage() {
     }
   };
 
-  const updateSetting = (category: keyof SystemSettings, key: string, value: any) => {
+  const updateSetting = (category: keyof SystemSettings, key: string, value: string | number | boolean) => {
     setSettings(prev => ({
       ...prev,
       [category]: {
@@ -252,9 +244,9 @@ export default function AdminSettingsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-indigo-600"></div>
           <p className="text-gray-600">Loading settings...</p>
         </div>
       </div>
@@ -269,15 +261,15 @@ export default function AdminSettingsPage() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">System Settings</h1>
-              <p className="text-gray-600 mt-2">Configure platform settings and preferences</p>
+              <p className="mt-2 text-gray-600">Configure platform settings and preferences</p>
             </div>
             <div className="flex gap-3">
               <Button onClick={loadSettings} variant="outline" disabled={loading}>
-                <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
                 Refresh
               </Button>
               <Button onClick={saveSettings} disabled={saving}>
-                <Save className={`h-4 w-4 mr-2 ${saving ? 'animate-spin' : ''}`} />
+                <Save className={`mr-2 h-4 w-4 ${saving ? 'animate-spin' : ''}`} />
                 {saving ? 'Saving...' : 'Save Changes'}
               </Button>
             </div>
@@ -287,8 +279,8 @@ export default function AdminSettingsPage() {
         {/* Status Messages */}
         {error && (
           <Card className="mb-6 border-red-200 bg-red-50">
-            <CardContent className="p-4 flex items-center">
-              <AlertTriangle className="h-5 w-5 text-red-600 mr-2" />
+            <CardContent className="flex items-center p-4">
+              <AlertTriangle className="mr-2 h-5 w-5 text-red-600" />
               <p className="text-red-600">{error}</p>
             </CardContent>
           </Card>
@@ -296,32 +288,30 @@ export default function AdminSettingsPage() {
 
         {success && (
           <Card className="mb-6 border-green-200 bg-green-50">
-            <CardContent className="p-4 flex items-center">
-              <Check className="h-5 w-5 text-green-600 mr-2" />
+            <CardContent className="flex items-center p-4">
+              <Check className="mr-2 h-5 w-5 text-green-600" />
               <p className="text-green-600">{success}</p>
             </CardContent>
           </Card>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
           {/* Sidebar */}
           <div className="lg:col-span-1">
             <Card>
               <CardContent className="p-4">
                 <nav className="space-y-2">
-                  {tabs.map((tab) => {
+                  {tabs.map(tab => {
                     const Icon = tab.icon;
                     return (
                       <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
-                        className={`w-full flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                          activeTab === tab.id
-                            ? 'bg-indigo-100 text-indigo-700'
-                            : 'text-gray-600 hover:bg-gray-100'
+                        className={`flex w-full items-center rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                          activeTab === tab.id ? 'bg-indigo-100 text-indigo-700' : 'text-gray-600 hover:bg-gray-100'
                         }`}
                       >
-                        <Icon className="h-4 w-4 mr-3" />
+                        <Icon className="mr-3 h-4 w-4" />
                         {tab.label}
                       </button>
                     );
@@ -338,67 +328,57 @@ export default function AdminSettingsPage() {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center">
-                    <Globe className="h-5 w-5 mr-2" />
+                    <Globe className="mr-2 h-5 w-5" />
                     Platform Settings
                   </CardTitle>
                   <CardDescription>Configure basic platform information and appearance</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Platform Name
-                      </label>
+                      <label className="mb-2 block text-sm font-medium text-gray-700">Platform Name</label>
                       <Input
                         value={settings.platform.name}
-                        onChange={(e) => updateSetting('platform', 'name', e.target.value)}
+                        onChange={e => updateSetting('platform', 'name', e.target.value)}
                         placeholder="SocialBuzz"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Logo URL
-                      </label>
+                      <label className="mb-2 block text-sm font-medium text-gray-700">Logo URL</label>
                       <Input
                         value={settings.platform.logo_url}
-                        onChange={(e) => updateSetting('platform', 'logo_url', e.target.value)}
+                        onChange={e => updateSetting('platform', 'logo_url', e.target.value)}
                         placeholder="https://example.com/logo.png"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Platform Description
-                    </label>
+                    <label className="mb-2 block text-sm font-medium text-gray-700">Platform Description</label>
                     <textarea
                       value={settings.platform.description}
-                      onChange={(e) => updateSetting('platform', 'description', e.target.value)}
-                      className="w-full p-3 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                      onChange={e => updateSetting('platform', 'description', e.target.value)}
+                      className="w-full rounded-md border border-gray-300 p-3 focus:border-indigo-500 focus:ring-indigo-500"
                       rows={3}
                       placeholder="Creator donation platform"
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Primary Color
-                      </label>
+                      <label className="mb-2 block text-sm font-medium text-gray-700">Primary Color</label>
                       <Input
                         type="color"
                         value={settings.platform.primary_color}
-                        onChange={(e) => updateSetting('platform', 'primary_color', e.target.value)}
+                        onChange={e => updateSetting('platform', 'primary_color', e.target.value)}
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Secondary Color
-                      </label>
+                      <label className="mb-2 block text-sm font-medium text-gray-700">Secondary Color</label>
                       <Input
                         type="color"
                         value={settings.platform.secondary_color}
-                        onChange={(e) => updateSetting('platform', 'secondary_color', e.target.value)}
+                        onChange={e => updateSetting('platform', 'secondary_color', e.target.value)}
                       />
                     </div>
                   </div>
@@ -409,25 +389,23 @@ export default function AdminSettingsPage() {
                         <h3 className="text-lg font-medium">Maintenance Mode</h3>
                         <p className="text-sm text-gray-600">Put the platform in maintenance mode</p>
                       </div>
-                      <label className="relative inline-flex items-center cursor-pointer">
+                      <label className="relative inline-flex cursor-pointer items-center">
                         <input
                           type="checkbox"
-                          className="sr-only peer"
+                          className="peer sr-only"
                           checked={settings.platform.maintenance_mode}
-                          onChange={(e) => updateSetting('platform', 'maintenance_mode', e.target.checked)}
+                          onChange={e => updateSetting('platform', 'maintenance_mode', e.target.checked)}
                         />
-                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                        <div className="peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:content-[''] after:transition-all peer-checked:bg-indigo-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300"></div>
                       </label>
                     </div>
                     {settings.platform.maintenance_mode && (
                       <div className="mt-4">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Maintenance Message
-                        </label>
+                        <label className="mb-2 block text-sm font-medium text-gray-700">Maintenance Message</label>
                         <textarea
                           value={settings.platform.maintenance_message}
-                          onChange={(e) => updateSetting('platform', 'maintenance_message', e.target.value)}
-                          className="w-full p-3 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                          onChange={e => updateSetting('platform', 'maintenance_message', e.target.value)}
+                          className="w-full rounded-md border border-gray-300 p-3 focus:border-indigo-500 focus:ring-indigo-500"
                           rows={2}
                         />
                       </div>
@@ -442,32 +420,28 @@ export default function AdminSettingsPage() {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center">
-                    <DollarSign className="h-5 w-5 mr-2" />
+                    <DollarSign className="mr-2 h-5 w-5" />
                     Payment Settings
                   </CardTitle>
                   <CardDescription>Configure Duitku payment gateway and fee settings</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Duitku Merchant Code
-                      </label>
+                      <label className="mb-2 block text-sm font-medium text-gray-700">Duitku Merchant Code</label>
                       <Input
                         value={settings.payment.duitku_merchant_code}
-                        onChange={(e) => updateSetting('payment', 'duitku_merchant_code', e.target.value)}
+                        onChange={e => updateSetting('payment', 'duitku_merchant_code', e.target.value)}
                         placeholder="Enter merchant code"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Duitku API Key
-                      </label>
+                      <label className="mb-2 block text-sm font-medium text-gray-700">Duitku API Key</label>
                       <div className="relative">
                         <Input
                           type={showPasswords ? 'text' : 'password'}
                           value={settings.payment.duitku_api_key}
-                          onChange={(e) => updateSetting('payment', 'duitku_api_key', e.target.value)}
+                          onChange={e => updateSetting('payment', 'duitku_api_key', e.target.value)}
                           placeholder="Enter API key"
                         />
                         <button
@@ -486,63 +460,57 @@ export default function AdminSettingsPage() {
                       <h3 className="text-lg font-medium">Sandbox Mode</h3>
                       <p className="text-sm text-gray-600">Use Duitku sandbox for testing</p>
                     </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
+                    <label className="relative inline-flex cursor-pointer items-center">
                       <input
                         type="checkbox"
-                        className="sr-only peer"
+                        className="peer sr-only"
                         checked={settings.payment.duitku_sandbox_mode}
-                        onChange={(e) => updateSetting('payment', 'duitku_sandbox_mode', e.target.checked)}
+                        onChange={e => updateSetting('payment', 'duitku_sandbox_mode', e.target.checked)}
                       />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                      <div className="peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:content-[''] after:transition-all peer-checked:bg-indigo-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300"></div>
                     </label>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Minimum Donation (IDR)
-                      </label>
+                      <label className="mb-2 block text-sm font-medium text-gray-700">Minimum Donation (IDR)</label>
                       <Input
                         type="number"
                         value={settings.payment.minimum_donation}
-                        onChange={(e) => updateSetting('payment', 'minimum_donation', parseInt(e.target.value))}
+                        onChange={e => updateSetting('payment', 'minimum_donation', parseInt(e.target.value))}
                         min="1000"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Maximum Donation (IDR)
-                      </label>
+                      <label className="mb-2 block text-sm font-medium text-gray-700">Maximum Donation (IDR)</label>
                       <Input
                         type="number"
                         value={settings.payment.maximum_donation}
-                        onChange={(e) => updateSetting('payment', 'maximum_donation', parseInt(e.target.value))}
+                        onChange={e => updateSetting('payment', 'maximum_donation', parseInt(e.target.value))}
                         min="1000"
                       />
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Platform Fee (%)
-                      </label>
+                      <label className="mb-2 block text-sm font-medium text-gray-700">Platform Fee (%)</label>
                       <Input
                         type="number"
                         value={settings.payment.platform_fee_percentage}
-                        onChange={(e) => updateSetting('payment', 'platform_fee_percentage', parseInt(e.target.value))}
+                        onChange={e => updateSetting('payment', 'platform_fee_percentage', parseInt(e.target.value))}
                         min="0"
                         max="50"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="mb-2 block text-sm font-medium text-gray-700">
                         Auto Payout Threshold (IDR)
                       </label>
                       <Input
                         type="number"
                         value={settings.payment.auto_payout_threshold}
-                        onChange={(e) => updateSetting('payment', 'auto_payout_threshold', parseInt(e.target.value))}
+                        onChange={e => updateSetting('payment', 'auto_payout_threshold', parseInt(e.target.value))}
                         min="50000"
                       />
                     </div>
@@ -556,56 +524,48 @@ export default function AdminSettingsPage() {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center">
-                    <Mail className="h-5 w-5 mr-2" />
+                    <Mail className="mr-2 h-5 w-5" />
                     Email Settings
                   </CardTitle>
                   <CardDescription>Configure SMTP settings for email notifications</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        SMTP Host
-                      </label>
+                      <label className="mb-2 block text-sm font-medium text-gray-700">SMTP Host</label>
                       <Input
                         value={settings.email.smtp_host}
-                        onChange={(e) => updateSetting('email', 'smtp_host', e.target.value)}
+                        onChange={e => updateSetting('email', 'smtp_host', e.target.value)}
                         placeholder="smtp.gmail.com"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        SMTP Port
-                      </label>
+                      <label className="mb-2 block text-sm font-medium text-gray-700">SMTP Port</label>
                       <Input
                         type="number"
                         value={settings.email.smtp_port}
-                        onChange={(e) => updateSetting('email', 'smtp_port', parseInt(e.target.value))}
+                        onChange={e => updateSetting('email', 'smtp_port', parseInt(e.target.value))}
                         placeholder="587"
                       />
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        SMTP Username
-                      </label>
+                      <label className="mb-2 block text-sm font-medium text-gray-700">SMTP Username</label>
                       <Input
                         value={settings.email.smtp_username}
-                        onChange={(e) => updateSetting('email', 'smtp_username', e.target.value)}
+                        onChange={e => updateSetting('email', 'smtp_username', e.target.value)}
                         placeholder="your-email@gmail.com"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        SMTP Password
-                      </label>
+                      <label className="mb-2 block text-sm font-medium text-gray-700">SMTP Password</label>
                       <div className="relative">
                         <Input
                           type={showPasswords ? 'text' : 'password'}
                           value={settings.email.smtp_password}
-                          onChange={(e) => updateSetting('email', 'smtp_password', e.target.value)}
+                          onChange={e => updateSetting('email', 'smtp_password', e.target.value)}
                           placeholder="Enter password"
                         />
                         <button
@@ -619,24 +579,20 @@ export default function AdminSettingsPage() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        From Email
-                      </label>
+                      <label className="mb-2 block text-sm font-medium text-gray-700">From Email</label>
                       <Input
                         value={settings.email.from_email}
-                        onChange={(e) => updateSetting('email', 'from_email', e.target.value)}
+                        onChange={e => updateSetting('email', 'from_email', e.target.value)}
                         placeholder="noreply@socialbuzz.com"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        From Name
-                      </label>
+                      <label className="mb-2 block text-sm font-medium text-gray-700">From Name</label>
                       <Input
                         value={settings.email.from_name}
-                        onChange={(e) => updateSetting('email', 'from_name', e.target.value)}
+                        onChange={e => updateSetting('email', 'from_name', e.target.value)}
                         placeholder="SocialBuzz"
                       />
                     </div>
@@ -647,14 +603,14 @@ export default function AdminSettingsPage() {
                       <h3 className="text-lg font-medium">Use SSL/TLS</h3>
                       <p className="text-sm text-gray-600">Enable secure connection</p>
                     </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
+                    <label className="relative inline-flex cursor-pointer items-center">
                       <input
                         type="checkbox"
-                        className="sr-only peer"
+                        className="peer sr-only"
                         checked={settings.email.smtp_secure}
-                        onChange={(e) => updateSetting('email', 'smtp_secure', e.target.checked)}
+                        onChange={e => updateSetting('email', 'smtp_secure', e.target.checked)}
                       />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                      <div className="peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:content-[''] after:transition-all peer-checked:bg-indigo-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300"></div>
                     </label>
                   </div>
 
@@ -665,7 +621,7 @@ export default function AdminSettingsPage() {
                       disabled={testingConnection}
                       className="w-full"
                     >
-                      <Server className={`h-4 w-4 mr-2 ${testingConnection ? 'animate-spin' : ''}`} />
+                      <Server className={`mr-2 h-4 w-4 ${testingConnection ? 'animate-spin' : ''}`} />
                       {testingConnection ? 'Testing Connection...' : 'Test Email Connection'}
                     </Button>
                   </div>
@@ -678,60 +634,52 @@ export default function AdminSettingsPage() {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center">
-                    <Shield className="h-5 w-5 mr-2" />
+                    <Shield className="mr-2 h-5 w-5" />
                     Security Settings
                   </CardTitle>
                   <CardDescription>Configure security and authentication settings</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Session Timeout (hours)
-                      </label>
+                      <label className="mb-2 block text-sm font-medium text-gray-700">Session Timeout (hours)</label>
                       <Input
                         type="number"
                         value={settings.security.session_timeout}
-                        onChange={(e) => updateSetting('security', 'session_timeout', parseInt(e.target.value))}
+                        onChange={e => updateSetting('security', 'session_timeout', parseInt(e.target.value))}
                         min="1"
                         max="168"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Max Login Attempts
-                      </label>
+                      <label className="mb-2 block text-sm font-medium text-gray-700">Max Login Attempts</label>
                       <Input
                         type="number"
                         value={settings.security.max_login_attempts}
-                        onChange={(e) => updateSetting('security', 'max_login_attempts', parseInt(e.target.value))}
+                        onChange={e => updateSetting('security', 'max_login_attempts', parseInt(e.target.value))}
                         min="3"
                         max="10"
                       />
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Minimum Password Length
-                      </label>
+                      <label className="mb-2 block text-sm font-medium text-gray-700">Minimum Password Length</label>
                       <Input
                         type="number"
                         value={settings.security.password_min_length}
-                        onChange={(e) => updateSetting('security', 'password_min_length', parseInt(e.target.value))}
+                        onChange={e => updateSetting('security', 'password_min_length', parseInt(e.target.value))}
                         min="6"
                         max="20"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        JWT Secret Rotation (days)
-                      </label>
+                      <label className="mb-2 block text-sm font-medium text-gray-700">JWT Secret Rotation (days)</label>
                       <Input
                         type="number"
                         value={settings.security.jwt_secret_rotation_days}
-                        onChange={(e) => updateSetting('security', 'jwt_secret_rotation_days', parseInt(e.target.value))}
+                        onChange={e => updateSetting('security', 'jwt_secret_rotation_days', parseInt(e.target.value))}
                         min="7"
                         max="365"
                       />
@@ -744,14 +692,14 @@ export default function AdminSettingsPage() {
                         <h3 className="text-lg font-medium">Require Email Verification</h3>
                         <p className="text-sm text-gray-600">Users must verify email before login</p>
                       </div>
-                      <label className="relative inline-flex items-center cursor-pointer">
+                      <label className="relative inline-flex cursor-pointer items-center">
                         <input
                           type="checkbox"
-                          className="sr-only peer"
+                          className="peer sr-only"
                           checked={settings.security.require_email_verification}
-                          onChange={(e) => updateSetting('security', 'require_email_verification', e.target.checked)}
+                          onChange={e => updateSetting('security', 'require_email_verification', e.target.checked)}
                         />
-                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                        <div className="peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:content-[''] after:transition-all peer-checked:bg-indigo-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300"></div>
                       </label>
                     </div>
 
@@ -760,14 +708,14 @@ export default function AdminSettingsPage() {
                         <h3 className="text-lg font-medium">Enable Two-Factor Authentication</h3>
                         <p className="text-sm text-gray-600">Require 2FA for admin accounts</p>
                       </div>
-                      <label className="relative inline-flex items-center cursor-pointer">
+                      <label className="relative inline-flex cursor-pointer items-center">
                         <input
                           type="checkbox"
-                          className="sr-only peer"
+                          className="peer sr-only"
                           checked={settings.security.enable_2fa}
-                          onChange={(e) => updateSetting('security', 'enable_2fa', e.target.checked)}
+                          onChange={e => updateSetting('security', 'enable_2fa', e.target.checked)}
                         />
-                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                        <div className="peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:content-[''] after:transition-all peer-checked:bg-indigo-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300"></div>
                       </label>
                     </div>
                   </div>
@@ -780,7 +728,7 @@ export default function AdminSettingsPage() {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center">
-                    <Zap className="h-5 w-5 mr-2" />
+                    <Zap className="mr-2 h-5 w-5" />
                     Feature Settings
                   </CardTitle>
                   <CardDescription>Enable or disable platform features</CardDescription>
@@ -792,14 +740,14 @@ export default function AdminSettingsPage() {
                         <h3 className="text-lg font-medium">User Registration</h3>
                         <p className="text-sm text-gray-600">Allow new users to register</p>
                       </div>
-                      <label className="relative inline-flex items-center cursor-pointer">
+                      <label className="relative inline-flex cursor-pointer items-center">
                         <input
                           type="checkbox"
-                          className="sr-only peer"
+                          className="peer sr-only"
                           checked={settings.features.user_registration}
-                          onChange={(e) => updateSetting('features', 'user_registration', e.target.checked)}
+                          onChange={e => updateSetting('features', 'user_registration', e.target.checked)}
                         />
-                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                        <div className="peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:content-[''] after:transition-all peer-checked:bg-indigo-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300"></div>
                       </label>
                     </div>
 
@@ -808,14 +756,14 @@ export default function AdminSettingsPage() {
                         <h3 className="text-lg font-medium">Public Profiles</h3>
                         <p className="text-sm text-gray-600">Allow public access to user profiles</p>
                       </div>
-                      <label className="relative inline-flex items-center cursor-pointer">
+                      <label className="relative inline-flex cursor-pointer items-center">
                         <input
                           type="checkbox"
-                          className="sr-only peer"
+                          className="peer sr-only"
                           checked={settings.features.public_profiles}
-                          onChange={(e) => updateSetting('features', 'public_profiles', e.target.checked)}
+                          onChange={e => updateSetting('features', 'public_profiles', e.target.checked)}
                         />
-                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                        <div className="peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:content-[''] after:transition-all peer-checked:bg-indigo-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300"></div>
                       </label>
                     </div>
 
@@ -824,14 +772,14 @@ export default function AdminSettingsPage() {
                         <h3 className="text-lg font-medium">Donation Goals</h3>
                         <p className="text-sm text-gray-600">Allow creators to set donation goals</p>
                       </div>
-                      <label className="relative inline-flex items-center cursor-pointer">
+                      <label className="relative inline-flex cursor-pointer items-center">
                         <input
                           type="checkbox"
-                          className="sr-only peer"
+                          className="peer sr-only"
                           checked={settings.features.donation_goals}
-                          onChange={(e) => updateSetting('features', 'donation_goals', e.target.checked)}
+                          onChange={e => updateSetting('features', 'donation_goals', e.target.checked)}
                         />
-                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                        <div className="peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:content-[''] after:transition-all peer-checked:bg-indigo-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300"></div>
                       </label>
                     </div>
 
@@ -840,14 +788,14 @@ export default function AdminSettingsPage() {
                         <h3 className="text-lg font-medium">OBS Integration</h3>
                         <p className="text-sm text-gray-600">Enable donation notifications for OBS</p>
                       </div>
-                      <label className="relative inline-flex items-center cursor-pointer">
+                      <label className="relative inline-flex cursor-pointer items-center">
                         <input
                           type="checkbox"
-                          className="sr-only peer"
+                          className="peer sr-only"
                           checked={settings.features.obs_integration}
-                          onChange={(e) => updateSetting('features', 'obs_integration', e.target.checked)}
+                          onChange={e => updateSetting('features', 'obs_integration', e.target.checked)}
                         />
-                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                        <div className="peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:content-[''] after:transition-all peer-checked:bg-indigo-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300"></div>
                       </label>
                     </div>
 
@@ -856,27 +804,25 @@ export default function AdminSettingsPage() {
                         <h3 className="text-lg font-medium">File Uploads</h3>
                         <p className="text-sm text-gray-600">Allow users to upload files</p>
                       </div>
-                      <label className="relative inline-flex items-center cursor-pointer">
+                      <label className="relative inline-flex cursor-pointer items-center">
                         <input
                           type="checkbox"
-                          className="sr-only peer"
+                          className="peer sr-only"
                           checked={settings.features.file_uploads}
-                          onChange={(e) => updateSetting('features', 'file_uploads', e.target.checked)}
+                          onChange={e => updateSetting('features', 'file_uploads', e.target.checked)}
                         />
-                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                        <div className="peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:content-[''] after:transition-all peer-checked:bg-indigo-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300"></div>
                       </label>
                     </div>
                   </div>
 
                   {settings.features.file_uploads && (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Max File Size (MB)
-                      </label>
+                      <label className="mb-2 block text-sm font-medium text-gray-700">Max File Size (MB)</label>
                       <Input
                         type="number"
                         value={settings.features.max_file_size_mb}
-                        onChange={(e) => updateSetting('features', 'max_file_size_mb', parseInt(e.target.value))}
+                        onChange={e => updateSetting('features', 'max_file_size_mb', parseInt(e.target.value))}
                         min="1"
                         max="100"
                       />
@@ -891,7 +837,7 @@ export default function AdminSettingsPage() {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center">
-                    <Bell className="h-5 w-5 mr-2" />
+                    <Bell className="mr-2 h-5 w-5" />
                     Notification Settings
                   </CardTitle>
                   <CardDescription>Configure notification preferences and webhooks</CardDescription>
@@ -903,14 +849,14 @@ export default function AdminSettingsPage() {
                         <h3 className="text-lg font-medium">Email Notifications</h3>
                         <p className="text-sm text-gray-600">Send notifications via email</p>
                       </div>
-                      <label className="relative inline-flex items-center cursor-pointer">
+                      <label className="relative inline-flex cursor-pointer items-center">
                         <input
                           type="checkbox"
-                          className="sr-only peer"
+                          className="peer sr-only"
                           checked={settings.notifications.email_notifications}
-                          onChange={(e) => updateSetting('notifications', 'email_notifications', e.target.checked)}
+                          onChange={e => updateSetting('notifications', 'email_notifications', e.target.checked)}
                         />
-                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                        <div className="peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:content-[''] after:transition-all peer-checked:bg-indigo-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300"></div>
                       </label>
                     </div>
 
@@ -919,36 +865,32 @@ export default function AdminSettingsPage() {
                         <h3 className="text-lg font-medium">Push Notifications</h3>
                         <p className="text-sm text-gray-600">Send browser push notifications</p>
                       </div>
-                      <label className="relative inline-flex items-center cursor-pointer">
+                      <label className="relative inline-flex cursor-pointer items-center">
                         <input
                           type="checkbox"
-                          className="sr-only peer"
+                          className="peer sr-only"
                           checked={settings.notifications.push_notifications}
-                          onChange={(e) => updateSetting('notifications', 'push_notifications', e.target.checked)}
+                          onChange={e => updateSetting('notifications', 'push_notifications', e.target.checked)}
                         />
-                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                        <div className="peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:content-[''] after:transition-all peer-checked:bg-indigo-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300"></div>
                       </label>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Admin Email
-                      </label>
+                      <label className="mb-2 block text-sm font-medium text-gray-700">Admin Email</label>
                       <Input
                         value={settings.notifications.admin_email}
-                        onChange={(e) => updateSetting('notifications', 'admin_email', e.target.value)}
+                        onChange={e => updateSetting('notifications', 'admin_email', e.target.value)}
                         placeholder="admin@socialbuzz.com"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Webhook URL
-                      </label>
+                      <label className="mb-2 block text-sm font-medium text-gray-700">Webhook URL</label>
                       <Input
                         value={settings.notifications.webhook_url}
-                        onChange={(e) => updateSetting('notifications', 'webhook_url', e.target.value)}
+                        onChange={e => updateSetting('notifications', 'webhook_url', e.target.value)}
                         placeholder="https://api.example.com/webhook"
                       />
                     </div>

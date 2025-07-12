@@ -6,17 +6,17 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent } from '@/components/ui/Card';
 import { formatCurrency } from '@/utils/formatter';
-import { 
-  CheckCircle, 
-  Heart, 
-  Share2, 
-  Twitter, 
-  Facebook, 
+import {
+  CheckCircle,
+  Heart,
+  Share2,
+  Twitter,
+  Facebook,
   MessageCircle,
   ArrowRight,
   Gift,
   Users,
-  Zap
+  Zap,
 } from 'lucide-react';
 
 interface DonationDetails {
@@ -40,7 +40,7 @@ export default function DonationSuccessPage() {
     const donationId = searchParams.get('id');
     const amount = searchParams.get('amount');
     const creator = searchParams.get('creator');
-    
+
     if (donationId && amount && creator) {
       // Mock donation details - in real app, fetch from API
       setDonationDetails({
@@ -59,27 +59,33 @@ export default function DonationSuccessPage() {
   }, [searchParams]);
 
   const handleShare = (platform: string) => {
-    if (!donationDetails) return;
+    if (!donationDetails) {
+      return;
+    }
 
     const shareText = `I just supported ${donationDetails.creatorName} on SocialBuzz! 💖`;
     const shareUrl = `${window.location.origin}/profile/${donationDetails.creatorUsername}`;
 
     switch (platform) {
-      case 'twitter':
-        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`);
-        break;
-      case 'facebook':
-        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`);
-        break;
-      case 'whatsapp':
-        window.open(`https://wa.me/?text=${encodeURIComponent(shareText + ' ' + shareUrl)}`);
-        break;
+    case 'twitter':
+      window.open(
+        `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`,
+      );
+      break;
+    case 'facebook':
+      window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`);
+      break;
+    case 'whatsapp':
+      window.open(`https://wa.me/?text=${encodeURIComponent(shareText + ' ' + shareUrl)}`);
+      break;
     }
   };
 
   const copyToClipboard = () => {
-    if (!donationDetails) return;
-    
+    if (!donationDetails) {
+      return;
+    }
+
     const shareUrl = `${window.location.origin}/profile/${donationDetails.creatorUsername}`;
     navigator.clipboard.writeText(shareUrl);
     alert('Profile link copied to clipboard!');
@@ -110,7 +116,7 @@ export default function DonationSuccessPage() {
                   left: `${Math.random() * 100}%`,
                   top: `${Math.random() * 100}%`,
                   animationDelay: `${Math.random() * 2}s`,
-                  animationDuration: `${2 + Math.random() * 2}s`
+                  animationDuration: `${2 + Math.random() * 2}s`,
                 }}
               >
                 {i % 3 === 0 ? '🎉' : i % 3 === 1 ? '💖' : '✨'}
@@ -128,48 +134,35 @@ export default function DonationSuccessPage() {
             <div className="bg-green-100 rounded-full p-6 w-24 h-24 mx-auto mb-6">
               <CheckCircle className="h-12 w-12 text-green-600" />
             </div>
-            
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">
-              Thank You! 🎉
-            </h1>
-            <p className="text-xl text-gray-600 mb-6">
-              Your donation has been sent successfully!
-            </p>
+
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">Thank You! 🎉</h1>
+            <p className="text-xl text-gray-600 mb-6">Your donation has been sent successfully!</p>
 
             {/* Donation Details */}
             <div className="bg-gray-50 rounded-lg p-6 mb-6">
               <div className="flex items-center justify-center mb-4">
                 <Gift className="h-8 w-8 text-indigo-600 mr-3" />
-                <span className="text-3xl font-bold text-indigo-600">
-                  {formatCurrency(donationDetails.amount)}
-                </span>
+                <span className="text-3xl font-bold text-indigo-600">{formatCurrency(donationDetails.amount)}</span>
               </div>
-              
+
               <p className="text-lg text-gray-700 mb-2">
-                donated to{' '}
-                <span className="font-semibold text-indigo-600">
-                  {donationDetails.creatorName}
-                </span>
-              </p>
-              
+                donated to <span className="font-semibold text-indigo-600">{donationDetails.creatorName}</span>
+            </p>
+
               {donationDetails.message && (
                 <div className="mt-4 p-4 bg-white rounded-lg border-l-4 border-indigo-500">
-                  <p className="text-gray-700 italic">
-                    "{donationDetails.message}"
-                  </p>
+                  <p className="text-gray-700 italic">&quot;{donationDetails.message}&quot;</p>
                 </div>
               )}
-              
-              <p className="text-sm text-gray-500 mt-4">
-                Transaction ID: {donationDetails.id}
-              </p>
+
+              <p className="text-sm text-gray-500 mt-4">Transaction ID: {donationDetails.id}</p>
             </div>
 
             {/* Creator Profile Link */}
             <Link href={`/profile/${donationDetails.creatorUsername}`}>
               <Button className="w-full mb-6">
                 <Users className="mr-2 h-5 w-5" />
-                Visit {donationDetails.creatorName}'s Profile
+                Visit {donationDetails.creatorName}&apos;s Profile
               </Button>
             </Link>
           </CardContent>
@@ -180,9 +173,7 @@ export default function DonationSuccessPage() {
           <CardContent className="p-6">
             <div className="text-center mb-6">
               <Share2 className="h-8 w-8 text-gray-600 mx-auto mb-3" />
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                Spread the Love
-              </h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">Spread the Love</h2>
               <p className="text-gray-600">
                 Help others discover {donationDetails.creatorName} by sharing their profile
               </p>
@@ -197,7 +188,7 @@ export default function DonationSuccessPage() {
                 <Twitter className="h-5 w-5 text-blue-400" />
                 <span className="ml-2 hidden sm:inline">Twitter</span>
               </Button>
-              
+
               <Button
                 variant="outline"
                 onClick={() => handleShare('facebook')}
@@ -206,7 +197,7 @@ export default function DonationSuccessPage() {
                 <Facebook className="h-5 w-5 text-blue-600" />
                 <span className="ml-2 hidden sm:inline">Facebook</span>
               </Button>
-              
+
               <Button
                 variant="outline"
                 onClick={() => handleShare('whatsapp')}
@@ -215,12 +206,8 @@ export default function DonationSuccessPage() {
                 <MessageCircle className="h-5 w-5 text-green-600" />
                 <span className="ml-2 hidden sm:inline">WhatsApp</span>
               </Button>
-              
-              <Button
-                variant="outline"
-                onClick={copyToClipboard}
-                className="flex items-center justify-center"
-              >
+
+              <Button variant="outline" onClick={copyToClipboard} className="flex items-center justify-center">
                 <Share2 className="h-5 w-5 text-gray-600" />
                 <span className="ml-2 hidden sm:inline">Copy Link</span>
               </Button>
@@ -231,10 +218,8 @@ export default function DonationSuccessPage() {
         {/* Next Steps */}
         <Card className="mb-8">
           <CardContent className="p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
-              What's Next?
-            </h2>
-            
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">What&apos;s Next?</h2>
+
             <div className="space-y-4">
               <div className="flex items-center space-x-3">
                 <div className="bg-blue-100 p-2 rounded-full">
@@ -242,10 +227,12 @@ export default function DonationSuccessPage() {
                 </div>
                 <div>
                   <p className="font-medium text-gray-900">Follow for Updates</p>
-                  <p className="text-sm text-gray-600">Stay updated with {donationDetails.creatorName}'s latest content</p>
+                  <p className="text-sm text-gray-600">
+                    Stay updated with {donationDetails.creatorName}&apos;s latest content
+                  </p>
                 </div>
               </div>
-              
+
               <div className="flex items-center space-x-3">
                 <div className="bg-purple-100 p-2 rounded-full">
                   <Zap className="h-5 w-5 text-purple-600" />
@@ -255,7 +242,7 @@ export default function DonationSuccessPage() {
                   <p className="text-sm text-gray-600">Connect with other supporters and fans</p>
                 </div>
               </div>
-              
+
               <div className="flex items-center space-x-3">
                 <div className="bg-green-100 p-2 rounded-full">
                   <Gift className="h-5 w-5 text-green-600" />
@@ -276,7 +263,7 @@ export default function DonationSuccessPage() {
               Discover More Creators
             </Button>
           </Link>
-          
+
           <Link href="/">
             <Button className="w-full">
               Back to Home
@@ -287,12 +274,8 @@ export default function DonationSuccessPage() {
 
         {/* Footer Message */}
         <div className="text-center mt-8 p-6 bg-white rounded-lg border">
-          <p className="text-gray-600 mb-2">
-            Thank you for supporting creators on SocialBuzz! 💖
-          </p>
-          <p className="text-sm text-gray-500">
-            Your contribution helps build a stronger creative community
-          </p>
+          <p className="text-gray-600 mb-2">Thank you for supporting creators on SocialBuzz! 💖</p>
+          <p className="text-sm text-gray-500">Your contribution helps build a stronger creative community</p>
         </div>
       </div>
     </div>

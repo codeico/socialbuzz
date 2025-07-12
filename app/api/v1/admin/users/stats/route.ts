@@ -26,9 +26,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get total users
-    const { count: totalUsers } = await supabaseAdmin
-      .from('users')
-      .select('*', { count: 'exact', head: true });
+    const { count: totalUsers } = await supabaseAdmin.from('users').select('*', { count: 'exact', head: true });
 
     // Get verified users
     const { count: verifiedUsers } = await supabaseAdmin
@@ -65,9 +63,6 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Admin user stats error:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch user stats' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch user stats' }, { status: 500 });
   }
 }

@@ -63,10 +63,11 @@ export async function GET(request: NextRequest) {
     }
 
     // Remove password_hash from response
-    const sanitizedUsers = users?.map(user => {
-      const { password_hash, ...sanitizedUser } = user;
-      return sanitizedUser;
-    }) || [];
+    const sanitizedUsers =
+      users?.map(user => {
+        const { password_hash, ...sanitizedUser } = user;
+        return sanitizedUser;
+      }) || [];
 
     return NextResponse.json({
       success: true,
@@ -80,10 +81,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Admin users fetch error:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch users' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch users' }, { status: 500 });
   }
 }
 
@@ -115,10 +113,7 @@ export async function POST(request: NextRequest) {
 
     // Validate required fields
     if (!email || !username || !full_name || !password_hash) {
-      return NextResponse.json(
-        { error: 'Email, username, full name, and password are required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Email, username, full name, and password are required' }, { status: 400 });
     }
 
     // Create new user
@@ -152,9 +147,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Admin user creation error:', error);
-    return NextResponse.json(
-      { error: 'Failed to create user' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to create user' }, { status: 500 });
   }
 }

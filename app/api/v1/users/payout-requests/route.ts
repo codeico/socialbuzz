@@ -31,10 +31,7 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error('Error fetching payout requests:', error);
-      return NextResponse.json(
-        { success: false, error: 'Failed to fetch payout requests' },
-        { status: 500 }
-      );
+      return NextResponse.json({ success: false, error: 'Failed to fetch payout requests' }, { status: 500 });
     }
 
     const total = count || 0;
@@ -56,10 +53,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Get payout requests error:', error);
-    return NextResponse.json(
-      { success: false, error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -79,17 +73,11 @@ export async function POST(request: NextRequest) {
     const { amount, bankAccount } = body;
 
     if (!amount || !bankAccount) {
-      return NextResponse.json(
-        { success: false, error: 'Amount and bank account are required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, error: 'Amount and bank account are required' }, { status: 400 });
     }
 
     if (amount < 50000) {
-      return NextResponse.json(
-        { success: false, error: 'Minimum payout amount is Rp 50,000' },
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, error: 'Minimum payout amount is Rp 50,000' }, { status: 400 });
     }
 
     // Check user balance
@@ -100,17 +88,11 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (userError || !user) {
-      return NextResponse.json(
-        { success: false, error: 'User not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 });
     }
 
     if (user.balance < amount) {
-      return NextResponse.json(
-        { success: false, error: 'Insufficient balance' },
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, error: 'Insufficient balance' }, { status: 400 });
     }
 
     // Create payout request
@@ -128,16 +110,13 @@ export async function POST(request: NextRequest) {
 
     if (payoutError) {
       console.error('Error creating payout request:', payoutError);
-      return NextResponse.json(
-        { success: false, error: 'Failed to create payout request' },
-        { status: 500 }
-      );
+      return NextResponse.json({ success: false, error: 'Failed to create payout request' }, { status: 500 });
     }
 
     // Update user balance
     const { error: balanceError } = await supabaseAdmin
       .from('users')
-      .update({ 
+      .update({
         balance: user.balance - amount,
         updated_at: new Date().toISOString(),
       })
@@ -146,15 +125,9 @@ export async function POST(request: NextRequest) {
     if (balanceError) {
       console.error('Error updating user balance:', balanceError);
       // Rollback payout request if balance update fails
-      await supabaseAdmin
-        .from('payout_requests')
-        .delete()
-        .eq('id', payoutRequest.id);
-      
-      return NextResponse.json(
-        { success: false, error: 'Failed to update balance' },
-        { status: 500 }
-      );
+      await supabaseAdmin.from('payout_requests').delete().eq('id', payoutRequest.id);
+
+      return NextResponse.json({ success: false, error: 'Failed to update balance' }, { status: 500 });
     }
 
     return NextResponse.json({
@@ -163,9 +136,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Create payout request error:', error);
-    return NextResponse.json(
-      { success: false, error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
   }
 }

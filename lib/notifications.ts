@@ -37,11 +37,11 @@ export async function createDonationNotification(
   donorName: string,
   amount: number,
   message?: string,
-  isAnonymous: boolean = false
+  isAnonymous: boolean = false,
 ) {
   const displayName = isAnonymous ? 'Anonymous' : donorName;
-  const notificationTitle = `New donation received!`;
-  const notificationMessage = message 
+  const notificationTitle = 'New donation received!';
+  const notificationMessage = message
     ? `${displayName} donated Rp ${amount.toLocaleString()} with message: "${message}"`
     : `${displayName} donated Rp ${amount.toLocaleString()}`;
 
@@ -63,7 +63,7 @@ export async function createDonationNotification(
 export async function createPayoutNotification(
   userId: string,
   amount: number,
-  status: 'pending' | 'completed' | 'failed'
+  status: 'pending' | 'completed' | 'failed',
 ) {
   const statusText = {
     pending: 'is being processed',
@@ -81,12 +81,7 @@ export async function createPayoutNotification(
   });
 }
 
-export async function createSystemNotification(
-  userId: string,
-  title: string,
-  message: string,
-  actionUrl?: string
-) {
+export async function createSystemNotification(userId: string, title: string, message: string, actionUrl?: string) {
   return createNotification({
     user_id: userId,
     type: 'system',
@@ -96,17 +91,13 @@ export async function createSystemNotification(
   });
 }
 
-export async function createVerificationNotification(
-  userId: string,
-  status: 'approved' | 'rejected'
-) {
-  const title = status === 'approved' 
-    ? 'Account Verified!' 
-    : 'Verification Request Rejected';
-  
-  const message = status === 'approved'
-    ? 'Congratulations! Your account has been verified. You now have a verified badge.'
-    : 'Your verification request has been rejected. Please check your profile and try again.';
+export async function createVerificationNotification(userId: string, status: 'approved' | 'rejected') {
+  const title = status === 'approved' ? 'Account Verified!' : 'Verification Request Rejected';
+
+  const message =
+    status === 'approved'
+      ? 'Congratulations! Your account has been verified. You now have a verified badge.'
+      : 'Your verification request has been rejected. Please check your profile and try again.';
 
   return createNotification({
     user_id: userId,

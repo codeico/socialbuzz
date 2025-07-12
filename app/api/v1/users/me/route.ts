@@ -16,7 +16,8 @@ export async function GET(request: NextRequest) {
 
     const { data: user, error } = await supabaseAdmin
       .from('users')
-      .select(`
+      .select(
+        `
         id,
         email,
         username,
@@ -29,16 +30,14 @@ export async function GET(request: NextRequest) {
         total_donations,
         created_at,
         updated_at
-      `)
+      `,
+      )
       .eq('id', decoded.userId)
       .single();
 
     if (error) {
       console.error('User fetch error:', error);
-      return NextResponse.json(
-        { success: false, error: 'User not found' },
-        { status: 404 },
-      );
+      return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 });
     }
 
     return NextResponse.json({
@@ -47,10 +46,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Get user error:', error);
-    return NextResponse.json(
-      { success: false, error: 'Internal server error' },
-      { status: 500 },
-    );
+    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -70,10 +66,7 @@ export async function PUT(request: NextRequest) {
     const { fullName, avatar } = body;
 
     if (!fullName) {
-      return NextResponse.json(
-        { success: false, error: 'Full name is required' },
-        { status: 400 },
-      );
+      return NextResponse.json({ success: false, error: 'Full name is required' }, { status: 400 });
     }
 
     const { data: user, error } = await supabaseAdmin
@@ -89,10 +82,7 @@ export async function PUT(request: NextRequest) {
 
     if (error) {
       console.error('Update user error:', error);
-      return NextResponse.json(
-        { success: false, error: 'Failed to update user' },
-        { status: 500 },
-      );
+      return NextResponse.json({ success: false, error: 'Failed to update user' }, { status: 500 });
     }
 
     return NextResponse.json({
@@ -101,10 +91,7 @@ export async function PUT(request: NextRequest) {
     });
   } catch (error) {
     console.error('Update user error:', error);
-    return NextResponse.json(
-      { success: false, error: 'Internal server error' },
-      { status: 500 },
-    );
+    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -132,10 +119,7 @@ export async function DELETE(request: NextRequest) {
 
     if (error) {
       console.error('Delete user error:', error);
-      return NextResponse.json(
-        { success: false, error: 'Failed to delete user' },
-        { status: 500 },
-      );
+      return NextResponse.json({ success: false, error: 'Failed to delete user' }, { status: 500 });
     }
 
     return NextResponse.json({
@@ -144,9 +128,6 @@ export async function DELETE(request: NextRequest) {
     });
   } catch (error) {
     console.error('Delete user error:', error);
-    return NextResponse.json(
-      { success: false, error: 'Internal server error' },
-      { status: 500 },
-    );
+    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
   }
 }

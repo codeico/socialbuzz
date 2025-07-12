@@ -17,7 +17,8 @@ export async function GET(request: NextRequest) {
     // Get user data with profile information
     const { data: user, error: userError } = await supabaseAdmin
       .from('users')
-      .select(`
+      .select(
+        `
         id,
         email,
         username,
@@ -30,22 +31,21 @@ export async function GET(request: NextRequest) {
         total_donations,
         created_at,
         updated_at
-      `)
+      `,
+      )
       .eq('id', decoded.userId)
       .single();
 
     if (userError) {
       console.error('User fetch error:', userError);
-      return NextResponse.json(
-        { success: false, error: 'User not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 });
     }
 
     // Get user profile data (bio, social links, etc.)
     const { data: profile, error: profileError } = await supabaseAdmin
       .from('user_profiles')
-      .select(`
+      .select(
+        `
         bio,
         website,
         location,
@@ -53,7 +53,8 @@ export async function GET(request: NextRequest) {
         privacy_settings,
         notification_settings,
         bank_account
-      `)
+      `,
+      )
       .eq('user_id', decoded.userId)
       .single();
 
@@ -94,10 +95,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Profile fetch error:', error);
-    return NextResponse.json(
-      { success: false, error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -114,16 +112,16 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { 
-      fullName, 
-      avatar, 
-      bio, 
-      website, 
-      location, 
+    const {
+      fullName,
+      avatar,
+      bio,
+      website,
+      location,
       socialLinks,
       privacySettings,
       notificationSettings,
-      bankAccount 
+      bankAccount,
     } = body;
 
     // Update basic user info
@@ -131,14 +129,15 @@ export async function PUT(request: NextRequest) {
       const updateData: any = {
         updated_at: new Date().toISOString(),
       };
-      
-      if (fullName !== undefined) updateData.full_name = fullName;
-      if (avatar !== undefined) updateData.avatar = avatar;
 
-      const { error: userError } = await supabaseAdmin
-        .from('users')
-        .update(updateData)
-        .eq('id', decoded.userId);
+      if (fullName !== undefined) {
+        updateData.full_name = fullName;
+      }
+      if (avatar !== undefined) {
+        updateData.avatar = avatar;
+      }
+
+      const { error: userError } = await supabaseAdmin.from('users').update(updateData).eq('id', decoded.userId);
 
       if (userError) {
         throw userError;
@@ -146,21 +145,40 @@ export async function PUT(request: NextRequest) {
     }
 
     // Update profile data
-    if (bio !== undefined || website !== undefined || location !== undefined || 
-        socialLinks !== undefined || privacySettings !== undefined || 
-        notificationSettings !== undefined || bankAccount !== undefined) {
-      
+    if (
+      bio !== undefined ||
+      website !== undefined ||
+      location !== undefined ||
+      socialLinks !== undefined ||
+      privacySettings !== undefined ||
+      notificationSettings !== undefined ||
+      bankAccount !== undefined
+    ) {
       const profileUpdateData: any = {
         updated_at: new Date().toISOString(),
       };
 
-      if (bio !== undefined) profileUpdateData.bio = bio;
-      if (website !== undefined) profileUpdateData.website = website;
-      if (location !== undefined) profileUpdateData.location = location;
-      if (socialLinks !== undefined) profileUpdateData.social_links = socialLinks;
-      if (privacySettings !== undefined) profileUpdateData.privacy_settings = privacySettings;
-      if (notificationSettings !== undefined) profileUpdateData.notification_settings = notificationSettings;
-      if (bankAccount !== undefined) profileUpdateData.bank_account = bankAccount;
+      if (bio !== undefined) {
+        profileUpdateData.bio = bio;
+      }
+      if (website !== undefined) {
+        profileUpdateData.website = website;
+      }
+      if (location !== undefined) {
+        profileUpdateData.location = location;
+      }
+      if (socialLinks !== undefined) {
+        profileUpdateData.social_links = socialLinks;
+      }
+      if (privacySettings !== undefined) {
+        profileUpdateData.privacy_settings = privacySettings;
+      }
+      if (notificationSettings !== undefined) {
+        profileUpdateData.notification_settings = notificationSettings;
+      }
+      if (bankAccount !== undefined) {
+        profileUpdateData.bank_account = bankAccount;
+      }
 
       // Check if profile exists
       const { data: existingProfile } = await supabaseAdmin
@@ -181,13 +199,11 @@ export async function PUT(request: NextRequest) {
         }
       } else {
         // Create new profile
-        const { error: profileError } = await supabaseAdmin
-          .from('user_profiles')
-          .insert({
-            user_id: decoded.userId,
-            ...profileUpdateData,
-            created_at: new Date().toISOString(),
-          });
+        const { error: profileError } = await supabaseAdmin.from('user_profiles').insert({
+          user_id: decoded.userId,
+          ...profileUpdateData,
+          created_at: new Date().toISOString(),
+        });
 
         if (profileError) {
           throw profileError;
@@ -201,9 +217,6 @@ export async function PUT(request: NextRequest) {
     });
   } catch (error) {
     console.error('Profile update error:', error);
-    return NextResponse.json(
-      { success: false, error: 'Failed to update profile' },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, error: 'Failed to update profile' }, { status: 500 });
   }
 }

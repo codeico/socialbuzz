@@ -34,7 +34,8 @@ export async function GET(request: NextRequest) {
 
     let query = supabaseAdmin
       .from('payout_requests')
-      .select(`
+      .select(
+        `
         *,
         user:users!payout_requests_user_id_fkey (
           username,
@@ -46,7 +47,9 @@ export async function GET(request: NextRequest) {
           username,
           full_name
         )
-      `, { count: 'exact' })
+      `,
+        { count: 'exact' },
+      )
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
 
@@ -76,10 +79,6 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Admin payouts fetch error:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch payouts' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch payouts' }, { status: 500 });
   }
 }

@@ -1,17 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     // Get user profile with all related data
     const { data: user, error } = await supabaseAdmin
       .from('users')
-      .select(`
+      .select(
+        `
         id,
         username,
         email,
@@ -33,16 +31,14 @@ export async function GET(
           avg_donation_amount,
           last_donation_at
         )
-      `)
+      `,
+      )
       .eq('id', id)
       .single();
 
     if (error) {
       if (error.code === 'PGRST116') {
-        return NextResponse.json(
-          { error: 'User not found' },
-          { status: 404 }
-        );
+        return NextResponse.json({ error: 'User not found' }, { status: 404 });
       }
       throw error;
     }
@@ -73,9 +69,6 @@ export async function GET(
     });
   } catch (error) {
     console.error('User profile fetch error:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch user profile' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch user profile' }, { status: 500 });
   }
 }

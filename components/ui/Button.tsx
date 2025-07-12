@@ -38,13 +38,7 @@ export const Button: React.FC<ButtonProps> = ({
 
   return (
     <button
-      className={cn(
-        baseClasses,
-        variantClasses[variant],
-        sizeClasses[size],
-        fullWidth && 'w-full',
-        className,
-      )}
+      className={cn(baseClasses, variantClasses[variant], sizeClasses[size], fullWidth && 'w-full', className)}
       disabled={disabled || loading}
       {...props}
     >

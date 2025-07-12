@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { io, Socket } from 'socket.io-client';
 import { formatCurrency } from '@/utils/formatter';
@@ -67,7 +67,7 @@ export default function OBSOverlay() {
       });
     });
 
-    newSocket.on('overlay-connected', (data) => {
+    newSocket.on('overlay-connected', data => {
       console.log('OBS overlay connected:', data);
     });
 
@@ -76,7 +76,7 @@ export default function OBSOverlay() {
       setDonationQueue(prev => [...prev, donation]);
     });
 
-    newSocket.on('error', (error) => {
+    newSocket.on('error', error => {
       console.error('WebSocket error:', error);
     });
 
@@ -86,6 +86,16 @@ export default function OBSOverlay() {
       newSocket.disconnect();
     };
   }, [creatorId]);
+
+  const playDonationSound = useCallback(() => {
+    try {
+      const audio = new Audio('/sounds/donation-alert.mp3');
+      audio.volume = settings.soundVolume;
+      audio.play().catch(e => console.log('Could not play sound:', e));
+    } catch (error) {
+      console.log('Sound not available:', error);
+    }
+  }, [settings.soundVolume]);
 
   useEffect(() => {
     // Process donation queue
@@ -108,88 +118,78 @@ export default function OBSOverlay() {
         }, 500); // Wait for fade out animation
       }, settings.duration);
     }
-  }, [donationQueue, currentDonation, settings.duration, settings.soundEnabled]);
-
-  const playDonationSound = () => {
-    try {
-      const audio = new Audio('/sounds/donation-alert.mp3');
-      audio.volume = settings.soundVolume;
-      audio.play().catch(e => console.log('Could not play sound:', e));
-    } catch (error) {
-      console.log('Sound not available:', error);
-    }
-  };
+  }, [donationQueue, currentDonation, settings.duration, settings.soundEnabled, playDonationSound]);
 
   const getThemeClasses = () => {
     switch (settings.theme) {
-      case 'neon':
-        return 'bg-black border-2 border-cyan-400 text-cyan-100 shadow-lg shadow-cyan-400/50';
-      case 'minimal':
-        return 'bg-white/90 text-gray-800 border border-gray-200 shadow-sm';
-      case 'gaming':
-        return 'bg-gradient-to-r from-purple-600 to-pink-600 text-white border border-purple-400 shadow-lg';
-      default:
-        return `bg-gray-900 text-white border border-gray-700 shadow-lg`;
+    case 'neon':
+      return 'bg-black border-2 border-cyan-400 text-cyan-100 shadow-lg shadow-cyan-400/50';
+    case 'minimal':
+      return 'bg-white/90 text-gray-800 border border-gray-200 shadow-sm';
+    case 'gaming':
+      return 'bg-gradient-to-r from-purple-600 to-pink-600 text-white border border-purple-400 shadow-lg';
+    default:
+      return 'bg-gray-900 text-white border border-gray-700 shadow-lg';
     }
   };
 
   const getPositionClasses = () => {
     switch (settings.position) {
-      case 'top-left':
-        return 'top-4 left-4';
-      case 'top-right':
-        return 'top-4 right-4';
-      case 'bottom-left':
-        return 'bottom-4 left-4';
-      case 'bottom-right':
-        return 'bottom-4 right-4';
-      case 'center':
-        return 'top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2';
-      default:
-        return 'top-4 right-4';
+    case 'top-left':
+      return 'top-4 left-4';
+    case 'top-right':
+      return 'top-4 right-4';
+    case 'bottom-left':
+      return 'bottom-4 left-4';
+    case 'bottom-right':
+      return 'bottom-4 right-4';
+    case 'center':
+      return 'top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2';
+    default:
+      return 'top-4 right-4';
     }
   };
 
   const getAnimationClasses = () => {
     const baseClasses = 'transition-all duration-500';
-    
+
     if (!isVisible) {
       switch (settings.animationType) {
-        case 'slide':
-          return `${baseClasses} opacity-0 transform translate-x-full`;
-        case 'fade':
-          return `${baseClasses} opacity-0`;
-        case 'bounce':
-          return `${baseClasses} opacity-0 transform scale-50`;
-        case 'zoom':
-          return `${baseClasses} opacity-0 transform scale-0`;
-        default:
-          return `${baseClasses} opacity-0`;
+      case 'slide':
+        return `${baseClasses} opacity-0 transform translate-x-full`;
+      case 'fade':
+        return `${baseClasses} opacity-0`;
+      case 'bounce':
+        return `${baseClasses} opacity-0 transform scale-50`;
+      case 'zoom':
+        return `${baseClasses} opacity-0 transform scale-0`;
+      default:
+        return `${baseClasses} opacity-0`;
       }
     }
 
     switch (settings.animationType) {
-      case 'slide':
-        return `${baseClasses} opacity-100 transform translate-x-0`;
-      case 'fade':
-        return `${baseClasses} opacity-100`;
-      case 'bounce':
-        return `${baseClasses} opacity-100 transform scale-100 animate-bounce`;
-      case 'zoom':
-        return `${baseClasses} opacity-100 transform scale-100`;
-      default:
-        return `${baseClasses} opacity-100`;
+    case 'slide':
+      return `${baseClasses} opacity-100 transform translate-x-0`;
+    case 'fade':
+      return `${baseClasses} opacity-100`;
+    case 'bounce':
+      return `${baseClasses} opacity-100 transform scale-100 animate-bounce`;
+    case 'zoom':
+      return `${baseClasses} opacity-100 transform scale-100`;
+    default:
+      return `${baseClasses} opacity-100`;
     }
   };
 
   const getFontSizeClasses = () => {
     switch (settings.fontSize) {
-      case 'small':
-        return 'text-sm';
-      case 'large':
-        return 'text-lg';
-      default:
-        return 'text-base';
+    case 'small':
+      return 'text-sm';
+    case 'large':
+      return 'text-lg';
+    default:
+      return 'text-base';
     }
   };
 
@@ -204,7 +204,7 @@ export default function OBSOverlay() {
 
   return (
     <div className="w-screen h-screen bg-transparent pointer-events-none">
-      <div 
+      <div
         className={`
           fixed max-w-md p-4 rounded-lg backdrop-blur-sm
           ${getPositionClasses()}
@@ -235,22 +235,20 @@ export default function OBSOverlay() {
                 </span>
               )}
             </div>
-            
+
             {settings.showMessage && currentDonation.message && (
-              <p className="mt-1 text-sm opacity-90 break-words">
-                "{currentDonation.message}"
-              </p>
+              <p className="mt-1 text-sm opacity-90 break-words">&quot;{currentDonation.message}&quot;</p>
             )}
           </div>
         </div>
 
         {/* Animated Progress Bar */}
         <div className="mt-3 w-full bg-gray-600 rounded-full h-1">
-          <div 
+          <div
             className="h-1 rounded-full transition-all duration-100"
-            style={{ 
+            style={{
               backgroundColor: settings.accentColor,
-              animation: `shrink ${settings.duration}ms linear forwards`
+              animation: `shrink ${settings.duration}ms linear forwards`,
             }}
           />
         </div>
@@ -258,8 +256,12 @@ export default function OBSOverlay() {
 
       <style jsx>{`
         @keyframes shrink {
-          from { width: 100%; }
-          to { width: 0%; }
+          from {
+            width: 100%;
+          }
+          to {
+            width: 0%;
+          }
         }
       `}</style>
     </div>

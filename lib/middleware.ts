@@ -3,67 +3,51 @@ import { verifyToken, extractTokenFromHeader } from './auth';
 import { AuthUser } from '@/types/user';
 
 export interface AuthenticatedRequest extends NextRequest {
-  user: AuthUser;
+  user: {
+    userId: string;
+    email: string;
+    username: string;
+    role: string;
+  };
 }
 
-export const withAuth = (
-  handler: (req: AuthenticatedRequest) => Promise<NextResponse>,
-) => {
+export const withAuth = (handler: (req: AuthenticatedRequest) => Promise<NextResponse>) => {
   return async (req: NextRequest): Promise<NextResponse> => {
     try {
       const authHeader = req.headers.get('authorization');
       const token = extractTokenFromHeader(authHeader);
 
       if (!token) {
-        return NextResponse.json(
-          { success: false, error: 'Authentication required' },
-          { status: 401 },
-        );
+        return NextResponse.json({ success: false, error: 'Authentication required' }, { status: 401 });
       }
 
       const user = verifyToken(token);
       if (!user) {
-        return NextResponse.json(
-          { success: false, error: 'Invalid or expired token' },
-          { status: 401 },
-        );
+        return NextResponse.json({ success: false, error: 'Invalid or expired token' }, { status: 401 });
       }
 
       (req as AuthenticatedRequest).user = user;
       return handler(req as AuthenticatedRequest);
     } catch (error) {
       console.error('Auth middleware error:', error);
-      return NextResponse.json(
-        { success: false, error: 'Authentication failed' },
-        { status: 401 },
-      );
+      return NextResponse.json({ success: false, error: 'Authentication failed' }, { status: 401 });
     }
   };
 };
 
-export const withAdminAuth = (
-  handler: (req: AuthenticatedRequest) => Promise<NextResponse>,
-) => {
+export const withAdminAuth = (handler: (req: AuthenticatedRequest) => Promise<NextResponse>) => {
   return withAuth(async (req: AuthenticatedRequest) => {
     if (req.user.role !== 'admin' && req.user.role !== 'super_admin') {
-      return NextResponse.json(
-        { success: false, error: 'Admin access required' },
-        { status: 403 },
-      );
+      return NextResponse.json({ success: false, error: 'Admin access required' }, { status: 403 });
     }
     return handler(req);
   });
 };
 
-export const withSuperAdminAuth = (
-  handler: (req: AuthenticatedRequest) => Promise<NextResponse>,
-) => {
+export const withSuperAdminAuth = (handler: (req: AuthenticatedRequest) => Promise<NextResponse>) => {
   return withAuth(async (req: AuthenticatedRequest) => {
     if (req.user.role !== 'super_admin') {
-      return NextResponse.json(
-        { success: false, error: 'Super admin access required' },
-        { status: 403 },
-      );
+      return NextResponse.json({ success: false, error: 'Super admin access required' }, { status: 403 });
     }
     return handler(req);
   });

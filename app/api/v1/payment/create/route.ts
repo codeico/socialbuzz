@@ -8,29 +8,17 @@ export async function OPTIONS(req: NextRequest) {
   return handleCors(req) || new NextResponse(null, { status: 200 });
 }
 
-export const POST = withAuth(async (req) => {
+export const POST = withAuth(async req => {
   try {
     const body = await req.json();
-    const {
-      recipientId,
-      amount,
-      paymentMethod,
-      message,
-      isAnonymous = false,
-    } = body;
+    const { recipientId, amount, paymentMethod, message, isAnonymous = false } = body;
 
     if (!recipientId || !amount || !paymentMethod) {
-      return NextResponse.json(
-        { success: false, error: 'Missing required fields' },
-        { status: 400 },
-      );
+      return NextResponse.json({ success: false, error: 'Missing required fields' }, { status: 400 });
     }
 
     if (amount < 1000) {
-      return NextResponse.json(
-        { success: false, error: 'Minimum donation amount is Rp 1,000' },
-        { status: 400 },
-      );
+      return NextResponse.json({ success: false, error: 'Minimum donation amount is Rp 1,000' }, { status: 400 });
     }
 
     // Get recipient info
@@ -41,20 +29,17 @@ export const POST = withAuth(async (req) => {
       .single();
 
     if (recipientError || !recipient) {
-      return NextResponse.json(
-        { success: false, error: 'Recipient not found' },
-        { status: 404 },
-      );
+      return NextResponse.json({ success: false, error: 'Recipient not found' }, { status: 404 });
     }
 
     // Generate merchant order ID
-    const merchantOrderId = generateMerchantOrderId(req.user.id);
+    const merchantOrderId = generateMerchantOrderId(req.user.userId);
 
     // Create transaction record
     const { data: transaction, error: transactionError } = await supabase
       .from('transactions')
       .insert({
-        user_id: req.user.id,
+        user_id: req.user.userId,
         recipient_id: recipientId,
         type: 'donation',
         amount: amount,
@@ -73,10 +58,7 @@ export const POST = withAuth(async (req) => {
 
     if (transactionError) {
       console.error('Transaction creation error:', transactionError);
-      return NextResponse.json(
-        { success: false, error: 'Failed to create transaction' },
-        { status: 500 },
-      );
+      return NextResponse.json({ success: false, error: 'Failed to create transaction' }, { status: 500 });
     }
 
     // Create Duitku payment request
@@ -86,7 +68,7 @@ export const POST = withAuth(async (req) => {
       merchantOrderId: merchantOrderId,
       productDetails: `Donation to ${recipient.full_name}`,
       customerEmail: req.user.email,
-      customerName: req.user.fullName,
+      customerName: req.user.username,
       callbackUrl: `${process.env.NEXT_PUBLIC_APP_URL}/api/v1/payment/callback`,
       returnUrl: `${process.env.NEXT_PUBLIC_APP_URL}/payment/success`,
     };
@@ -95,15 +77,9 @@ export const POST = withAuth(async (req) => {
 
     if (paymentResponse.statusCode !== '00') {
       // Update transaction status to failed
-      await supabase
-        .from('transactions')
-        .update({ status: 'failed' })
-        .eq('id', transaction.id);
+      await supabase.from('transactions').update({ status: 'failed' }).eq('id', transaction.id);
 
-      return NextResponse.json(
-        { success: false, error: 'Failed to create payment' },
-        { status: 500 },
-      );
+      return NextResponse.json({ success: false, error: 'Failed to create payment' }, { status: 500 });
     }
 
     return NextResponse.json({
@@ -117,9 +93,6 @@ export const POST = withAuth(async (req) => {
     });
   } catch (error) {
     console.error('Payment creation error:', error);
-    return NextResponse.json(
-      { success: false, error: 'Internal server error' },
-      { status: 500 },
-    );
+    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
   }
 });

@@ -1,20 +1,13 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { formatCurrency } from '@/utils/formatter';
-import { 
-  Search, 
-  Filter, 
-  Star, 
-  Heart, 
-  Users, 
-  TrendingUp,
-  ArrowLeft
-} from 'lucide-react';
+import Image from 'next/image';
+import { Search, Filter, Star, Heart, Users, TrendingUp, ArrowLeft } from 'lucide-react';
 
 interface Creator {
   id: string;
@@ -60,20 +53,7 @@ export default function ExplorePage() {
     { id: 'other', name: 'Other' },
   ];
 
-  useEffect(() => {
-    loadCreators();
-  }, [selectedCategory, sortBy, pagination.page]);
-
-  useEffect(() => {
-    const debounceTimer = setTimeout(() => {
-      if (searchQuery !== '') {
-        loadCreators();
-      }
-    }, 300);
-    return () => clearTimeout(debounceTimer);
-  }, [searchQuery]);
-
-  const loadCreators = async () => {
+  const loadCreators = useCallback(async () => {
     try {
       setLoading(true);
       setError('');
@@ -104,12 +84,24 @@ export default function ExplorePage() {
       }
     } catch (error) {
       setError('Failed to load creators');
-      console.error('Error loading creators:', error);
+      // console.error('Error loading creators:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [pagination.page, pagination.limit, selectedCategory, sortBy, searchQuery]);
 
+  useEffect(() => {
+    loadCreators();
+  }, [loadCreators]);
+
+  useEffect(() => {
+    const debounceTimer = setTimeout(() => {
+      if (searchQuery !== '') {
+        loadCreators();
+      }
+    }, 300);
+    return () => clearTimeout(debounceTimer);
+  }, [searchQuery, loadCreators]);
 
   if (loading) {
     return (
@@ -128,14 +120,17 @@ export default function ExplorePage() {
         <div className="text-center">
           <div className="bg-red-100 rounded-full p-4 w-16 h-16 mx-auto mb-4">
             <svg className="h-8 w-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
           </div>
           <h3 className="text-lg font-medium text-gray-900 mb-2">Error loading creators</h3>
           <p className="text-gray-600 mb-4">{error}</p>
-          <Button onClick={() => loadCreators()}>
-            Try Again
-          </Button>
+          <Button onClick={() => loadCreators()}>Try Again</Button>
         </div>
       </div>
     );
@@ -160,9 +155,7 @@ export default function ExplorePage() {
                 </Button>
               </Link>
               <Link href="/auth/login">
-                <Button>
-                  Login
-                </Button>
+                <Button>Login</Button>
               </Link>
             </div>
           </div>
@@ -174,12 +167,10 @@ export default function ExplorePage() {
         <div className="space-y-8">
           {/* Page Header */}
           <div className="text-center">
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">
-              Discover Amazing Creators
-            </h1>
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">Discover Amazing Creators</h1>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Find and support talented creators from around the world.
-              Every contribution helps them continue doing what they love.
+              Find and support talented creators from around the world. Every contribution helps them continue doing
+              what they love.
             </p>
           </div>
 
@@ -197,15 +188,15 @@ export default function ExplorePage() {
                   <Input
                     placeholder="Search creators..."
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={e => setSearchQuery(e.target.value)}
                     className="w-full"
                   />
                 </div>
-                
+
                 <div>
                   <select
                     value={selectedCategory}
-                    onChange={(e) => setSelectedCategory(e.target.value)}
+                    onChange={e => setSelectedCategory(e.target.value)}
                     className="w-full p-2 border border-gray-300 rounded-md"
                   >
                     {categories.map(category => (
@@ -215,11 +206,11 @@ export default function ExplorePage() {
                     ))}
                   </select>
                 </div>
-                
+
                 <div>
                   <select
                     value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value)}
+                    onChange={e => setSortBy(e.target.value)}
                     className="w-full p-2 border border-gray-300 rounded-md"
                   >
                     <option value="popular">Most Popular</option>
@@ -259,9 +250,11 @@ export default function ExplorePage() {
                   <Card key={creator.id} className="hover:shadow-lg transition-shadow">
                     <CardHeader className="text-center">
                       <div className="relative inline-block">
-                        <img
+                        <Image
                           src={creator.avatar}
                           alt={creator.displayName}
+                          width={80}
+                          height={80}
                           className="w-20 h-20 rounded-full mx-auto object-cover"
                         />
                         {creator.isVerified && (
@@ -273,12 +266,10 @@ export default function ExplorePage() {
                       <CardTitle className="mt-4">{creator.displayName}</CardTitle>
                       <CardDescription>@{creator.username}</CardDescription>
                     </CardHeader>
-                    
+
                     <CardContent>
-                      <p className="text-sm text-gray-600 mb-4 line-clamp-2">
-                        {creator.bio}
-                      </p>
-                      
+                      <p className="text-sm text-gray-600 mb-4 line-clamp-2">{creator.bio}</p>
+
                       <div className="space-y-2 mb-4">
                         <div className="flex items-center justify-between text-sm">
                           <div className="flex items-center text-gray-500">
@@ -290,25 +281,19 @@ export default function ExplorePage() {
                             {formatCurrency(creator.stats.totalDonations)}
                           </div>
                         </div>
-                        
+
                         <div className="text-xs text-gray-500 capitalize">
                           {categories.find(cat => cat.id === creator.category)?.name}
                         </div>
                       </div>
-                      
+
                       <div className="flex space-x-2">
-                        <Link 
-                          href={`/profile/${creator.username}`}
-                          className="flex-1"
-                        >
+                        <Link href={`/profile/${creator.username}`} className="flex-1">
                           <Button variant="outline" className="w-full">
                             View Profile
                           </Button>
                         </Link>
-                        <Link 
-                          href={`/profile/${creator.username}`}
-                          className="flex-1"
-                        >
+                        <Link href={`/profile/${creator.username}`} className="flex-1">
                           <Button className="w-full">
                             <Heart size={16} className="mr-2" />
                             Support

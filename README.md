@@ -1,18 +1,26 @@
 # SocialBuzz Clone - Siap Produksi
 
-Platform sosial yang komprehensif dan siap produksi bagi para kreator untuk menerima donasi dan membangun komunitas. Dibangun dengan teknologi modern dan praktik terbaik.
+Platform sosial yang komprehensif dan siap produksi bagi para kreator untuk
+menerima donasi dan membangun komunitas. Dibangun dengan teknologi modern dan
+praktik terbaik.
 
 ## ✨ Fitur
 
 ### Fitur Inti
-- **Sistem Autentikasi Lengkap** - Berbasis JWT dengan hashing kata sandi yang aman.
-- **Dasbor Pengguna & Admin** - Kontrol akses berbasis peran (Role-Based Access Control).
-- **Integrasi Pembayaran** - Gateway pembayaran Duitku dengan callback yang aman.
+
+- **Sistem Autentikasi Lengkap** - Berbasis JWT dengan hashing kata sandi yang
+  aman.
+- **Dasbor Pengguna & Admin** - Kontrol akses berbasis peran (Role-Based Access
+  Control).
+- **Integrasi Pembayaran** - Gateway pembayaran Duitku dengan callback yang
+  aman.
 - **Sistem Unggah File** - Integrasi dengan Supabase Storage.
-- **Notifikasi Real-time** - Sistem notifikasi dalam aplikasi menggunakan WebSockets.
+- **Notifikasi Real-time** - Sistem notifikasi dalam aplikasi menggunakan
+  WebSockets.
 - **Desain Responsif** - Bekerja dengan sempurna di semua perangkat.
 
 ### Fitur Pengguna
+
 - Pendaftaran dan login pengguna.
 - Manajemen profil dengan unggah avatar.
 - Menerima dan melacak donasi.
@@ -21,6 +29,7 @@ Platform sosial yang komprehensif dan siap produksi bagi para kreator untuk mene
 - Pengaturan akun.
 
 ### Fitur Admin
+
 - Manajemen pengguna.
 - Pemantauan transaksi.
 - Sistem persetujuan penarikan dana.
@@ -30,12 +39,14 @@ Platform sosial yang komprehensif dan siap produksi bagi para kreator untuk mene
 ## 🛠️ Tumpukan Teknologi (Tech Stack)
 
 ### Frontend
+
 - **Next.js 15** - Framework React dengan App Router.
 - **TypeScript** - Pengembangan yang aman secara tipe (type-safe).
 - **Tailwind CSS** - Framework CSS utility-first.
 - **Lucide React** - Ikon yang indah dan konsisten.
 
 ### Backend
+
 - **Next.js API Routes** - Fungsi serverless.
 - **JWT Authentication** - Otentikasi berbasis token yang aman.
 - **Supabase** - Database PostgreSQL dan penyimpanan file (storage).
@@ -43,6 +54,7 @@ Platform sosial yang komprehensif dan siap produksi bagi para kreator untuk mene
 - **Socket.IO** - Untuk fungsionalitas real-time.
 
 ### Alat Pengembangan
+
 - **ESLint & Prettier** - Kualitas dan format kode.
 - **Husky & lint-staged** - Git hooks untuk linting sebelum commit.
 - **TypeScript** - Pengecekan tipe statis.
@@ -95,6 +107,7 @@ my-socialbuzz-clone/
 ## 🚀 Memulai
 
 ### Prasyarat
+
 - Node.js 18.0 atau lebih tinggi
 - npm, yarn, atau pnpm
 - Akun Supabase
@@ -103,22 +116,26 @@ my-socialbuzz-clone/
 ### Instalasi
 
 1.  **Clone repositori**
+
     ```bash
     git clone https://github.com/your-username/socialbuzz-clone.git
     cd socialbuzz-clone
     ```
 
 2.  **Install dependensi**
+
     ```bash
     npm install
     ```
 
-3.  **Siapkan variabel lingkungan**
-    Salin `.env.example` ke `.env.local`.
+3.  **Siapkan variabel lingkungan** Salin `.env.example` ke `.env.local`.
+
     ```bash
     cp .env.example .env.local
     ```
+
     Isi variabel yang diperlukan di `.env.local`:
+
     ```env
     # Aplikasi
     NEXT_PUBLIC_APP_URL=http://localhost:3000
@@ -136,52 +153,58 @@ my-socialbuzz-clone/
     DUITKU_API_KEY=kunci-api-anda
     ```
 
-4.  **Siapkan database**
-    Jalankan SQL dari file `database/socialbuzz_schema.sql` di editor SQL Supabase Anda untuk membuat tabel-tabel yang diperlukan.
+4.  **Siapkan database** Jalankan SQL dari file `database/socialbuzz_schema.sql`
+    di editor SQL Supabase Anda untuk membuat tabel-tabel yang diperlukan.
 
 5.  **Jalankan server pengembangan**
+
     ```bash
     npm run dev
     ```
 
-6.  **Buka browser Anda**
-    Kunjungi [http://localhost:3000](http://localhost:3000) untuk melihat aplikasi.
+6.  **Buka browser Anda** Kunjungi
+    [http://localhost:3000](http://localhost:3000) untuk melihat aplikasi.
 
 ## ⚙️ Konfigurasi
 
 ### Variabel Lingkungan
 
-| Variabel | Deskripsi | Wajib |
-| :--- | :--- | :---: |
-| `NEXT_PUBLIC_APP_URL` | URL aplikasi | ✅ |
-| `NEXT_PUBLIC_SUPABASE_URL` | URL proyek Supabase | ✅ |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Kunci anon Supabase | ✅ |
-| `SUPABASE_SERVICE_ROLE_KEY` | Kunci service role Supabase | ✅ |
-| `JWT_SECRET` | Rahasia penandatanganan JWT (min 32 karakter) | ✅ |
-| `DUITKU_MERCHANT_CODE` | Kode merchant Duitku | ✅ |
-| `DUITKU_API_KEY` | Kunci API Duitku | ✅ |
+| Variabel                        | Deskripsi                                     | Wajib |
+| :------------------------------ | :-------------------------------------------- | :---: |
+| `NEXT_PUBLIC_APP_URL`           | URL aplikasi                                  |  ✅   |
+| `NEXT_PUBLIC_SUPABASE_URL`      | URL proyek Supabase                           |  ✅   |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Kunci anon Supabase                           |  ✅   |
+| `SUPABASE_SERVICE_ROLE_KEY`     | Kunci service role Supabase                   |  ✅   |
+| `JWT_SECRET`                    | Rahasia penandatanganan JWT (min 32 karakter) |  ✅   |
+| `DUITKU_MERCHANT_CODE`          | Kode merchant Duitku                          |  ✅   |
+| `DUITKU_API_KEY`                | Kunci API Duitku                              |  ✅   |
 
 ### Konfigurasi Pembayaran
 
 Aplikasi ini menggunakan Duitku. Konfigurasikan pengaturan Duitku Anda:
+
 1.  Daftar akun merchant Duitku.
 2.  Dapatkan kode merchant dan kunci API Anda.
 3.  Atur URL callback Anda ke: `https://domain-anda.com/api/v1/payment/callback`
-4.  Atur URL kembali (return URL) Anda ke: `https://domain-anda.com/payment/success`
+4.  Atur URL kembali (return URL) Anda ke:
+    `https://domain-anda.com/payment/success`
 
 ## 🧪 Pengujian (Testing)
 
 Jalankan suite pengujian:
+
 ```bash
 npm run test
 ```
 
 Jalankan linter untuk memeriksa kualitas kode:
+
 ```bash
 npm run lint
 ```
 
 Periksa tipe dengan TypeScript:
+
 ```bash
 npm run type-check
 ```
@@ -189,6 +212,7 @@ npm run type-check
 ## 📦 Build untuk Produksi
 
 1.  **Build aplikasi**
+
     ```bash
     npm run build
     ```
@@ -201,6 +225,7 @@ npm run type-check
 ## 🚀 Deployment
 
 ### Deploy ke Vercel
+
 1.  Push kode Anda ke GitHub.
 2.  Hubungkan repositori Anda ke Vercel.
 3.  Atur variabel lingkungan di dasbor Vercel.
@@ -216,4 +241,5 @@ npm run type-check
 
 ## 📄 Lisensi
 
-Proyek ini dilisensikan di bawah Lisensi MIT - lihat file `LICENSE` untuk detailnya.
+Proyek ini dilisensikan di bawah Lisensi MIT - lihat file `LICENSE` untuk
+detailnya.

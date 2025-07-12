@@ -1,28 +1,23 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
 import { formatCurrency, formatDate } from '@/utils/formatter';
-import { 
+import {
   BarChart3,
-  Download, 
+  Download,
   RefreshCw,
   TrendingUp,
-  TrendingDown,
   Users,
   DollarSign,
   Activity,
-  Calendar,
-  Filter,
   ArrowUpRight,
   ArrowDownRight,
-  Eye,
   FileText,
   PieChart,
-  LineChart
+  LineChart,
 } from 'lucide-react';
 
 interface ReportStats {
@@ -88,11 +83,7 @@ export default function AdminReportsPage() {
   const [dateRange, setDateRange] = useState('30');
   const [reportType, setReportType] = useState('overview');
 
-  useEffect(() => {
-    loadReports();
-  }, [dateRange, reportType]);
-
-  const loadReports = async () => {
+  const loadReports = useCallback(async () => {
     try {
       setLoading(true);
       setError('');
@@ -105,7 +96,7 @@ export default function AdminReportsPage() {
 
       const response = await fetch(`/api/v1/admin/reports?${params.toString()}`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -123,11 +114,14 @@ export default function AdminReportsPage() {
       }
     } catch (error) {
       setError('Failed to load reports');
-      console.error('Reports fetch error:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [dateRange, reportType]);
+
+  useEffect(() => {
+    loadReports();
+  }, [loadReports]);
 
   const exportReport = async (type: string) => {
     try {
@@ -140,7 +134,7 @@ export default function AdminReportsPage() {
       const token = localStorage.getItem('token');
       const response = await fetch(`/api/v1/admin/reports/export?${params.toString()}`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -156,7 +150,7 @@ export default function AdminReportsPage() {
         window.URL.revokeObjectURL(url);
       }
     } catch (error) {
-      console.error('Export error:', error);
+      // console.error('Export error:', error);
     }
   };
 
@@ -170,16 +164,20 @@ export default function AdminReportsPage() {
   };
 
   const getGrowthColor = (growth: number) => {
-    if (growth > 0) return 'text-green-600';
-    if (growth < 0) return 'text-red-600';
+    if (growth > 0) {
+      return 'text-green-600';
+    }
+    if (growth < 0) {
+      return 'text-red-600';
+    }
     return 'text-gray-600';
   };
 
   if (loading && revenueData.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-indigo-600"></div>
           <p className="text-gray-600">Loading reports...</p>
         </div>
       </div>
@@ -194,15 +192,15 @@ export default function AdminReportsPage() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Analytics & Reports</h1>
-              <p className="text-gray-600 mt-2">Comprehensive platform analytics and performance metrics</p>
+              <p className="mt-2 text-gray-600">Comprehensive platform analytics and performance metrics</p>
             </div>
             <div className="flex gap-3">
               <Button onClick={loadReports} variant="outline" disabled={loading}>
-                <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
                 Refresh
               </Button>
               <Button onClick={() => exportReport('overview')} variant="outline">
-                <Download className="h-4 w-4 mr-2" />
+                <Download className="mr-2 h-4 w-4" />
                 Export
               </Button>
             </div>
@@ -212,16 +210,14 @@ export default function AdminReportsPage() {
         {/* Filters */}
         <Card className="mb-6">
           <CardContent className="p-6">
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-              <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex flex-col gap-4 sm:flex-row">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Date Range
-                  </label>
+                  <label className="mb-2 block text-sm font-medium text-gray-700">Date Range</label>
                   <select
                     value={dateRange}
-                    onChange={(e) => setDateRange(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                    onChange={e => setDateRange(e.target.value)}
+                    className="rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:ring-indigo-500"
                   >
                     <option value="7">Last 7 days</option>
                     <option value="30">Last 30 days</option>
@@ -231,13 +227,11 @@ export default function AdminReportsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Report Type
-                  </label>
+                  <label className="mb-2 block text-sm font-medium text-gray-700">Report Type</label>
                   <select
                     value={reportType}
-                    onChange={(e) => setReportType(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                    onChange={e => setReportType(e.target.value)}
+                    className="rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:ring-indigo-500"
                   >
                     <option value="overview">Overview</option>
                     <option value="revenue">Revenue</option>
@@ -261,14 +255,14 @@ export default function AdminReportsPage() {
         )}
 
         {/* Key Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Total Revenue</p>
                   <p className="text-2xl font-bold text-gray-900">{formatCurrency(stats.totalRevenue)}</p>
-                  <div className={`flex items-center mt-2 text-sm ${getGrowthColor(stats.revenueGrowth)}`}>
+                  <div className={`mt-2 flex items-center text-sm ${getGrowthColor(stats.revenueGrowth)}`}>
                     {getGrowthIcon(stats.revenueGrowth)}
                     <span className="ml-1">{Math.abs(stats.revenueGrowth).toFixed(1)}%</span>
                   </div>
@@ -284,7 +278,7 @@ export default function AdminReportsPage() {
                 <div>
                   <p className="text-sm font-medium text-gray-600">Total Transactions</p>
                   <p className="text-2xl font-bold text-gray-900">{stats.totalTransactions.toLocaleString()}</p>
-                  <div className={`flex items-center mt-2 text-sm ${getGrowthColor(stats.transactionGrowth)}`}>
+                  <div className={`mt-2 flex items-center text-sm ${getGrowthColor(stats.transactionGrowth)}`}>
                     {getGrowthIcon(stats.transactionGrowth)}
                     <span className="ml-1">{Math.abs(stats.transactionGrowth).toFixed(1)}%</span>
                   </div>
@@ -300,7 +294,7 @@ export default function AdminReportsPage() {
                 <div>
                   <p className="text-sm font-medium text-gray-600">Total Users</p>
                   <p className="text-2xl font-bold text-gray-900">{stats.totalUsers.toLocaleString()}</p>
-                  <div className={`flex items-center mt-2 text-sm ${getGrowthColor(stats.userGrowth)}`}>
+                  <div className={`mt-2 flex items-center text-sm ${getGrowthColor(stats.userGrowth)}`}>
                     {getGrowthIcon(stats.userGrowth)}
                     <span className="ml-1">{Math.abs(stats.userGrowth).toFixed(1)}%</span>
                   </div>
@@ -316,9 +310,7 @@ export default function AdminReportsPage() {
                 <div>
                   <p className="text-sm font-medium text-gray-600">Success Rate</p>
                   <p className="text-2xl font-bold text-gray-900">{stats.successRate.toFixed(1)}%</p>
-                  <p className="text-sm text-gray-500 mt-2">
-                    Avg: {formatCurrency(stats.averageTransactionAmount)}
-                  </p>
+                  <p className="mt-2 text-sm text-gray-500">Avg: {formatCurrency(stats.averageTransactionAmount)}</p>
                 </div>
                 <TrendingUp className="h-10 w-10 text-orange-600" />
               </div>
@@ -327,23 +319,23 @@ export default function AdminReportsPage() {
         </div>
 
         {/* Charts Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
           {/* Revenue Chart */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center">
-                <LineChart className="h-5 w-5 mr-2" />
+                <LineChart className="mr-2 h-5 w-5" />
                 Revenue Trend
               </CardTitle>
               <CardDescription>Daily revenue over the selected period</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="h-64 flex items-center justify-center bg-gray-50 rounded-lg">
+              <div className="flex h-64 items-center justify-center rounded-lg bg-gray-50">
                 {revenueData.length > 0 ? (
                   <div className="w-full">
-                    <div className="text-sm text-gray-600 mb-4">Revenue by Day</div>
+                    <div className="mb-4 text-sm text-gray-600">Revenue by Day</div>
                     {revenueData.slice(-7).map((item, index) => (
-                      <div key={index} className="flex justify-between items-center py-2">
+                      <div key={index} className="flex items-center justify-between py-2">
                         <span className="text-sm">{formatDate(item.date)}</span>
                         <span className="font-semibold">{formatCurrency(item.revenue)}</span>
                       </div>
@@ -360,7 +352,7 @@ export default function AdminReportsPage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center">
-                <PieChart className="h-5 w-5 mr-2" />
+                <PieChart className="mr-2 h-5 w-5" />
                 Transaction Status
               </CardTitle>
               <CardDescription>Breakdown of transaction statuses</CardDescription>
@@ -370,11 +362,17 @@ export default function AdminReportsPage() {
                 {transactionTrends.map((trend, index) => (
                   <div key={index} className="flex items-center justify-between">
                     <div className="flex items-center">
-                      <div className={`w-3 h-3 rounded-full mr-3 ${
-                        trend.status === 'completed' ? 'bg-green-500' :
-                        trend.status === 'pending' ? 'bg-yellow-500' :
-                        trend.status === 'failed' ? 'bg-red-500' : 'bg-gray-500'
-                      }`}></div>
+                      <div
+                        className={`mr-3 h-3 w-3 rounded-full ${
+                          trend.status === 'completed'
+                            ? 'bg-green-500'
+                            : trend.status === 'pending'
+                              ? 'bg-yellow-500'
+                              : trend.status === 'failed'
+                                ? 'bg-red-500'
+                                : 'bg-gray-500'
+                        }`}
+                      ></div>
                       <span className="text-sm font-medium capitalize">{trend.status}</span>
                     </div>
                     <div className="text-right">
@@ -389,7 +387,7 @@ export default function AdminReportsPage() {
         </div>
 
         {/* Top Performers */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
           {/* Top Creators */}
           <Card>
             <CardHeader>
@@ -401,7 +399,7 @@ export default function AdminReportsPage() {
                 {topCreators.map((creator, index) => (
                   <div key={creator.id} className="flex items-center justify-between">
                     <div className="flex items-center">
-                      <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center mr-3">
+                      <div className="mr-3 flex h-8 w-8 items-center justify-center rounded-full bg-indigo-100">
                         <span className="text-sm font-bold text-indigo-600">{index + 1}</span>
                       </div>
                       <div>
@@ -416,7 +414,7 @@ export default function AdminReportsPage() {
                   </div>
                 ))}
                 {topCreators.length === 0 && (
-                  <p className="text-gray-500 text-center py-4">No creator data available</p>
+                  <p className="py-4 text-center text-gray-500">No creator data available</p>
                 )}
               </div>
             </CardContent>
@@ -433,7 +431,7 @@ export default function AdminReportsPage() {
                 {topDonors.map((donor, index) => (
                   <div key={donor.id} className="flex items-center justify-between">
                     <div className="flex items-center">
-                      <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-3">
+                      <div className="mr-3 flex h-8 w-8 items-center justify-center rounded-full bg-green-100">
                         <span className="text-sm font-bold text-green-600">{index + 1}</span>
                       </div>
                       <div>
@@ -447,9 +445,7 @@ export default function AdminReportsPage() {
                     </div>
                   </div>
                 ))}
-                {topDonors.length === 0 && (
-                  <p className="text-gray-500 text-center py-4">No donor data available</p>
-                )}
+                {topDonors.length === 0 && <p className="py-4 text-center text-gray-500">No donor data available</p>}
               </div>
             </CardContent>
           </Card>
@@ -462,13 +458,13 @@ export default function AdminReportsPage() {
             <CardDescription>Download detailed reports in various formats</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
               <Button
                 onClick={() => exportReport('revenue')}
                 variant="outline"
                 className="flex items-center justify-center"
               >
-                <FileText className="h-4 w-4 mr-2" />
+                <FileText className="mr-2 h-4 w-4" />
                 Revenue Report
               </Button>
               <Button
@@ -476,7 +472,7 @@ export default function AdminReportsPage() {
                 variant="outline"
                 className="flex items-center justify-center"
               >
-                <Users className="h-4 w-4 mr-2" />
+                <Users className="mr-2 h-4 w-4" />
                 User Report
               </Button>
               <Button
@@ -484,7 +480,7 @@ export default function AdminReportsPage() {
                 variant="outline"
                 className="flex items-center justify-center"
               >
-                <Activity className="h-4 w-4 mr-2" />
+                <Activity className="mr-2 h-4 w-4" />
                 Transaction Report
               </Button>
               <Button
@@ -492,7 +488,7 @@ export default function AdminReportsPage() {
                 variant="outline"
                 className="flex items-center justify-center"
               >
-                <BarChart3 className="h-4 w-4 mr-2" />
+                <BarChart3 className="mr-2 h-4 w-4" />
                 Creator Report
               </Button>
             </div>

@@ -8,19 +8,13 @@ export async function POST(request: NextRequest) {
 
     // Validate required fields
     if (!name || !email || !subject || !message) {
-      return NextResponse.json(
-        { error: 'Name, email, subject, and message are required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Name, email, subject, and message are required' }, { status: 400 });
     }
 
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      return NextResponse.json(
-        { error: 'Invalid email format' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid email format' }, { status: 400 });
     }
 
     // Save contact form submission to database
@@ -55,10 +49,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Contact form error:', error);
-    return NextResponse.json(
-      { error: 'Failed to submit contact form' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to submit contact form' }, { status: 500 });
   }
 }
 
@@ -71,7 +62,7 @@ export async function GET(request: NextRequest) {
     }
 
     // TODO: Verify admin token
-    
+
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
     const category = searchParams.get('category');
@@ -111,9 +102,6 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Contact submissions fetch error:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch contact submissions' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch contact submissions' }, { status: 500 });
   }
 }

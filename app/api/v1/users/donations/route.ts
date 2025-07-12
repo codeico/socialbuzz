@@ -7,7 +7,7 @@ export async function OPTIONS(req: NextRequest) {
   return handleCors(req) || new NextResponse(null, { status: 200 });
 }
 
-export const GET = withAuth(async (req) => {
+export const GET = withAuth(async req => {
   try {
     const { searchParams } = new URL(req.url);
     const page = parseInt(searchParams.get('page') || '1');
@@ -19,7 +19,8 @@ export const GET = withAuth(async (req) => {
 
     const { data, error, count } = await supabase
       .from('donations')
-      .select(`
+      .select(
+        `
         *,
         donor:users!donations_donor_id_fkey(
           id,
@@ -33,17 +34,16 @@ export const GET = withAuth(async (req) => {
           full_name,
           avatar
         )
-      `, { count: 'exact' })
-      .eq('recipient_id', req.user.id)
+      `,
+        { count: 'exact' },
+      )
+      .eq('recipient_id', req.user.userId)
       .order(sortBy, { ascending: sortOrder === 'asc' })
       .range(offset, offset + limit - 1);
 
     if (error) {
       console.error('Error fetching donations:', error);
-      return NextResponse.json(
-        { success: false, error: 'Failed to fetch donations' },
-        { status: 500 }
-      );
+      return NextResponse.json({ success: false, error: 'Failed to fetch donations' }, { status: 500 });
     }
 
     const total = count || 0;
@@ -65,9 +65,6 @@ export const GET = withAuth(async (req) => {
     });
   } catch (error) {
     console.error('Get donations error:', error);
-    return NextResponse.json(
-      { success: false, error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
   }
 });

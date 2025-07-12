@@ -1,22 +1,23 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import Image from 'next/image';
 import { formatCurrency, formatDate } from '@/utils/formatter';
-import { 
-  Search, 
-  Filter, 
-  Eye, 
-  Ban, 
-  CheckCircle, 
-  XCircle, 
-  MoreHorizontal, 
+import {
+  Search,
+  Filter,
+  Eye,
+  Ban,
+  CheckCircle,
+  XCircle,
+  MoreHorizontal,
   UserCheck,
   UserX,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
 } from 'lucide-react';
 
 interface User {
@@ -58,14 +59,56 @@ export function UserManagement({ onUserSelect }: UserManagementProps) {
     loadUsers();
   }, [pagination.page, sortBy, sortOrder]);
 
+  const filterUsers = useCallback(() => {
+    let filtered = [...users];
+
+    // Search filter
+    if (searchQuery) {
+      filtered = filtered.filter(
+        user =>
+          user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          user.fullName.toLowerCase().includes(searchQuery.toLowerCase()),
+      );
+    }
+
+    // Status filter
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(user => user.status === statusFilter);
+    }
+
+    // Role filter
+    if (roleFilter !== 'all') {
+      filtered = filtered.filter(user => user.role === roleFilter);
+    }
+
+    // Sort
+    filtered.sort((a, b) => {
+      const aVal = a[sortBy as keyof User];
+      const bVal = b[sortBy as keyof User];
+
+      if (typeof aVal === 'string' && typeof bVal === 'string') {
+        return sortOrder === 'desc' ? bVal.localeCompare(aVal) : aVal.localeCompare(bVal);
+      }
+
+      if (typeof aVal === 'number' && typeof bVal === 'number') {
+        return sortOrder === 'desc' ? bVal - aVal : aVal - bVal;
+      }
+
+      return 0;
+    });
+
+    setFilteredUsers(filtered);
+  }, [users, searchQuery, statusFilter, roleFilter, sortBy, sortOrder]);
+
   useEffect(() => {
     filterUsers();
-  }, [users, searchQuery, statusFilter, roleFilter]);
+  }, [filterUsers]);
 
   const loadUsers = async () => {
     try {
       setLoading(true);
-      
+
       // Mock users data
       const mockUsers: User[] = [
         {
@@ -153,56 +196,12 @@ export function UserManagement({ onUserSelect }: UserManagementProps) {
     }
   };
 
-  const filterUsers = () => {
-    let filtered = [...users];
-
-    // Search filter
-    if (searchQuery) {
-      filtered = filtered.filter(user =>
-        user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        user.fullName.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-
-    // Status filter
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(user => user.status === statusFilter);
-    }
-
-    // Role filter
-    if (roleFilter !== 'all') {
-      filtered = filtered.filter(user => user.role === roleFilter);
-    }
-
-    // Sort
-    filtered.sort((a, b) => {
-      const aVal = a[sortBy as keyof User];
-      const bVal = b[sortBy as keyof User];
-      
-      if (typeof aVal === 'string' && typeof bVal === 'string') {
-        return sortOrder === 'desc' ? bVal.localeCompare(aVal) : aVal.localeCompare(bVal);
-      }
-      
-      if (typeof aVal === 'number' && typeof bVal === 'number') {
-        return sortOrder === 'desc' ? bVal - aVal : aVal - bVal;
-      }
-      
-      return 0;
-    });
-
-    setFilteredUsers(filtered);
-  };
 
   const handleStatusChange = async (userId: string, newStatus: 'active' | 'suspended' | 'banned') => {
     try {
       // Mock API call
-      setUsers(prev => 
-        prev.map(user => 
-          user.id === userId ? { ...user, status: newStatus } : user
-        )
-      );
-      
+      setUsers(prev => prev.map(user => (user.id === userId ? { ...user, status: newStatus } : user)));
+
       // Show success message
       alert(`User status updated to ${newStatus}`);
     } catch (error) {
@@ -214,12 +213,8 @@ export function UserManagement({ onUserSelect }: UserManagementProps) {
   const handleVerifyUser = async (userId: string) => {
     try {
       // Mock API call
-      setUsers(prev => 
-        prev.map(user => 
-          user.id === userId ? { ...user, isVerified: true } : user
-        )
-      );
-      
+      setUsers(prev => prev.map(user => (user.id === userId ? { ...user, isVerified: true } : user)));
+
       alert('User verified successfully');
     } catch (error) {
       console.error('Error verifying user:', error);
@@ -229,25 +224,25 @@ export function UserManagement({ onUserSelect }: UserManagementProps) {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active':
-        return 'bg-green-100 text-green-800';
-      case 'suspended':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'banned':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
+    case 'active':
+      return 'bg-green-100 text-green-800';
+    case 'suspended':
+      return 'bg-yellow-100 text-yellow-800';
+    case 'banned':
+      return 'bg-red-100 text-red-800';
+    default:
+      return 'bg-gray-100 text-gray-800';
     }
   };
 
   const getRoleColor = (role: string) => {
     switch (role) {
-      case 'admin':
-        return 'bg-purple-100 text-purple-800';
-      case 'user':
-        return 'bg-blue-100 text-blue-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
+    case 'admin':
+      return 'bg-purple-100 text-purple-800';
+    case 'user':
+      return 'bg-blue-100 text-blue-800';
+    default:
+      return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -274,16 +269,16 @@ export function UserManagement({ onUserSelect }: UserManagementProps) {
                 <Input
                   placeholder="Search users..."
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={e => setSearchQuery(e.target.value)}
                   className="pl-10"
                 />
               </div>
             </div>
-            
+
             <div>
               <select
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
+                onChange={e => setStatusFilter(e.target.value)}
                 className="w-full p-2 border border-gray-300 rounded-md"
               >
                 <option value="all">All Status</option>
@@ -292,11 +287,11 @@ export function UserManagement({ onUserSelect }: UserManagementProps) {
                 <option value="banned">Banned</option>
               </select>
             </div>
-            
+
             <div>
               <select
                 value={roleFilter}
-                onChange={(e) => setRoleFilter(e.target.value)}
+                onChange={e => setRoleFilter(e.target.value)}
                 className="w-full p-2 border border-gray-300 rounded-md"
               >
                 <option value="all">All Roles</option>
@@ -304,11 +299,11 @@ export function UserManagement({ onUserSelect }: UserManagementProps) {
                 <option value="admin">Admins</option>
               </select>
             </div>
-            
+
             <div>
               <select
                 value={`${sortBy}-${sortOrder}`}
-                onChange={(e) => {
+                onChange={e => {
                   const [field, order] = e.target.value.split('-');
                   setSortBy(field);
                   setSortOrder(order);
@@ -331,9 +326,7 @@ export function UserManagement({ onUserSelect }: UserManagementProps) {
       <Card>
         <CardHeader>
           <CardTitle>Users ({filteredUsers.length})</CardTitle>
-          <CardDescription>
-            Manage user accounts and permissions
-          </CardDescription>
+          <CardDescription>Manage user accounts and permissions</CardDescription>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -347,93 +340,63 @@ export function UserManagement({ onUserSelect }: UserManagementProps) {
             </div>
           ) : (
             <div className="space-y-4">
-              {filteredUsers.map((user) => (
+              {filteredUsers.map(user => (
                 <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
                   <div className="flex items-center space-x-4">
-                    <img
-                      src={user.avatar}
-                      alt={user.fullName}
-                      className="w-12 h-12 rounded-full object-cover"
-                    />
+                    <Image src={user.avatar} alt={user.fullName} width={48} height={48} className="w-12 h-12 rounded-full object-cover" />
                     <div>
                       <div className="flex items-center space-x-2">
                         <p className="font-medium text-gray-900">{user.fullName}</p>
-                        {user.isVerified && (
-                          <CheckCircle className="h-4 w-4 text-blue-500" />
-                        )}
+                        {user.isVerified && <CheckCircle className="h-4 w-4 text-blue-500" />}
                       </div>
                       <p className="text-sm text-gray-600">@{user.username}</p>
                       <p className="text-sm text-gray-500">{user.email}</p>
                       <div className="flex items-center space-x-2 mt-1">
-                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(user.status)}`}>
+                        <span
+                          className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(user.status)}`}
+                        >
                           {user.status}
                         </span>
-                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getRoleColor(user.role)}`}>
+                        <span
+                          className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getRoleColor(user.role)}`}
+                        >
                           {user.role}
                         </span>
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="text-right">
-                    <p className="text-sm font-medium text-gray-900">
-                      Earnings: {formatCurrency(user.totalEarnings)}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      Donations: {formatCurrency(user.totalDonations)}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      Joined: {formatDate(user.createdAt)}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      Last login: {formatDate(user.lastLogin)}
-                    </p>
-                    
+                    <p className="text-sm font-medium text-gray-900">Earnings: {formatCurrency(user.totalEarnings)}</p>
+                    <p className="text-sm text-gray-600">Donations: {formatCurrency(user.totalDonations)}</p>
+                    <p className="text-xs text-gray-500">Joined: {formatDate(user.createdAt)}</p>
+                    <p className="text-xs text-gray-500">Last login: {formatDate(user.lastLogin)}</p>
+
                     <div className="flex items-center space-x-2 mt-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => onUserSelect?.(user)}
-                      >
+                      <Button size="sm" variant="outline" onClick={() => onUserSelect?.(user)}>
                         <Eye className="h-4 w-4" />
                       </Button>
-                      
+
                       {!user.isVerified && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleVerifyUser(user.id)}
-                        >
+                        <Button size="sm" variant="outline" onClick={() => handleVerifyUser(user.id)}>
                           <UserCheck className="h-4 w-4" />
                         </Button>
                       )}
-                      
+
                       {user.status === 'active' && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleStatusChange(user.id, 'suspended')}
-                        >
+                        <Button size="sm" variant="outline" onClick={() => handleStatusChange(user.id, 'suspended')}>
                           <UserX className="h-4 w-4" />
                         </Button>
                       )}
-                      
+
                       {user.status === 'suspended' && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleStatusChange(user.id, 'active')}
-                        >
+                        <Button size="sm" variant="outline" onClick={() => handleStatusChange(user.id, 'active')}>
                           <UserCheck className="h-4 w-4" />
                         </Button>
                       )}
-                      
+
                       {user.status !== 'banned' && (
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          onClick={() => handleStatusChange(user.id, 'banned')}
-                        >
+                        <Button size="sm" variant="destructive" onClick={() => handleStatusChange(user.id, 'banned')}>
                           <Ban className="h-4 w-4" />
                         </Button>
                       )}
@@ -443,14 +406,15 @@ export function UserManagement({ onUserSelect }: UserManagementProps) {
               ))}
             </div>
           )}
-          
+
           {/* Pagination */}
           {pagination.totalPages > 1 && (
             <div className="flex items-center justify-between mt-6">
               <div className="text-sm text-gray-700">
-                Showing {((pagination.page - 1) * pagination.limit) + 1} to {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} users
+                Showing {(pagination.page - 1) * pagination.limit + 1} to{' '}
+                {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} users
               </div>
-              
+
               <div className="flex items-center space-x-2">
                 <Button
                   variant="outline"
@@ -459,11 +423,11 @@ export function UserManagement({ onUserSelect }: UserManagementProps) {
                 >
                   <ChevronLeft size={16} />
                 </Button>
-                
+
                 <span className="text-sm text-gray-700">
                   Page {pagination.page} of {pagination.totalPages}
                 </span>
-                
+
                 <Button
                   variant="outline"
                   onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
