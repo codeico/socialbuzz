@@ -97,7 +97,7 @@ export async function GET(request: NextRequest) {
 
     // Add default values for missing payment fields
     groupedSettings.payment = {
-      minimum_donation: groupedSettings.payment.minimum_donation || groupedSettings.payment.min_donation_amount || 1000,
+      minimum_donation: groupedSettings.payment.minimum_donation || groupedSettings.payment.min_donation_amount || 5000,
       maximum_donation: groupedSettings.payment.maximum_donation || groupedSettings.payment.max_donation_amount || 10000000,
       platform_fee_percentage: groupedSettings.payment.platform_fee_percentage || 5,
       predefined_amounts: groupedSettings.payment.predefined_amounts || [8338000, 16670000, 25003000, 33335000, 41668000, 50000000],
