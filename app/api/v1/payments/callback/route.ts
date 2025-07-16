@@ -52,16 +52,31 @@ export async function POST(request: NextRequest) {
       signature
     });
 
-    // Get Duitku settings from database
-    const { data: settings } = await supabaseAdmin
-      .from('admin_settings')
-      .select('setting_value')
-      .eq('setting_key', 'duitku_settings')
-      .single();
+    // Get Duitku settings from system_settings table
+    const { data: duitkuSettings, error: settingsError } = await supabaseAdmin
+      .from('system_settings')
+      .select('key, value')
+      .in('key', ['duitku_api_key', 'duitku_merchant_code'])
+      .eq('category', 'payment');
 
-    const duitkuSettings = settings?.setting_value || {};
-    const apiKey = duitkuSettings.api_key || process.env.DUITKU_API_KEY;
-    const configuredMerchantCode = duitkuSettings.merchant_code || process.env.DUITKU_MERCHANT_CODE;
+    if (settingsError) {
+      console.error('Error fetching Duitku settings:', settingsError);
+      return NextResponse.json({ error: 'Configuration error' }, { status: 500 });
+    }
+
+    const settingsMap = Object.fromEntries(
+      duitkuSettings?.map(setting => [setting.key, setting.value]) || []
+    );
+
+    const apiKey = settingsMap.duitku_api_key || process.env.DUITKU_API_KEY;
+    const configuredMerchantCode = settingsMap.duitku_merchant_code || process.env.DUITKU_MERCHANT_CODE;
+
+    console.log('Duitku settings from database:', {
+      hasApiKey: !!apiKey,
+      hasMerchantCode: !!configuredMerchantCode,
+      merchantCode: configuredMerchantCode,
+      apiKeyLength: apiKey?.length
+    });
 
     if (!apiKey || !configuredMerchantCode) {
       console.error('Duitku configuration not found:', { 
