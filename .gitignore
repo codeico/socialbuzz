@@ -13,7 +13,8 @@ out/
 build
 dist
 
-# Environment variables
+# Environment variables - semua file .env
+.env*
 .env
 .env.local
 .env.development.local
@@ -34,7 +35,11 @@ next-env.d.ts
 *.swp
 *.swo
 
-# OS
+# OS - semua file dengan awalan titik
+.*
+!.gitignore
+!.github/
+!.env.example
 .DS_Store
 .DS_Store?
 ._*
