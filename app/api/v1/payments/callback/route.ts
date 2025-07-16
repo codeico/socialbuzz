@@ -4,7 +4,33 @@ import { verifyCallbackSignature } from '@/lib/duitku';
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    // Log request details for debugging
+    console.log('Callback request headers:', Object.fromEntries(request.headers.entries()));
+    console.log('Callback request method:', request.method);
+    
+    let body;
+    const contentType = request.headers.get('content-type') || '';
+    
+    // Handle different content types from Duitku
+    if (contentType.includes('application/json')) {
+      body = await request.json();
+    } else if (contentType.includes('application/x-www-form-urlencoded')) {
+      const formData = await request.formData();
+      body = Object.fromEntries(formData);
+    } else {
+      // Try to parse as text first, then JSON
+      const text = await request.text();
+      console.log('Raw callback data:', text);
+      
+      try {
+        body = JSON.parse(text);
+      } catch (parseError) {
+        console.log('Failed to parse as JSON, trying form data...');
+        // If JSON parse fails, try to parse as URL encoded
+        const params = new URLSearchParams(text);
+        body = Object.fromEntries(params);
+      }
+    }
     const {
       merchantCode,
       amount,
@@ -46,16 +72,60 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
     }
 
-    // Find donation by transaction ID
-    const { data: donation, error: donationError } = await supabaseAdmin
+    // Find donation by transaction ID - try multiple methods
+    console.log('Looking for donation with merchantOrderId:', merchantOrderId);
+    
+    let donation = null;
+    let donationError = null;
+    
+    // Try finding by duitku_transaction_id first
+    const { data: donationByDuitku, error: duitkuError } = await supabaseAdmin
       .from('donations')
       .select('*')
       .eq('duitku_transaction_id', merchantOrderId)
       .single();
 
-    if (donationError || !donation) {
-      console.error('Donation not found for transaction:', merchantOrderId);
-      return NextResponse.json({ error: 'Donation not found' }, { status: 404 });
+    if (!duitkuError && donationByDuitku) {
+      donation = donationByDuitku;
+      console.log('Found donation by duitku_transaction_id');
+    } else {
+      // Try finding by donation ID (in case merchantOrderId is donation ID)
+      const { data: donationById, error: idError } = await supabaseAdmin
+        .from('donations')
+        .select('*')
+        .eq('id', merchantOrderId)
+        .single();
+
+      if (!idError && donationById) {
+        donation = donationById;
+        console.log('Found donation by donation ID');
+      } else {
+        // Log both errors for debugging
+        console.error('Donation not found by duitku_transaction_id:', duitkuError);
+        console.error('Donation not found by ID:', idError);
+        console.error('merchantOrderId searched:', merchantOrderId);
+        
+        // List recent donations for debugging
+        const { data: recentDonations } = await supabaseAdmin
+          .from('donations')
+          .select('id, duitku_transaction_id, created_at')
+          .order('created_at', { ascending: false })
+          .limit(5);
+        
+        console.log('Recent 5 donations:', recentDonations);
+        
+        return NextResponse.json({ 
+          error: 'Donation not found',
+          details: {
+            merchantOrderId,
+            searchedBy: ['duitku_transaction_id', 'id'],
+            recentDonations: recentDonations?.map(d => ({
+              id: d.id,
+              duitku_transaction_id: d.duitku_transaction_id
+            }))
+          }
+        }, { status: 404 });
+      }
     }
 
     // Determine payment status based on result code
