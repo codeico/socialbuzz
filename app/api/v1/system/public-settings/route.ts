@@ -65,9 +65,9 @@ export async function GET(request: NextRequest) {
           groupedSettings.features.user_registration = value;
         }
       } else if (setting.category === 'payment') {
-        if (setting.key === 'min_donation_amount') {
+        if (setting.key === 'min_donation_amount' || setting.key === 'minimum_donation') {
           groupedSettings.payment.minimum_donation = value;
-        } else if (setting.key === 'max_donation_amount') {
+        } else if (setting.key === 'max_donation_amount' || setting.key === 'maximum_donation') {
           groupedSettings.payment.maximum_donation = value;
         } else if (setting.key === 'platform_fee_percentage') {
           groupedSettings.payment.platform_fee_percentage = value;
