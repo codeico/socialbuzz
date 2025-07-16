@@ -52,16 +52,34 @@ export async function POST(request: NextRequest) {
       signature
     });
 
-    // Verify signature
-    const apiKey = process.env.DUITKU_API_KEY;
-    if (!apiKey) {
-      console.error('Duitku API key not configured');
+    // Get Duitku settings from database
+    const { data: settings } = await supabaseAdmin
+      .from('admin_settings')
+      .select('setting_value')
+      .eq('setting_key', 'duitku_settings')
+      .single();
+
+    const duitkuSettings = settings?.setting_value || {};
+    const apiKey = duitkuSettings.api_key || process.env.DUITKU_API_KEY;
+    const configuredMerchantCode = duitkuSettings.merchant_code || process.env.DUITKU_MERCHANT_CODE;
+
+    if (!apiKey || !configuredMerchantCode) {
+      console.error('Duitku configuration not found:', { 
+        hasApiKey: !!apiKey, 
+        hasMerchantCode: !!configuredMerchantCode 
+      });
       return NextResponse.json({ error: 'Configuration error' }, { status: 500 });
     }
 
+    console.log('Using merchant config:', {
+      receivedMerchantCode: merchantCode,
+      configuredMerchantCode,
+      matches: merchantCode === configuredMerchantCode
+    });
+
     const isValidSignature = verifyCallbackSignature(
-      merchantCode,
-      amount,
+      configuredMerchantCode, // Use configured merchant code, not from callback
+      parseInt(amount),
       merchantOrderId,
       apiKey,
       signature

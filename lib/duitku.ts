@@ -22,6 +22,18 @@ export const verifyCallbackSignature = (
 ): boolean => {
   const message = merchantCode + amount + merchantOrderId + apiKey;
   const calculatedSignature = crypto.createHash('md5').update(message).digest('hex');
+  
+  console.log('Signature verification:', {
+    merchantCode,
+    amount,
+    merchantOrderId,
+    apiKey: apiKey ? `${apiKey.substring(0, 4)}...` : 'NOT_SET',
+    message,
+    calculatedSignature,
+    receivedSignature,
+    isValid: calculatedSignature === receivedSignature
+  });
+  
   return calculatedSignature === receivedSignature;
 };
 
