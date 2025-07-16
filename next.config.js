@@ -1,5 +1,45 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Webpack optimization untuk mengurangi cache warnings
+  webpack: (config, { isServer }) => {
+    const path = require('path');
+    
+    // Optimasi cache strategy dengan absolute path
+    config.cache = {
+      type: 'filesystem',
+      cacheDirectory: path.resolve(__dirname, '.next/cache'),
+      buildDependencies: {
+        config: [__filename],
+      },
+      // Optimasi untuk mengurangi serialization warnings
+      maxMemoryGenerations: 1,
+    };
+
+    // Optimasi chunk splitting untuk mengurangi bundle size
+    if (!isServer) {
+      config.optimization.splitChunks = {
+        chunks: 'all',
+        maxSize: 244000, // Limit chunk size ke 244KB
+        cacheGroups: {
+          default: {
+            minChunks: 2,
+            priority: -20,
+            reuseExistingChunk: true,
+          },
+          vendor: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'vendors',
+            priority: -10,
+            chunks: 'all',
+            maxSize: 244000,
+          },
+        },
+      };
+    }
+
+    return config;
+  },
+
   images: {
     remotePatterns: [
       {
