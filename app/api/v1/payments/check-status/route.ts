@@ -57,16 +57,64 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Get Duitku configuration
-    const merchantCode = process.env.DUITKU_MERCHANT_CODE;
-    const apiKey = process.env.DUITKU_API_KEY;
-    const baseUrl = process.env.DUITKU_BASE_URL || 'https://sandbox.duitku.com/webapi/api';
+    // Get Duitku configuration from system_settings
+    const { data: duitkuSettings, error: settingsError } = await supabaseAdmin
+      .from('system_settings')
+      .select('key, value')
+      .in('key', ['duitku_api_key', 'duitku_merchant_code', 'duitku_sandbox_mode'])
+      .eq('category', 'payment');
+
+    if (settingsError) {
+      console.error('Error fetching Duitku settings:', settingsError);
+      return NextResponse.json({ 
+        success: false, 
+        error: 'Payment gateway configuration error' 
+      }, { status: 500 });
+    }
+
+    const settingsMap = Object.fromEntries(
+      duitkuSettings?.map(setting => [setting.key, setting.value]) || []
+    );
+
+    const merchantCode = settingsMap.duitku_merchant_code || process.env.DUITKU_MERCHANT_CODE;
+    const apiKey = settingsMap.duitku_api_key || process.env.DUITKU_API_KEY;
+    const sandboxMode = settingsMap.duitku_sandbox_mode === 'true' || settingsMap.duitku_sandbox_mode === true;
+    const baseUrl = sandboxMode 
+      ? 'https://sandbox.duitku.com/webapi/api'
+      : 'https://passport.duitku.com/webapi/api';
+
+    console.log('Check-status using config:', {
+      merchantCode,
+      hasApiKey: !!apiKey,
+      sandboxMode,
+      baseUrl,
+      donationId,
+      actualTransactionId
+    });
 
     if (!merchantCode || !apiKey) {
       return NextResponse.json({ 
         success: false, 
         error: 'Payment gateway not configured' 
       }, { status: 500 });
+    }
+
+    // Check if donation is already paid in our database first
+    if (donation && donation.payment_status === 'paid') {
+      console.log('Donation already marked as paid in database:', donationId);
+      return NextResponse.json({
+        success: true,
+        data: {
+          donationId: donation.id,
+          transactionId: actualTransactionId,
+          reference: donation.duitku_reference,
+          status: 'paid',
+          statusCode: '00',
+          statusMessage: 'Transaction successful (from database)',
+          amount: donation.amount,
+          source: 'database'
+        }
+      });
     }
 
     // Create signature for status check
@@ -89,6 +137,14 @@ export async function POST(request: NextRequest) {
     });
 
     const statusData = await statusResponse.json();
+
+    console.log('Duitku status check response:', {
+      status: statusResponse.status,
+      statusText: statusResponse.statusText,
+      data: statusData,
+      donationId,
+      actualTransactionId
+    });
 
     // Handle Duitku response
     if (statusResponse.ok) {
