@@ -71,13 +71,13 @@ http://localhost:3000/obs/1/settings
 **Widget URL:**
 
 ```
-http://localhost:3000/widget/[CREATOR_ID]
+http://localhost:3000/widget/[USERNAME]
 ```
 
 **Contoh:**
 
 ```
-http://localhost:3000/widget/1
+http://localhost:3000/widget/johndoe
 ```
 
 Widget ini bisa:
@@ -161,7 +161,7 @@ console.log('WebSocket status:', socket.connected);
 | ------------------- | --------------------------- | ------------------------ |
 | **OBS Overlay**     | `/obs/[creatorId]`          | For OBS Browser Source   |
 | **OBS Settings**    | `/obs/[creatorId]/settings` | Customize alerts         |
-| **Donation Widget** | `/widget/[creatorId]`       | Standalone donation form |
+| **Donation Widget** | `/widget/[username]`        | Standalone donation form |
 | **Dashboard**       | `/dashboard`                | Creator main dashboard   |
 | **Admin Panel**     | `/admin`                    | Platform management      |
 

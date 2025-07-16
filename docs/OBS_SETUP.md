@@ -133,7 +133,7 @@ You can also embed a donation widget on your website or stream overlay page:
 ### Widget URL
 
 ```
-https://yourdomain.com/widget/[your-creator-id]
+https://yourdomain.com/widget/[your-username]
 ```
 
 ### Features

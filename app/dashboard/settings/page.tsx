@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -38,8 +38,54 @@ export default function SettingsPage() {
     confirm: false,
   });
   const [loading, setLoading] = useState(false);
+  const [pageLoading, setPageLoading] = useState(true);
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
+
+  // Load initial settings
+  useEffect(() => {
+    loadSettings();
+  }, []);
+
+  const loadSettings = async () => {
+    try {
+      setPageLoading(true);
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/v1/users/settings', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          const settings = data.data;
+          setNotifications(settings.notification_settings || {
+            email: true,
+            push: true,
+            donations: true,
+            payouts: true,
+            marketing: false,
+          });
+          setPrivacy(settings.privacy_settings || {
+            profileVisible: true,
+            showEarnings: true,
+            showDonations: true,
+          });
+          setBankAccount(settings.bank_account || {
+            bankName: '',
+            accountNumber: '',
+            accountHolderName: '',
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error loading settings:', error);
+    } finally {
+      setPageLoading(false);
+    }
+  };
 
   const handleNotificationChange = (key: string, value: boolean) => {
     setNotifications(prev => ({
@@ -99,12 +145,17 @@ export default function SettingsPage() {
         }),
       });
 
-      if (response.ok) {
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
         setSuccess('Settings saved successfully!');
+        // Auto-hide success message after 3 seconds
+        setTimeout(() => setSuccess(''), 3000);
       } else {
-        setError('Failed to save settings');
+        setError(data.error || 'Failed to save settings');
       }
     } catch (error) {
+      console.error('Error saving settings:', error);
       setError('Error saving settings');
     } finally {
       setLoading(false);

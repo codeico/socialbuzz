@@ -7,7 +7,8 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { useAuth } from '@/hooks/useAuth';
-import { Eye, EyeOff, ArrowLeft, Check } from 'lucide-react';
+import { useFeatureFlag, usePlatformSettings } from '@/hooks/useSystemSettings';
+import { Eye, EyeOff, ArrowLeft, Check, AlertTriangle } from 'lucide-react';
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -25,6 +26,8 @@ export default function RegisterPage() {
 
   const { register } = useAuth();
   const router = useRouter();
+  const { isEnabled: registrationEnabled, loading: settingsLoading } = useFeatureFlag('user_registration');
+  const { platformName } = usePlatformSettings();
 
   const passwordRequirements = [
     { text: 'At least 8 characters', met: formData.password.length >= 8 },
@@ -89,19 +92,69 @@ export default function RegisterPage() {
     );
   };
 
+  // Show loading while checking settings
+  if (settingsLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show message if registration is disabled
+  if (!registrationEnabled) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+        <div className="sm:mx-auto sm:w-full sm:max-w-md">
+          <div className="flex justify-center mb-6">
+            <Link href="/" className="text-2xl font-bold text-gray-900">
+              {platformName}
+            </Link>
+          </div>
+
+          <Card>
+            <CardContent className="text-center py-8">
+              <AlertTriangle className="h-16 w-16 text-amber-500 mx-auto mb-4" />
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Registration Disabled</h2>
+              <p className="text-gray-600 mb-6">
+                New user registration is currently disabled. Please contact an administrator for more information.
+              </p>
+              <div className="space-y-3">
+                <Link href="/auth/login">
+                  <Button className="w-full">
+                    Sign In Instead
+                  </Button>
+                </Link>
+                <Link href="/">
+                  <Button variant="outline" className="w-full">
+                    <ArrowLeft className="h-4 w-4 mr-2" />
+                    Back to Home
+                  </Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center mb-6">
           <Link href="/" className="text-2xl font-bold text-gray-900">
-            SocialBuzz
+            {platformName}
           </Link>
         </div>
 
         <Card>
           <CardHeader>
             <CardTitle className="text-center">Create your account</CardTitle>
-            <CardDescription className="text-center">Join SocialBuzz and start receiving support</CardDescription>
+            <CardDescription className="text-center">Join {platformName} and start receiving support</CardDescription>
           </CardHeader>
 
           <CardContent>

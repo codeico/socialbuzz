@@ -24,7 +24,6 @@ export async function POST(request: NextRequest) {
         name,
         email,
         subject,
-        category: category || 'general',
         message,
         status: 'new',
         created_at: new Date().toISOString(),

@@ -6,7 +6,6 @@ import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { useAuth } from '@/hooks/useAuth';
-import { usePayment } from '@/hooks/usePayment';
 import { formatCurrency, formatDate } from '@/utils/formatter';
 import {
   DollarSign,
@@ -24,7 +23,6 @@ import {
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState('overview');
   const { user, loading: authLoading } = useAuth();
-  const { getTransactions, getDonations, loading: paymentLoading } = usePayment();
   const [stats, setStats] = useState({
     balance: 0,
     totalEarnings: 0,
@@ -33,46 +31,58 @@ export default function DashboardPage() {
   });
   const [recentTransactions, setRecentTransactions] = useState<any[]>([]);
   const [recentDonations, setRecentDonations] = useState<any[]>([]);
+  const [dataLoading, setDataLoading] = useState(false);
   const router = useRouter();
 
-  const loadUserData = useCallback(async () => {
+  const loadDashboardData = useCallback(async () => {
+    setDataLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/v1/users/me', {
+      
+      if (!token) {
+        router.push('/auth/login');
+        return;
+      }
+
+      // Use single optimized API call
+      const response = await fetch('/api/v1/dashboard/stats', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
       const result = await response.json();
+      
+      if (!response.ok) {
+        if (response.status === 401) {
+          localStorage.removeItem('token');
+          router.push('/auth/login');
+          return;
+        }
+        throw new Error(result.error || 'Failed to load dashboard data');
+      }
+
       if (result.success) {
-        setStats({
-          balance: result.data.balance || 0,
-          totalEarnings: result.data.total_earnings || 0,
-          totalDonations: result.data.total_donations || 0,
-          monthlyEarnings: 0, // Calculate from transactions
-        });
+        const { stats, recentTransactions, recentDonations } = result.data;
+        setStats(stats);
+        setRecentTransactions(recentTransactions || []);
+        setRecentDonations(recentDonations || []);
       }
     } catch (error) {
-      console.error('Error loading user data:', error);
-    }
-  }, []);
-
-  const loadRecentData = useCallback(async () => {
-    try {
-      const [transactionsData, donationsData] = await Promise.all([
-        getTransactions({ limit: 5, sortBy: 'created_at', sortOrder: 'desc' }),
-        getDonations({ limit: 5, sortBy: 'created_at', sortOrder: 'desc' }),
-      ]);
-
-      setRecentTransactions(transactionsData?.data || []);
-      setRecentDonations(donationsData?.data || []);
-    } catch (error) {
-      // console.error('Error loading recent data:', error);
+      console.error('Error loading dashboard data:', error);
+      // Set empty states on error
+      setStats({
+        balance: 0,
+        totalEarnings: 0,
+        totalDonations: 0,
+        monthlyEarnings: 0,
+      });
       setRecentTransactions([]);
       setRecentDonations([]);
+    } finally {
+      setDataLoading(false);
     }
-  }, [getTransactions, getDonations]);
+  }, [router]);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -82,11 +92,10 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (user) {
-      // Load fresh user data to get balance, earnings, etc.
-      loadUserData();
-      loadRecentData();
+      // Load all dashboard data in a single call
+      loadDashboardData();
     }
-  }, [user, loadUserData, loadRecentData]);
+  }, [user, loadDashboardData]);
 
   const renderOverview = () => (
     <div className="space-y-6">
@@ -249,6 +258,51 @@ export default function DashboardPage() {
           <p className="text-gray-600">Loading your dashboard...</p>
         </div>
       </div>
+    );
+  }
+
+  // Show skeleton while data is loading
+  if (dataLoading && recentTransactions.length === 0) {
+    return (
+      <DashboardLayout activeTab={activeTab} onTabChange={setActiveTab}>
+        <div className="p-6 space-y-6">
+          <div>
+            <div className="h-8 bg-gray-200 rounded w-64 mb-2 animate-pulse"></div>
+            <div className="h-4 bg-gray-200 rounded w-96 animate-pulse"></div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[1, 2, 3, 4].map(i => (
+              <Card key={i}>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <div className="h-4 bg-gray-200 rounded w-24 animate-pulse"></div>
+                  <div className="h-4 w-4 bg-gray-200 rounded animate-pulse"></div>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-8 bg-gray-200 rounded w-32 mb-2 animate-pulse"></div>
+                  <div className="h-3 bg-gray-200 rounded w-24 animate-pulse"></div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {[1, 2].map(i => (
+              <Card key={i}>
+                <CardHeader>
+                  <div className="h-6 bg-gray-200 rounded w-32 mb-2 animate-pulse"></div>
+                  <div className="h-4 bg-gray-200 rounded w-48 animate-pulse"></div>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {[1, 2, 3].map(j => (
+                    <div key={j} className="h-16 bg-gray-200 rounded animate-pulse"></div>
+                  ))}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </DashboardLayout>
     );
   }
 

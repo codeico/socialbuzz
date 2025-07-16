@@ -67,15 +67,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'Failed to create user' }, { status: 500 });
     }
 
-    // Create user profile using admin client
-    await supabaseAdmin.from('user_profiles').insert({
-      user_id: user.id,
-      preferences: {
-        emailNotifications: true,
-        pushNotifications: true,
-        privacyMode: false,
-      },
-    });
+    // No need to create separate profile - everything is in users table now
 
     const authUser = {
       id: user.id,

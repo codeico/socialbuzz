@@ -9,27 +9,26 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const limit = parseInt(searchParams.get('limit') || '10');
     const offset = (page - 1) * limit;
 
-    // Get donations for this user
+    // Get donation transactions for this user with donor information
     const {
       data: donations,
       error,
       count,
     } = await supabaseAdmin
-      .from('donations')
+      .from('transactions')
       .select(
         `
         id,
         amount,
         message,
-        is_anonymous,
         created_at,
-        supporter_name,
-        supporter_email
+        metadata,
+        status
       `,
         { count: 'exact' },
       )
-      .eq('creator_id', id)
-      .eq('status', 'completed')
+      .eq('recipient_id', id)
+      .eq('type', 'donation')
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
 
@@ -37,17 +36,27 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       throw error;
     }
 
-    // Transform donations data
+    // Debug: Log the status of donations
+    console.log('Donations found:', donations?.length);
+    console.log('Donation statuses:', donations?.map(d => d.status));
+
+    // Transform transactions data
     const transformedDonations =
-      donations?.map(donation => ({
-        id: donation.id,
-        amount: donation.amount,
-        message: donation.message || '',
-        isAnonymous: donation.is_anonymous,
-        supporterName: donation.is_anonymous ? 'Anonymous' : donation.supporter_name,
-        supporterEmail: donation.is_anonymous ? null : donation.supporter_email,
-        createdAt: donation.created_at,
-      })) || [];
+      donations?.map((transaction: any) => {
+        const isAnonymous = transaction.metadata?.isAnonymous || transaction.metadata?.is_anonymous || false;
+        const donorName = transaction.metadata?.donorName || 'Anonymous';
+        const donorEmail = transaction.metadata?.donorEmail || null;
+        
+        return {
+          id: transaction.id,
+          amount: transaction.amount,
+          message: transaction.message || '',
+          isAnonymous: isAnonymous,
+          supporterName: donorName,
+          supporterEmail: isAnonymous ? null : donorEmail,
+          createdAt: transaction.created_at,
+        };
+      }) || [];
 
     return NextResponse.json({
       success: true,

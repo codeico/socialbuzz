@@ -8,7 +8,9 @@ import { Input } from '@/components/ui/Input';
 import { Modal } from '@/components/ui/Modal';
 import { formatCurrency, formatDate } from '@/utils/formatter';
 import Image from 'next/image';
-import { Heart, Share2, MapPin, Link as LinkIcon, Calendar, Gift, Users, Star } from 'lucide-react';
+import { Heart, Share2, MapPin, Link as LinkIcon, Calendar, Users, Star, ChevronDown, ChevronUp } from 'lucide-react';
+import { categorizePaymentMethods } from '@/utils/paymentMethods';
+import { usePaymentSettings, usePlatformSettings } from '@/hooks/useSystemSettings';
 
 interface UserProfile {
   id: string;
@@ -19,6 +21,8 @@ interface UserProfile {
   isVerified: boolean;
   isOnboarded: boolean;
   role: string;
+  location: string;
+  website: string;
   profile: {
     bio: string;
     category: string;
@@ -34,6 +38,42 @@ interface UserProfile {
   joinedAt: string;
 }
 
+interface PaymentMethod {
+  paymentMethod: string;
+  paymentName: string;
+  paymentImage: string;
+  totalFee: string;
+}
+
+interface DonationFormData {
+  amount: string;
+  message: string;
+  donorName: string;
+  donorEmail: string;
+  isAnonymous: boolean;
+  hideEmail: boolean;
+  agreeToTerms: boolean;
+  confirmAge: boolean;
+  selectedPaymentMethod: string;
+}
+
+interface RecentDonation {
+  id: string;
+  amount: number;
+  message: string;
+  isAnonymous: boolean;
+  supporterName: string;
+  supporterEmail: string | null;
+  createdAt: string;
+}
+
+interface TopSupporter {
+  supporterName: string;
+  totalAmount: number;
+  donationCount: number;
+  isAnonymous: boolean;
+}
+
 export default function ProfilePage() {
   const params = useParams();
   const username = params.username as string;
@@ -42,10 +82,54 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [donationModal, setDonationModal] = useState(false);
-  const [donationAmount, setDonationAmount] = useState('');
-  const [donationMessage, setDonationMessage] = useState('');
-  const [isAnonymous, setIsAnonymous] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState('bank_transfer');
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
+  const [loadingPaymentMethods, setLoadingPaymentMethods] = useState(false);
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  const [recentDonations, setRecentDonations] = useState<RecentDonation[]>([]);
+  const [loadingDonations, setLoadingDonations] = useState(false);
+  const [topSupporters, setTopSupporters] = useState<TopSupporter[]>([]);
+  const [loadingTopSupporters, setLoadingTopSupporters] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [donationError, setDonationError] = useState('');
+  const [donationForm, setDonationForm] = useState<DonationFormData>({
+    amount: '',
+    message: '',
+    donorName: '',
+    donorEmail: '',
+    isAnonymous: false,
+    hideEmail: false,
+    agreeToTerms: false,
+    confirmAge: false,
+    selectedPaymentMethod: '',
+  });
+
+  // Use dynamic payment settings from database
+  const { minDonation, maxDonation, predefinedAmounts: configuredAmounts, loading: paymentLoading } = usePaymentSettings();
+  const { platformName } = usePlatformSettings();
+
+  // Use predefined amounts from admin settings, with fallback to generated amounts
+  const predefinedAmounts = React.useMemo(() => {
+    if (paymentLoading) return [10000, 25000, 50000, 100000, 250000, 500000];
+    
+    // Use configured amounts from admin settings if available
+    if (configuredAmounts && configuredAmounts.length > 0) {
+      return configuredAmounts.filter(amount => amount >= minDonation && amount <= maxDonation);
+    }
+    
+    // Fallback: Generate amounts based on min/max
+    const min = minDonation;
+    const max = maxDonation;
+    
+    const amounts = [];
+    const step = (max - min) / 6;
+    
+    for (let i = 1; i <= 6; i++) {
+      const amount = Math.round((min + (step * i)) / 1000) * 1000; // Round to nearest 1000
+      amounts.push(amount);
+    }
+    
+    return amounts;
+  }, [minDonation, maxDonation, configuredAmounts, paymentLoading]);
 
   const loadProfile = useCallback(async () => {
     try {
@@ -69,48 +153,249 @@ export default function ProfilePage() {
     }
   }, [username]);
 
+  const loadRecentDonations = useCallback(async (userId: string) => {
+    try {
+      setLoadingDonations(true);
+      const response = await fetch(`/api/v1/users/${userId}/donations?limit=5`);
+      const data = await response.json();
+
+      if (data.success) {
+        setRecentDonations(data.data);
+      } else {
+        console.error('Failed to load recent donations:', data.error);
+        setRecentDonations([]);
+      }
+    } catch (error) {
+      console.error('Error loading recent donations:', error);
+      setRecentDonations([]);
+    } finally {
+      setLoadingDonations(false);
+    }
+  }, []);
+
+  const loadTopSupporters = useCallback(async (userId: string) => {
+    try {
+      setLoadingTopSupporters(true);
+      const response = await fetch(`/api/v1/users/${userId}/donations?limit=1000`);
+      const data = await response.json();
+
+      if (data.success) {
+        // Group donations by supporter name and calculate totals
+        const supporterTotals = new Map<string, TopSupporter>();
+        
+        data.data.forEach((donation: RecentDonation) => {
+          const key = donation.supporterName;
+          if (supporterTotals.has(key)) {
+            const existing = supporterTotals.get(key)!;
+            existing.totalAmount += donation.amount;
+            existing.donationCount += 1;
+          } else {
+            supporterTotals.set(key, {
+              supporterName: donation.supporterName,
+              totalAmount: donation.amount,
+              donationCount: 1,
+              isAnonymous: donation.isAnonymous
+            });
+          }
+        });
+
+        // Convert to array and sort by total amount (descending)
+        const sortedSupporters = Array.from(supporterTotals.values())
+          .sort((a, b) => b.totalAmount - a.totalAmount)
+          .slice(0, 10); // Top 10 supporters
+
+        setTopSupporters(sortedSupporters);
+      } else {
+        console.error('Failed to load top supporters:', data.error);
+        setTopSupporters([]);
+      }
+    } catch (error) {
+      console.error('Error loading top supporters:', error);
+      setTopSupporters([]);
+    } finally {
+      setLoadingTopSupporters(false);
+    }
+  }, []);
+
   useEffect(() => {
     if (username) {
       loadProfile();
     }
   }, [username, loadProfile]);
 
-  const handleDonation = async () => {
-    if (!donationAmount || !profile) {
+  useEffect(() => {
+    if (profile?.id) {
+      loadRecentDonations(profile.id);
+      loadTopSupporters(profile.id);
+    }
+  }, [profile?.id, loadRecentDonations, loadTopSupporters]);
+
+  const loadPaymentMethods = useCallback(async (amount: number) => {
+    if (amount < minDonation) {
+      setPaymentMethods([]);
       return;
     }
 
+    setLoadingPaymentMethods(true);
     try {
-      // In a real app, this would call your payment API
-      const amount = parseFloat(donationAmount);
-
-      // Create payment request
-      const response = await fetch('/api/v1/payment/create', {
+      const response = await fetch('/api/v1/payments/methods', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({ amount }),
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        setPaymentMethods(result.data.paymentMethods);
+        
+        // Categorize methods and expand first category by default
+        const categorizedMethods = categorizePaymentMethods(result.data.paymentMethods);
+        if (categorizedMethods.length > 0) {
+          setExpandedCategories(new Set([categorizedMethods[0].id]));
+          
+          // Auto-select first payment method
+          if (categorizedMethods[0].methods.length > 0) {
+            setDonationForm(prev => ({ 
+              ...prev, 
+              selectedPaymentMethod: categorizedMethods[0].methods[0].paymentMethod 
+            }));
+          }
+        }
+      } else {
+        setPaymentMethods([]);
+      }
+    } catch (error) {
+      console.error('Error loading payment methods:', error);
+      setPaymentMethods([]);
+    } finally {
+      setLoadingPaymentMethods(false);
+    }
+  }, [minDonation]);
+
+  const handleAmountSelect = (amount: number) => {
+    setDonationForm(prev => ({ ...prev, amount: amount.toString() }));
+  };
+
+  const toggleCategory = (categoryId: string) => {
+    setExpandedCategories(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(categoryId)) {
+        newSet.delete(categoryId);
+      } else {
+        newSet.add(categoryId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleInputChange = (field: keyof DonationFormData, value: string | boolean) => {
+    setDonationForm(prev => {
+      const updated = { ...prev, [field]: value };
+      
+      // If anonymous checkbox is toggled
+      if (field === 'isAnonymous' && typeof value === 'boolean') {
+        if (value) {
+          // Set name to Someone when checked
+          updated.donorName = 'Someone';
+        } else {
+          // Clear name when unchecked
+          updated.donorName = '';
+        }
+      }
+      
+      return updated;
+    });
+    
+  };
+
+  const handleDonation = async () => {
+    if (!profile) return;
+
+    setIsSubmitting(true);
+    setDonationError('');
+
+    try {
+      const amount = parseFloat(donationForm.amount);
+      
+      // Validation
+      if (isNaN(amount) || amount < minDonation) {
+        setDonationError(`Minimum donation amount is ${formatCurrency(minDonation)}`);
+        setIsSubmitting(false);
+        return;
+      }
+      
+      if (amount > maxDonation) {
+        setDonationError(`Maximum donation amount is ${formatCurrency(maxDonation)}`);
+        setIsSubmitting(false);
+        return;
+      }
+      
+      if (!donationForm.donorName.trim()) {
+        setDonationError('Donor name is required');
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (!donationForm.donorEmail.trim()) {
+        setDonationError('Email is required');
+        setIsSubmitting(false);
+        return;
+      }
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(donationForm.donorEmail)) {
+        setDonationError('Please enter a valid email address');
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (!donationForm.agreeToTerms) {
+        setDonationError('You must agree to the terms and conditions');
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (!donationForm.confirmAge) {
+        setDonationError('You must confirm that you are 18 years of age or older');
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Create donation record like widget page does
+      const response = await fetch('/api/v1/donations/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          recipientId: profile.id,
+          recipient_id: profile.id,
           amount: amount,
-          paymentMethod: paymentMethod,
-          message: donationMessage,
-          isAnonymous: isAnonymous,
+          message: donationForm.message.trim(),
+          donor_name: donationForm.donorName.trim(),
+          donor_email: donationForm.donorEmail.trim(),
+          is_anonymous: donationForm.isAnonymous,
+          hide_email: donationForm.hideEmail,
+          agree_to_terms: donationForm.agreeToTerms,
+          confirm_age: donationForm.confirmAge,
         }),
       });
 
-      const data = await response.json();
+      const result = await response.json();
 
-      if (data.success) {
-        // Redirect to payment URL
-        window.location.href = data.data.paymentUrl;
+      if (result.success) {
+        // Redirect to payment detail page like widget does
+        window.location.href = `/payment/${result.data.id}`;
       } else {
-        alert('Payment creation failed: ' + data.error);
+        setDonationError(result.error || 'Failed to create donation');
       }
     } catch (error) {
       console.error('Error creating donation:', error);
-      alert('Failed to create donation. Please try again.');
+      setDonationError('Something went wrong. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -194,10 +479,10 @@ export default function ProfilePage() {
                 <h1 className="text-2xl font-bold text-gray-900">{profile.displayName}</h1>
                 <p className="text-gray-600">@{profile.username}</p>
                 <div className="flex items-center space-x-4 mt-2 text-sm text-gray-500">
-                  {profile.profile?.category && (
+                  {profile.location && (
                     <div className="flex items-center">
                       <MapPin size={16} className="mr-1" />
-                      {profile.profile.category}
+                      {profile.location}
                     </div>
                   )}
                   <div className="flex items-center">
@@ -236,24 +521,24 @@ export default function ProfilePage() {
                   {profile.profile?.bio || 'This user hasn\'t added a bio yet.'}
                 </p>
 
-                {profile.profile?.social_links?.website && (
+                {profile.website && (
                   <div className="mt-4">
                     <a
-                      href={profile.profile.social_links.website}
+                      href={profile.website}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center text-indigo-600 hover:text-indigo-500"
                     >
                       <LinkIcon size={16} className="mr-2" />
-                      {profile.profile.social_links.website}
+                      {profile.website}
                     </a>
                   </div>
                 )}
 
-                {profile.profile?.social_links && (
+                {profile.profile?.social_links && Object.keys(profile.profile.social_links).length > 0 && (
                   <div className="mt-4 space-y-2">
                     {Object.entries(profile.profile.social_links)
-                      .filter(([platform, url]) => platform !== 'website' && url)
+                      .filter(([platform, url]) => url)
                       .map(([platform, url]) => (
                         <a
                           key={platform}
@@ -278,40 +563,134 @@ export default function ProfilePage() {
                 <CardDescription>People who have recently supported this creator</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {/* Mock supporter data */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
-                        A
-                      </div>
-                      <div>
-                        <p className="font-medium">Anonymous</p>
-                        <p className="text-sm text-gray-500">2 hours ago</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-medium text-green-600">{formatCurrency(25000)}</p>
-                      <p className="text-sm text-gray-500">Keep up the great work!</p>
-                    </div>
+                {loadingDonations ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
+                    <span className="ml-2 text-gray-600">Loading recent supporters...</span>
                   </div>
+                ) : recentDonations.length > 0 ? (
+                  <div className="space-y-4">
+                    {recentDonations.map((donation, index) => {
+                      const initials = donation.isAnonymous 
+                        ? 'A' 
+                        : donation.supporterName.split(' ').map(n => n[0]).join('').toUpperCase();
+                      const gradientColors = [
+                        'from-blue-500 to-purple-600',
+                        'from-green-500 to-teal-600', 
+                        'from-pink-500 to-rose-600',
+                        'from-orange-500 to-red-600',
+                        'from-indigo-500 to-blue-600'
+                      ];
+                      const gradientClass = gradientColors[index % gradientColors.length];
+                      
+                      return (
+                        <div key={donation.id} className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <div className={`w-10 h-10 bg-gradient-to-br ${gradientClass} rounded-full flex items-center justify-center text-white font-semibold`}>
+                              {initials}
+                            </div>
+                            <div>
+                              <p className="font-medium">
+                                {donation.isAnonymous ? 'Anonymous' : donation.supporterName}
+                              </p>
+                              <p className="text-sm text-gray-500">
+                                {new Date(donation.createdAt).toLocaleDateString('id-ID', {
+                                  day: 'numeric',
+                                  month: 'short',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-medium text-green-600">{formatCurrency(donation.amount)}</p>
+                            {donation.message && (
+                              <p className="text-sm text-gray-500 max-w-32 truncate" title={donation.message}>
+                                {donation.message}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                      <Heart className="w-8 h-8 text-gray-400" />
+                    </div>
+                    <p className="text-gray-500 mb-2">No supporters yet</p>
+                    <p className="text-sm text-gray-400">Be the first to show your support!</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-teal-600 rounded-full flex items-center justify-center text-white font-semibold">
-                        S
-                      </div>
-                      <div>
-                        <p className="font-medium">Sarah K.</p>
-                        <p className="text-sm text-gray-500">1 day ago</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-medium text-green-600">{formatCurrency(50000)}</p>
-                      <p className="text-sm text-gray-500">Love your content!</p>
-                    </div>
+            {/* Top Supporters */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Top Supporters</CardTitle>
+                <CardDescription>The most generous supporters of this creator</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {loadingTopSupporters ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
+                    <span className="ml-2 text-gray-600">Loading top supporters...</span>
                   </div>
-                </div>
+                ) : topSupporters.length > 0 ? (
+                  <div className="space-y-4">
+                    {topSupporters.map((supporter, index) => {
+                      const initials = supporter.isAnonymous 
+                        ? 'A' 
+                        : supporter.supporterName.split(' ').map(n => n[0]).join('').toUpperCase();
+                      const gradientColors = [
+                        'from-yellow-500 to-orange-600', // Gold for #1
+                        'from-gray-400 to-gray-600',     // Silver for #2
+                        'from-yellow-600 to-yellow-800', // Bronze for #3
+                        'from-blue-500 to-purple-600',
+                        'from-green-500 to-teal-600', 
+                        'from-pink-500 to-rose-600',
+                        'from-orange-500 to-red-600',
+                        'from-indigo-500 to-blue-600',
+                        'from-purple-500 to-pink-600',
+                        'from-teal-500 to-cyan-600'
+                      ];
+                      const gradientClass = gradientColors[index % gradientColors.length];
+                      
+                      return (
+                        <div key={supporter.supporterName} className="flex items-center space-x-3">
+                          <div className="relative">
+                            <div className={`w-10 h-10 bg-gradient-to-br ${gradientClass} rounded-full flex items-center justify-center text-white font-semibold`}>
+                              {initials}
+                            </div>
+                            {index < 3 && (
+                              <div className="absolute -top-1 -right-1 w-5 h-5 bg-white rounded-full flex items-center justify-center shadow-md">
+                                {index === 0 && <span className="text-xs">🥇</span>}
+                                {index === 1 && <span className="text-xs">🥈</span>}
+                                {index === 2 && <span className="text-xs">🥉</span>}
+                              </div>
+                            )}
+                          </div>
+                          <div>
+                            <p className="font-medium">
+                              {supporter.isAnonymous ? 'Anonymous' : supporter.supporterName}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                      <Star className="w-8 h-8 text-gray-400" />
+                    </div>
+                    <p className="text-gray-500 mb-2">No top supporters yet</p>
+                    <p className="text-sm text-gray-400">Be the first to show your support!</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -323,29 +702,25 @@ export default function ProfilePage() {
               <CardHeader>
                 <CardTitle>Stats</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <Gift size={20} className="mr-2 text-gray-500" />
-                    <span className="text-sm text-gray-600">Total Received</span>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <Users size={20} className="mr-2 text-gray-500" />
+                      <span className="text-sm text-gray-600">Supporters</span>
+                    </div>
+                    <span className="font-semibold">{profile.stats.total_supporters}</span>
                   </div>
-                  <span className="font-semibold">{formatCurrency(profile.stats.total_donations)}</span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <Users size={20} className="mr-2 text-gray-500" />
-                    <span className="text-sm text-gray-600">Supporters</span>
-                  </div>
-                  <span className="font-semibold">{profile.stats.total_supporters}</span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <Heart size={20} className="mr-2 text-gray-500" />
-                    <span className="text-sm text-gray-600">This Month</span>
-                  </div>
-                  <span className="font-semibold">{formatCurrency(150000)}</span>
+                  
+                  {profile.stats.last_donation_at && (
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <Calendar size={20} className="mr-2 text-gray-500" />
+                        <span className="text-sm text-gray-600">Last Support</span>
+                      </div>
+                      <span className="font-semibold text-xs">{formatDate(profile.stats.last_donation_at)}</span>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -368,56 +743,152 @@ export default function ProfilePage() {
       </div>
 
       {/* Donation Modal */}
-      <Modal isOpen={donationModal} onClose={() => setDonationModal(false)} title="Support this Creator" size="md">
-        <div className="space-y-4">
+      <Modal isOpen={donationModal} onClose={() => setDonationModal(false)} title="Support this Creator" size="lg">
+        <div className="space-y-6">
+          {/* Amount Selection */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Donation Amount (IDR)</label>
+            <label className="block text-sm font-medium text-gray-700 mb-3">Choose Amount</label>
+            <div className="flex items-center border border-gray-300 rounded-md mb-3">
+              <div className="flex items-center px-3 py-2 border-r border-gray-300 bg-gray-50">
+                <span className="text-sm font-medium text-gray-700">IDR</span>
+              </div>
+              <input
+                type="text"
+                value={donationForm.amount ? parseFloat(donationForm.amount).toLocaleString('id-ID') : ''}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/[^\d]/g, '');
+                  handleInputChange('amount', value);
+                }}
+                placeholder="10,000"
+                className="flex-1 px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+            </div>
+            <div className="grid grid-cols-3 gap-2 mb-3">
+              {predefinedAmounts.slice(0, 6).map(amount => (
+                <Button
+                  key={amount}
+                  variant={donationForm.amount === amount.toString() ? 'primary' : 'outline'}
+                  onClick={() => handleAmountSelect(amount)}
+                  className="text-sm py-2"
+                >
+                  {formatCurrency(amount)}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+
+          {/* Message */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Write your message (Optional)</label>
+            <textarea
+              placeholder="Say something nice to the creator..."
+              value={donationForm.message}
+              onChange={e => handleInputChange('message', e.target.value)}
+              rows={2}
+              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"
+              maxLength={100}
+            />
+            <div className="flex justify-end mt-1">
+              <p className="text-xs text-gray-500">{donationForm.message.length}/100 characters</p>
+            </div>
+          </div>
+
+          {/* Donor Info */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Your Name</label>
             <Input
-              type="number"
-              value={donationAmount}
-              onChange={e => setDonationAmount(e.target.value)}
-              placeholder="Enter amount (min. 1,000)"
-              min="1000"
+              placeholder="Enter your name"
+              value={donationForm.donorName}
+              onChange={e => handleInputChange('donorName', e.target.value)}
+              disabled={donationForm.isAnonymous}
+              className={donationForm.isAnonymous ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''}
               fullWidth
             />
+
+            <div className="flex items-center space-x-2 mt-3">
+              <input
+                type="checkbox"
+                id="anonymous"
+                checked={donationForm.isAnonymous}
+                onChange={e => handleInputChange('isAnonymous', e.target.checked)}
+                className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+              />
+              <label htmlFor="anonymous" className="text-sm text-gray-700 cursor-pointer">
+                Anonymous
+              </label>
+            </div>
           </div>
 
+          {/* Donor Email */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Payment Method</label>
-            <select
-              value={paymentMethod}
-              onChange={e => setPaymentMethod(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md"
-            >
-              <option value="bank_transfer">Bank Transfer</option>
-              <option value="virtual_account">Virtual Account</option>
-              <option value="e_wallet">E-Wallet</option>
-            </select>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Your Email</label>
+            <Input
+              type="email"
+              placeholder="Enter your email"
+              value={donationForm.donorEmail}
+              onChange={e => handleInputChange('donorEmail', e.target.value)}
+              fullWidth
+            />
+
+            <div className="flex items-center space-x-2 mt-3">
+              <input
+                type="checkbox"
+                id="hideEmail"
+                checked={donationForm.hideEmail}
+                onChange={e => handleInputChange('hideEmail', e.target.checked)}
+                className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+              />
+              <label htmlFor="hideEmail" className="text-sm text-gray-700 cursor-pointer">
+                Hide my email from {profile?.displayName || 'recipient'}
+              </label>
+            </div>
           </div>
 
+          {/* Terms and Conditions */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Message (Optional)</label>
-            <textarea
-              value={donationMessage}
-              onChange={e => setDonationMessage(e.target.value)}
-              placeholder="Leave a message of support..."
-              className="w-full p-2 border border-gray-300 rounded-md"
-              rows={3}
-            />
+            <div className="flex items-start space-x-2">
+              <input
+                type="checkbox"
+                id="agreeToTerms"
+                checked={donationForm.agreeToTerms}
+                onChange={e => handleInputChange('agreeToTerms', e.target.checked)}
+                className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 mt-0.5 flex-shrink-0"
+              />
+              <label htmlFor="agreeToTerms" className="text-xs text-gray-700 cursor-pointer leading-relaxed">
+                I hereby declare this transaction is: purely my support for{' '}
+                <span className="font-semibold">{profile?.displayName || 'this creator'}</span>, 
+                non-refundable, not for a commercial transaction, not for any illegal activity, 
+                not violating the{' '}
+                <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:text-indigo-500 hover:underline">
+                  terms of {platformName || 'SITENAME'}
+                </a>
+              </label>
+            </div>
           </div>
 
-          <div className="flex items-center">
-            <input
-              type="checkbox"
-              id="anonymous"
-              checked={isAnonymous}
-              onChange={e => setIsAnonymous(e.target.checked)}
-              className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-            />
-            <label htmlFor="anonymous" className="ml-2 block text-sm text-gray-900">
-              Make this donation anonymous
-            </label>
+          {/* Age Confirmation */}
+          <div>
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="confirmAge"
+                checked={donationForm.confirmAge}
+                onChange={e => handleInputChange('confirmAge', e.target.checked)}
+                className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 flex-shrink-0"
+              />
+              <label htmlFor="confirmAge" className="text-xs text-gray-700 cursor-pointer">
+                I am 18 years of age or older
+              </label>
+            </div>
           </div>
+
+          {/* Error Message */}
+          {donationError && (
+            <div className="bg-red-50 border border-red-200 rounded-md p-3">
+              <p className="text-sm text-red-600">{donationError}</p>
+            </div>
+          )}
 
           <div className="flex space-x-3 pt-4">
             <Button variant="outline" onClick={() => setDonationModal(false)} className="flex-1">
@@ -425,10 +896,32 @@ export default function ProfilePage() {
             </Button>
             <Button
               onClick={handleDonation}
-              disabled={!donationAmount || parseFloat(donationAmount) < 1000}
-              className="flex-1"
+              disabled={
+                !donationForm.amount || 
+                parseFloat(donationForm.amount) < minDonation ||
+                !donationForm.donorName.trim() ||
+                !donationForm.donorEmail.trim() ||
+                !donationForm.agreeToTerms ||
+                !donationForm.confirmAge ||
+                isSubmitting
+              }
+              className={`flex-1 ${
+                isSubmitting || !donationForm.agreeToTerms || !donationForm.confirmAge
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-indigo-600 hover:bg-indigo-700'
+              }`}
             >
-              Send {donationAmount && formatCurrency(parseFloat(donationAmount))}
+              {isSubmitting ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <Heart className="mr-2 h-4 w-4" />
+                  Send Support
+                </>
+              )}
             </Button>
           </div>
         </div>

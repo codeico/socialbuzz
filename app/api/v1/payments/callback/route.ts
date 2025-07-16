@@ -1,139 +1,162 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { validateCallback } from '@/lib/duitku';
 import { supabaseAdmin } from '@/lib/supabase';
-import { DonationNotification } from '@/lib/websocket';
+import { verifyCallbackSignature } from '@/lib/duitku';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    console.log('Payment callback received:', body);
+    const {
+      merchantCode,
+      amount,
+      merchantOrderId,
+      productDetail,
+      additionalParam,
+      paymentCode,
+      resultCode,
+      merchantUserId,
+      reference,
+      signature
+    } = body;
 
-    const { merchantOrderId, amount, resultCode, merchantUserInfo, reference, signature } = body;
+    console.log('Duitku callback received:', {
+      merchantOrderId,
+      resultCode,
+      amount,
+      reference,
+      signature
+    });
 
-    // Validate callback signature
-    if (!validateCallback(body)) {
-      console.error('Invalid callback signature');
+    // Verify signature
+    const apiKey = process.env.DUITKU_API_KEY;
+    if (!apiKey) {
+      console.error('Duitku API key not configured');
+      return NextResponse.json({ error: 'Configuration error' }, { status: 500 });
+    }
+
+    const isValidSignature = verifyCallbackSignature(
+      merchantCode,
+      amount,
+      merchantOrderId,
+      apiKey,
+      signature
+    );
+
+    if (!isValidSignature) {
+      console.error('Invalid signature in callback');
       return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
     }
 
-    // Get transaction from database
-    const { data: transaction, error: transactionError } = await supabaseAdmin
-      .from('transactions')
-      .select(
-        `
-        *,
-        donor:users!transactions_user_id_fkey(id, username, full_name),
-        recipient:users!transactions_recipient_id_fkey(id, username, full_name)
-      `,
-      )
-      .eq('merchant_order_id', merchantOrderId)
+    // Find donation by transaction ID
+    const { data: donation, error: donationError } = await supabaseAdmin
+      .from('donations')
+      .select('*')
+      .eq('duitku_transaction_id', merchantOrderId)
       .single();
 
-    if (transactionError || !transaction) {
-      console.error('Transaction not found:', transactionError);
-      return NextResponse.json({ error: 'Transaction not found' }, { status: 404 });
+    if (donationError || !donation) {
+      console.error('Donation not found for transaction:', merchantOrderId);
+      return NextResponse.json({ error: 'Donation not found' }, { status: 404 });
     }
 
-    // Determine transaction status based on result code
-    let status = 'failed';
+    // Determine payment status based on result code
+    let paymentStatus = 'failed';
+    let paidAt = null;
+
     if (resultCode === '00') {
-      status = 'completed';
+      paymentStatus = 'paid';
+      paidAt = new Date().toISOString();
     } else if (resultCode === '01') {
-      status = 'pending';
+      paymentStatus = 'processing';
+    } else {
+      paymentStatus = 'failed';
     }
 
-    // Update transaction status
-    const { error: updateError } = await supabaseAdmin
-      .from('transactions')
-      .update({
-        status,
-        payment_reference: reference,
-        completed_at: status === 'completed' ? new Date().toISOString() : null,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', transaction.id);
+    // Update donation status
+    const updateData = {
+      payment_status: paymentStatus,
+      paid_at: paidAt,
+      payment_details: {
+        ...(donation.payment_details || {}),
+        callbackData: {
+          merchantOrderId,
+          resultCode,
+          amount,
+          reference,
+          paymentCode,
+          additionalParam,
+          receivedAt: new Date().toISOString()
+        }
+      },
+      updated_at: new Date().toISOString()
+    };
+
+    const { data: updatedDonation, error: updateError } = await supabaseAdmin
+      .from('donations')
+      .update(updateData)
+      .eq('id', donation.id)
+      .select('*')
+      .single();
 
     if (updateError) {
-      console.error('Error updating transaction:', updateError);
-      return NextResponse.json({ error: 'Failed to update transaction' }, { status: 500 });
+      console.error('Error updating donation status:', updateError);
+      return NextResponse.json({ error: 'Failed to update donation' }, { status: 500 });
     }
 
-    // If payment is successful, send donation notification
-    if (status === 'completed' && transaction.type === 'donation') {
+    // If payment successful, send notification
+    if (paymentStatus === 'paid') {
       try {
-        // Create donation notification
-        const donationNotification: DonationNotification = {
-          id: transaction.id,
-          donorName: transaction.donor?.full_name || 'Anonymous',
-          amount: transaction.amount,
-          message: transaction.message || '',
-          timestamp: new Date().toISOString(),
-          creatorId: transaction.recipient_id,
-          creatorUsername: transaction.recipient?.username || '',
-          isAnonymous: transaction.is_anonymous || false,
-          currency: 'IDR',
+        const notificationUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/v1/notifications/donation`;
+        const notificationPayload = {
+          transactionId: donation.id,
+          creatorId: donation.recipient_id,
+          amount: donation.amount,
+          donorName: donation.donor_name,
+          message: donation.message,
+          isAnonymous: donation.is_anonymous
         };
-
-        // Send WebSocket notification
-        if (global.wsServer) {
-          global.wsServer.emit('donation-notification', donationNotification);
-          console.log('Donation notification sent:', donationNotification);
-        }
-
-        // Update user balances
-        await Promise.all([
-          // Add to recipient balance
-          supabaseAdmin.rpc('update_user_balance', {
-            user_id: transaction.recipient_id,
-            amount_change: transaction.amount - (transaction.fee || 0),
-          }),
-          // Update recipient total earnings
-          supabaseAdmin.rpc('update_user_earnings', {
-            user_id: transaction.recipient_id,
-            amount_change: transaction.amount,
-          }),
-          // Update donor total donations
-          supabaseAdmin.rpc('update_user_donations', {
-            user_id: transaction.user_id,
-            amount_change: transaction.amount,
-          }),
-        ]);
-
-        // Create notification record
-        await supabaseAdmin.from('notifications').insert({
-          user_id: transaction.recipient_id,
-          type: 'donation_received',
-          title: 'New Donation Received!',
-          message: `You received ${new Intl.NumberFormat('id-ID', {
-            style: 'currency',
-            currency: 'IDR',
-          }).format(transaction.amount)} from ${transaction.is_anonymous ? 'Anonymous' : transaction.donor?.full_name}`,
-          data: {
-            donationId: transaction.id,
-            amount: transaction.amount,
-            donorName: transaction.is_anonymous ? 'Anonymous' : transaction.donor?.full_name,
-          },
-          created_at: new Date().toISOString(),
+        
+        console.log('Sending notification to OBS:', {
+          url: notificationUrl,
+          payload: notificationPayload
         });
+        
+        const notificationResponse = await fetch(notificationUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(notificationPayload),
+        });
+        
+        const notificationResult = await notificationResponse.json();
+        console.log('Notification response:', notificationResult);
+        
+        if (!notificationResponse.ok) {
+          console.error('Notification failed:', notificationResult);
+        } else {
+          console.log('Notification sent successfully to OBS');
+        }
       } catch (notificationError) {
-        console.error('Error sending donation notification:', notificationError);
-        // Don't fail the callback if notification fails
+        console.error('Failed to send notification:', notificationError);
       }
     }
 
-    console.log(`Transaction ${merchantOrderId} updated to ${status}`);
+    console.log('Donation updated successfully:', {
+      donationId: donation.id,
+      status: paymentStatus,
+      amount: donation.amount
+    });
 
     return NextResponse.json({
       success: true,
-      message: 'Callback processed successfully',
-      data: {
-        merchantOrderId,
-        status,
-        amount,
-      },
+      message: 'Callback processed successfully'
     });
+
   } catch (error) {
-    console.error('Payment callback error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error('Callback processing error:', error);
+    return NextResponse.json({
+      success: false,
+      error: 'Callback processing failed'
+    }, { status: 500 });
   }
 }

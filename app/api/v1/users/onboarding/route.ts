@@ -17,24 +17,22 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { bio, category, socialLinks, bankAccount } = body;
 
-    // Update user profile with onboarding data
+    // Update user with onboarding data (now all in users table)
     const { data: profile, error: profileError } = await supabaseAdmin
-      .from('user_profiles')
-      .upsert({
-        user_id: decoded.userId,
+      .from('users')
+      .update({
         bio: bio || '',
         social_links: socialLinks || {},
         bank_account: bankAccount || {},
         updated_at: new Date().toISOString(),
       })
+      .eq('id', decoded.userId)
       .select()
       .single();
 
     if (profileError) {
       throw profileError;
     }
-
-    // No need to update users table since onboarding status is determined by profile existence
 
     return NextResponse.json({
       success: true,
@@ -59,7 +57,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
-    // Get user's onboarding status and profile data
+    // Get user's onboarding status and profile data (all in users table now)
     const { data: user, error: userError } = await supabaseAdmin
       .from('users')
       .select(
@@ -67,7 +65,10 @@ export async function GET(request: NextRequest) {
         id,
         username,
         email,
-        full_name
+        full_name,
+        bio,
+        social_links,
+        bank_account
       `,
       )
       .eq('id', decoded.userId)
@@ -77,19 +78,21 @@ export async function GET(request: NextRequest) {
       throw userError;
     }
 
-    // Get profile data separately
-    const { data: profile } = await supabaseAdmin
-      .from('user_profiles')
-      .select('bio, social_links, bank_account')
-      .eq('user_id', decoded.userId)
-      .single();
-
     return NextResponse.json({
       success: true,
       data: {
-        user,
-        isOnboarded: !!profile, // User is onboarded if they have a profile
-        profile: profile || null,
+        user: {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          full_name: user.full_name,
+        },
+        isOnboarded: !!(user.bio || user.social_links || user.bank_account), // User is onboarded if they have profile data
+        profile: {
+          bio: user.bio || '',
+          social_links: user.social_links || {},
+          bank_account: user.bank_account || {},
+        },
       },
     });
   } catch (error) {

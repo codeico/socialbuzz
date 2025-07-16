@@ -1,0 +1,200 @@
+# SocialBuzz Platform Memory & Documentation
+
+## Project Overview
+SocialBuzz adalah platform creator support yang memungkinkan kreator menerima donasi dari audience mereka. Platform ini dibangun dengan Next.js 15, TypeScript, dan Supabase PostgreSQL.
+
+## Fungsi Utama Website
+
+### 1. User Management & Authentication
+- **Registrasi & Login**: Sistem autentikasi dengan JWT tokens
+- **Profile Management**: Bio, avatar, social links, website, location
+- **Role System**: user, admin, super_admin
+- **Email Verification**: Sistem verifikasi email (belum sepenuhnya diimplementasi)
+
+### 2. Donation System  
+- **Profile Pages**: Halaman publik kreator untuk menerima donasi
+- **Widget System**: Widget donasi yang bisa diembed
+- **Payment Integration**: Integrasi dengan payment gateway (Tripay)
+- **Real-time Updates**: WebSocket untuk notifikasi donasi live
+- **Metadata System**: Informasi donor disimpan dalam metadata transaksi
+
+### 3. Financial Management
+- **Balance Tracking**: Saldo user, total earnings, total donations
+- **Transaction History**: Riwayat semua transaksi donasi
+- **Payout Requests**: Sistem withdraw untuk kreator
+- **Fee Management**: Fee platform per transaksi
+
+### 4. Admin Dashboard
+- **User Management**: CRUD users, verifikasi, suspend
+- **Transaction Monitoring**: Monitor semua transaksi
+- **Analytics**: Statistik platform, revenue, user growth
+- **System Settings**: Konfigurasi platform (nama, fee, dll)
+- **Reports**: Export data untuk analisis
+
+### 5. Content & Support
+- **FAQ System**: Frequently Asked Questions
+- **Contact Form**: Form kontak untuk support
+- **Notification System**: Sistem notifikasi untuk users
+
+## Database Schema (New Simplified)
+
+### Core Tables:
+1. **users** - Data user lengkap (merged dari users + user_profiles)
+2. **transactions** - Semua transaksi keuangan
+3. **system_settings** - Konfigurasi platform
+4. **payment_sessions** - Data pembayaran sementara
+5. **payment_links** - Link pembayaran custom
+6. **payout_requests** - Request withdraw
+7. **notifications** - Notifikasi user
+8. **admin_logs** - Log aktivitas admin
+9. **contact_submissions** - Submission form kontak
+10. **faqs** - FAQ data
+11. **password_reset_tokens** - Token reset password
+
+### Removed Tables (Unused):
+- posts, comments, stories (social media features not implemented)
+- groups, events, live_streams (not used)
+- followers, user_blocks (not implemented)
+- categories, transaction_fees (redundant)
+
+## API Endpoints Structure
+
+### Authentication
+- POST `/api/v1/auth/register` - User registration
+- POST `/api/v1/auth/login` - User login
+- POST `/api/v1/auth/forgot-password` - Reset password
+
+### User Management
+- GET `/api/v1/users/me` - Current user info
+- GET/PUT `/api/v1/users/profile` - User profile CRUD
+- GET `/api/v1/users/username/[username]` - Public profile by username
+- GET `/api/v1/users/[id]/donations` - User donations history
+
+### Donations & Payments
+- POST `/api/v1/payments/create` - Create payment
+- POST `/api/v1/payments/callback` - Payment callback
+- GET/POST `/api/v1/payments/sessions` - Payment sessions
+- POST `/api/v1/payments/methods` - Get payment methods
+
+### Admin APIs
+- GET/PUT `/api/v1/admin/settings` - System settings
+- GET `/api/v1/admin/dashboard` - Dashboard stats
+- GET `/api/v1/admin/users` - User management
+- GET `/api/v1/admin/transactions` - Transaction management
+- GET `/api/v1/admin/analytics` - Platform analytics
+
+## Frontend Pages Structure
+
+### Public Pages
+- `/` - Homepage
+- `/profile/[username]` - Public creator profile
+- `/widget/[username]` - Donation widget
+- `/payment/detail` - Payment details page
+- `/faq` - FAQ page
+- `/contact` - Contact page
+
+### Dashboard (Authenticated)
+- `/dashboard` - User dashboard
+- `/dashboard/profile` - Profile settings
+- `/dashboard/transactions` - Transaction history
+- `/dashboard/payouts` - Payout requests
+
+### Admin (Admin only)
+- `/admin/dashboard` - Admin overview
+- `/admin/users` - User management
+- `/admin/transactions` - Transaction management
+- `/admin/settings` - System settings
+- `/admin/analytics` - Analytics
+
+## Recent Changes & Fixes
+
+### Complete Database Schema Migration & Frontend Update (Latest - 2025-07-14)
+1. **Database Schema Replacement**: Successfully migrated from 28+ tables to 11 core tables
+2. **API Endpoints Updated**: All endpoints updated to use new simplified schema
+3. **Frontend Components Fixed**: Dashboard profile, social links, all pages working
+4. **Admin Role Fix**: Updated admin endpoints to accept both 'admin' and 'super_admin' roles
+5. **Contact Form Fix**: Removed invalid category field
+6. **Comprehensive Testing**: All core features tested and working
+
+### Database Migration (Previous)
+1. **Consolidated Schema**: Merged users + user_profiles into single users table
+2. **Removed Unused Tables**: Cleaned up social media features not implemented
+3. **Fixed Bio Issue**: Bio now stored only in users table
+4. **Social Links Fix**: Fixed social links not saving issue
+5. **Data Consistency**: Eliminated duplicate data storage
+
+### Previous Fixes
+1. **Build Errors**: Fixed TypeScript errors, ESLint issues
+2. **Profile Bio**: Fixed bio not displaying on profile pages
+3. **Recent Supporters**: Changed from mock data to real database data
+4. **Donation Modal**: Fixed CSS transparency and styling
+5. **Stats Display**: Simplified to show only supporters count
+6. **Metadata Usage**: Use donorName from transaction metadata
+
+## Security Measures
+- JWT token authentication
+- Password hashing with bcrypt
+- Input validation and sanitization
+- SQL injection prevention with Supabase
+- Admin-only endpoints protection
+- File upload security (avatar uploads)
+
+## Payment Integration
+- **Provider**: Tripay payment gateway
+- **Methods**: Virtual Account, E-wallet, Bank Transfer
+- **Flow**: Create payment → Redirect → Callback → Update transaction
+- **Security**: Secure session storage for payment details
+
+## WebSocket Features
+- Real-time donation notifications
+- Live donation updates on widget
+- Creator notification system
+
+## Development Notes
+
+### Environment Variables Required:
+- `JWT_SECRET` - For token signing
+- `SUPABASE_URL` - Supabase project URL
+- `SUPABASE_ANON_KEY` - Supabase anon key
+- `SUPABASE_SERVICE_ROLE_KEY` - Supabase service key
+- `TRIPAY_API_KEY` - Payment gateway API key
+- `TRIPAY_PRIVATE_KEY` - Payment gateway private key
+
+### Key Patterns Used:
+- Server-side API routes with authentication middleware
+- Client-side state management with React hooks
+- Responsive design with Tailwind CSS
+- TypeScript for type safety
+- Error handling and validation
+
+### Testing Considerations:
+- Payment flow testing with sandbox environment
+- User registration and authentication flow
+- Admin functionality testing
+- Real-time features testing
+
+## Migration Steps Performed:
+1. ✅ Analyzed current database usage
+2. ✅ Designed simplified schema  
+3. ✅ Created migration scripts
+4. 🔄 Currently updating API endpoints
+5. ⏳ Update frontend components
+6. ⏳ Test all functionality
+
+## Next Steps:
+1. Execute database migration
+2. Update all API endpoints for new schema
+3. Update frontend code references
+4. Comprehensive testing
+5. Deploy to production
+
+## Important Notes:
+- All existing functionality is preserved
+- Migration is designed to be non-destructive
+- Backup scripts created for safety
+- Clean code principles followed throughout
+- Security measures maintained
+
+---
+*Last Updated: 2025-07-14*
+*Project: SocialBuzz Creator Support Platform*

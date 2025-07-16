@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
       .eq('id', decoded.userId)
       .single();
 
-    if (userError || user.role !== 'admin') {
+    if (userError || !['admin', 'super_admin'].includes(user.role)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -47,17 +47,19 @@ export async function GET(request: NextRequest) {
 
     // Get active creators (creators who received donations in period)
     const { data: activeCreatorIds } = await supabaseAdmin
-      .from('donations')
-      .select('creator_id')
+      .from('transactions')
+      .select('recipient_id')
+      .eq('type', 'donation')
       .eq('status', 'completed')
       .gte('created_at', startDate.toISOString());
 
-    const activeCreators = new Set(activeCreatorIds?.map(d => d.creator_id)).size;
+    const activeCreators = new Set(activeCreatorIds?.map(d => d.recipient_id)).size;
 
     // Get total donations
     const { data: totalDonationsData } = await supabaseAdmin
-      .from('donations')
+      .from('transactions')
       .select('amount')
+      .eq('type', 'donation')
       .eq('status', 'completed');
 
     const totalDonations = totalDonationsData?.reduce((sum, d) => sum + d.amount, 0) || 0;
@@ -65,8 +67,9 @@ export async function GET(request: NextRequest) {
 
     // Get donations in period
     const { data: periodDonationsData } = await supabaseAdmin
-      .from('donations')
+      .from('transactions')
       .select('amount')
+      .eq('type', 'donation')
       .eq('status', 'completed')
       .gte('created_at', startDate.toISOString());
 
@@ -92,18 +95,20 @@ export async function GET(request: NextRequest) {
 
     // Get recent donations with recipient info
     const { data: recentDonations } = await supabaseAdmin
-      .from('donations')
+      .from('transactions')
       .select(
         `
         id,
         amount,
         message,
-        donor_id,
+        user_id,
         recipient_id,
-        is_anonymous,
+        metadata,
         created_at
       `,
       )
+      .eq('type', 'donation')
+      .eq('status', 'completed')
       .order('created_at', { ascending: false })
       .limit(20);
 
@@ -122,8 +127,9 @@ export async function GET(request: NextRequest) {
         .lt('created_at', endOfDay.toISOString());
 
       const { data: dayDonations } = await supabaseAdmin
-        .from('donations')
+        .from('transactions')
         .select('amount')
+        .eq('type', 'donation')
         .eq('status', 'completed')
         .gte('created_at', startOfDay.toISOString())
         .lt('created_at', endOfDay.toISOString());
@@ -154,9 +160,11 @@ export async function GET(request: NextRequest) {
         topCreators?.map(async creator => {
           // Get supporter count for each creator
           const { count: supporterCount } = await supabaseAdmin
-            .from('donations')
-            .select('donor_id', { count: 'exact', head: true })
-            .eq('recipient_id', creator.id);
+            .from('transactions')
+            .select('user_id', { count: 'exact', head: true })
+            .eq('recipient_id', creator.id)
+            .eq('type', 'donation')
+            .eq('status', 'completed');
 
           return {
             id: creator.id,
@@ -174,7 +182,7 @@ export async function GET(request: NextRequest) {
           const { data: donor } = await supabaseAdmin
             .from('users')
             .select('username, full_name')
-            .eq('id', donation.donor_id)
+            .eq('id', donation.user_id)
             .single();
 
           const { data: recipient } = await supabaseAdmin
@@ -187,8 +195,8 @@ export async function GET(request: NextRequest) {
             id: donation.id,
             amount: donation.amount,
             message: donation.message,
-            supporterName: donation.is_anonymous ? 'Anonymous' : donor?.full_name || donor?.username || 'Unknown',
-            isAnonymous: donation.is_anonymous,
+            supporterName: donor?.full_name || donor?.username || 'Unknown',
+            isAnonymous: false,
             createdAt: donation.created_at,
             creator: {
               username: recipient?.username || 'unknown',

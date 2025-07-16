@@ -52,10 +52,10 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+      <div className="fixed inset-0 bg-black/30 backdrop-blur-md" onClick={onClose} />
       <div
         className={cn(
-          'relative bg-background rounded-lg shadow-lg border max-h-[90vh] overflow-y-auto',
+          'relative bg-white rounded-lg shadow-xl border max-h-[90vh] overflow-y-auto',
           sizeClasses[size],
           'w-full mx-4',
         )}

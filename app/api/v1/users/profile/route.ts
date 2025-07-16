@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
-    // Get user data with profile information
+    // Get user data (all profile info now in users table)
     const { data: user, error: userError } = await supabaseAdmin
       .from('users')
       .select(
@@ -24,6 +24,13 @@ export async function GET(request: NextRequest) {
         username,
         full_name,
         avatar,
+        bio,
+        website,
+        location,
+        social_links,
+        privacy_settings,
+        notification_settings,
+        bank_account,
         role,
         is_verified,
         balance,
@@ -41,48 +48,31 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 });
     }
 
-    // Get user profile data (bio, social links, etc.)
-    const { data: profile, error: profileError } = await supabaseAdmin
-      .from('user_profiles')
-      .select(
-        `
-        bio,
-        website,
-        location,
-        social_links,
-        privacy_settings,
-        notification_settings,
-        bank_account
-      `,
-      )
-      .eq('user_id', decoded.userId)
-      .single();
-
-    // Combine user and profile data
+    // Format user data with defaults
     const fullProfile = {
       ...user,
-      bio: profile?.bio || '',
-      website: profile?.website || '',
-      location: profile?.location || '',
-      socialLinks: profile?.social_links || {
+      bio: user.bio || '',
+      website: user.website || '',
+      location: user.location || '',
+      socialLinks: user.social_links || {
         twitter: '',
         instagram: '',
         youtube: '',
         tiktok: '',
       },
-      privacySettings: profile?.privacy_settings || {
+      privacySettings: user.privacy_settings || {
         profileVisible: true,
         showEarnings: true,
         showDonations: true,
       },
-      notificationSettings: profile?.notification_settings || {
+      notificationSettings: user.notification_settings || {
         email: true,
         push: true,
         donations: true,
         payouts: true,
         marketing: false,
       },
-      bankAccount: profile?.bank_account || {
+      bankAccount: user.bank_account || {
         bankName: '',
         accountNumber: '',
         accountHolderName: '',
@@ -124,91 +114,48 @@ export async function PUT(request: NextRequest) {
       bankAccount,
     } = body;
 
-    // Update basic user info
-    if (fullName !== undefined || avatar !== undefined) {
-      const updateData: any = {
-        updated_at: new Date().toISOString(),
-      };
+    // Update all user data in single table
+    const updateData: any = {
+      updated_at: new Date().toISOString(),
+    };
 
-      if (fullName !== undefined) {
-        updateData.full_name = fullName;
-      }
-      if (avatar !== undefined) {
-        updateData.avatar = avatar;
-      }
-
-      const { error: userError } = await supabaseAdmin.from('users').update(updateData).eq('id', decoded.userId);
-
-      if (userError) {
-        throw userError;
-      }
+    // Add all fields to update data
+    if (fullName !== undefined) {
+      updateData.full_name = fullName;
+    }
+    if (avatar !== undefined) {
+      updateData.avatar = avatar;
+    }
+    if (bio !== undefined) {
+      updateData.bio = bio;
+    }
+    if (website !== undefined) {
+      updateData.website = website;
+    }
+    if (location !== undefined) {
+      updateData.location = location;
+    }
+    if (socialLinks !== undefined) {
+      updateData.social_links = socialLinks;
+    }
+    if (privacySettings !== undefined) {
+      updateData.privacy_settings = privacySettings;
+    }
+    if (notificationSettings !== undefined) {
+      updateData.notification_settings = notificationSettings;
+    }
+    if (bankAccount !== undefined) {
+      updateData.bank_account = bankAccount;
     }
 
-    // Update profile data
-    if (
-      bio !== undefined ||
-      website !== undefined ||
-      location !== undefined ||
-      socialLinks !== undefined ||
-      privacySettings !== undefined ||
-      notificationSettings !== undefined ||
-      bankAccount !== undefined
-    ) {
-      const profileUpdateData: any = {
-        updated_at: new Date().toISOString(),
-      };
+    // Update user in single query
+    const { error: updateError } = await supabaseAdmin
+      .from('users')
+      .update(updateData)
+      .eq('id', decoded.userId);
 
-      if (bio !== undefined) {
-        profileUpdateData.bio = bio;
-      }
-      if (website !== undefined) {
-        profileUpdateData.website = website;
-      }
-      if (location !== undefined) {
-        profileUpdateData.location = location;
-      }
-      if (socialLinks !== undefined) {
-        profileUpdateData.social_links = socialLinks;
-      }
-      if (privacySettings !== undefined) {
-        profileUpdateData.privacy_settings = privacySettings;
-      }
-      if (notificationSettings !== undefined) {
-        profileUpdateData.notification_settings = notificationSettings;
-      }
-      if (bankAccount !== undefined) {
-        profileUpdateData.bank_account = bankAccount;
-      }
-
-      // Check if profile exists
-      const { data: existingProfile } = await supabaseAdmin
-        .from('user_profiles')
-        .select('user_id')
-        .eq('user_id', decoded.userId)
-        .single();
-
-      if (existingProfile) {
-        // Update existing profile
-        const { error: profileError } = await supabaseAdmin
-          .from('user_profiles')
-          .update(profileUpdateData)
-          .eq('user_id', decoded.userId);
-
-        if (profileError) {
-          throw profileError;
-        }
-      } else {
-        // Create new profile
-        const { error: profileError } = await supabaseAdmin.from('user_profiles').insert({
-          user_id: decoded.userId,
-          ...profileUpdateData,
-          created_at: new Date().toISOString(),
-        });
-
-        if (profileError) {
-          throw profileError;
-        }
-      }
+    if (updateError) {
+      throw updateError;
     }
 
     return NextResponse.json({
@@ -217,6 +164,16 @@ export async function PUT(request: NextRequest) {
     });
   } catch (error) {
     console.error('Profile update error:', error);
-    return NextResponse.json({ success: false, error: 'Failed to update profile' }, { status: 500 });
+    console.error('Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      code: (error as any)?.code,
+      details: (error as any)?.details,
+      hint: (error as any)?.hint,
+    });
+    return NextResponse.json({ 
+      success: false, 
+      error: 'Failed to update profile',
+      details: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : 'Unknown error') : undefined
+    }, { status: 500 });
   }
 }

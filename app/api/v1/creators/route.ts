@@ -19,6 +19,8 @@ export async function GET(request: NextRequest) {
         username,
         full_name,
         avatar,
+        bio,
+        social_links,
         is_verified,
         role,
         total_earnings,
@@ -60,23 +62,19 @@ export async function GET(request: NextRequest) {
       creators?.map(async creator => {
         // Get supporter count for each creator
         const { count: supporterCount } = await supabaseAdmin
-          .from('donations')
-          .select('donor_id', { count: 'exact', head: true })
-          .eq('recipient_id', creator.id);
-
-        // Get profile data
-        const { data: profile } = await supabaseAdmin
-          .from('user_profiles')
-          .select('bio, social_links')
-          .eq('user_id', creator.id)
-          .single();
+          .from('transactions')
+          .select('user_id', { count: 'exact', head: true })
+          .eq('recipient_id', creator.id)
+          .eq('type', 'donation')
+          .eq('status', 'completed')
+          .neq('user_id', creator.id); // Exclude self-donations
 
         return {
           id: creator.id,
           username: creator.username,
           displayName: creator.full_name || creator.username,
           avatar: creator.avatar || '/default-avatar.png',
-          bio: profile?.bio || '',
+          bio: creator.bio || '',
           category: 'general', // Default category
           isVerified: creator.is_verified,
           stats: {
@@ -85,7 +83,7 @@ export async function GET(request: NextRequest) {
             avgDonationAmount: (supporterCount || 0) > 0 ? (creator.total_donations || 0) / (supporterCount || 0) : 0,
             lastDonationAt: null,
           },
-          socialLinks: profile?.social_links || {},
+          socialLinks: creator.social_links || {},
           joinedAt: creator.created_at,
         };
       }) || [],

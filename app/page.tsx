@@ -1,25 +1,41 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Heart, Shield, Zap, Users } from 'lucide-react';
+import { usePlatformSettings, useFeatureFlag } from '@/hooks/useSystemSettings';
 
 export default function HomePage() {
+  const { platformName, primaryColor, loading } = usePlatformSettings();
+  const { isEnabled: registrationEnabled } = useFeatureFlag('user_registration');
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
       <nav className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-gray-900">SocialBuzz</h1>
+              <h1 className="text-2xl font-bold text-gray-900">{platformName}</h1>
             </div>
             <div className="flex items-center space-x-4">
               <Link href="/auth/login">
                 <Button variant="outline">Login</Button>
               </Link>
-              <Link href="/auth/register">
-                <Button>Get Started</Button>
-              </Link>
+              {registrationEnabled && (
+                <Link href="/auth/register">
+                  <Button>Get Started</Button>
+                </Link>
+              )}
             </div>
           </div>
         </div>
@@ -53,7 +69,7 @@ export default function HomePage() {
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Why Choose SocialBuzz?</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Why Choose {platformName}?</h2>
             <p className="text-lg text-gray-600">The best platform for creators and supporters to connect</p>
           </div>
 
@@ -111,7 +127,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-4 gap-8">
             <div>
-              <h3 className="text-lg font-semibold mb-4">SocialBuzz</h3>
+              <h3 className="text-lg font-semibold mb-4">{platformName}</h3>
               <p className="text-gray-400">Supporting creators and building communities worldwide.</p>
             </div>
             <div>
@@ -176,7 +192,7 @@ export default function HomePage() {
             </div>
           </div>
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 SocialBuzz. All rights reserved.</p>
+            <p>&copy; 2024 {platformName}. All rights reserved.</p>
           </div>
         </div>
       </footer>

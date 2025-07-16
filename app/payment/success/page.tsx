@@ -1,44 +1,90 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { CheckCircle, Home, Receipt, Share2 } from 'lucide-react';
+import { CheckCircle, Home, Share2, ArrowLeft, Heart } from 'lucide-react';
 import { formatCurrency } from '@/utils/formatter';
+import { usePlatformSettings } from '@/hooks/useSystemSettings';
 
-export default function PaymentSuccessPage() {
+function PaymentSuccessContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [transactionData, setTransactionData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [confetti, setConfetti] = useState(false);
+  const { platformName } = usePlatformSettings();
 
   useEffect(() => {
-    const merchantOrderId = searchParams.get('merchantOrderId');
-    const reference = searchParams.get('reference');
+    const loadSuccessData = async () => {
+      const donationId = searchParams.get('donationId');
+      const token = searchParams.get('token');
+      
+      if (donationId) {
+        // Fetch donation data from database
+        try {
+          const response = await fetch(`/api/v1/donations/${donationId}`);
+          const result = await response.json();
 
-    if (merchantOrderId) {
-      // In a real app, you would fetch the transaction details from your API
-      // For now, we'll use the URL parameters
-      setTransactionData({
-        merchantOrderId,
-        reference,
-        amount: 50000, // This would come from your API
-        recipientName: 'John Doe', // This would come from your API
-        status: 'completed',
-        createdAt: new Date().toISOString(),
-      });
-    }
+          if (result.success && result.data) {
+            const donation = result.data;
+            
+            setTransactionData({
+              transactionId: donation.duitku_transaction_id,
+              recipientName: donation.recipient.full_name,
+              recipientUsername: donation.recipient.username,
+              amount: donation.amount,
+              reference: donation.duitku_reference,
+              donationId: donation.id,
+              widgetUrl: `/widget/${donation.recipient.username}`,
+              status: 'completed',
+              createdAt: donation.created_at,
+            });
+          }
+        } catch (error) {
+          console.error('Error loading donation data:', error);
+        }
+      } else if (token) {
+        // Fallback to session-based API (old flow)
+        try {
+          const response = await fetch(`/api/v1/payments/sessions?token=${token}`);
+          const result = await response.json();
 
-    setLoading(false);
+          if (result.success && result.data.type === 'payment_success') {
+            const data = result.data.data;
+            
+            setTransactionData({
+              transactionId: data.transactionId,
+              recipientName: data.recipientName,
+              amount: data.amount,
+              widgetUrl: data.widgetUrl,
+              reference: data.reference,
+              status: 'completed',
+              createdAt: new Date().toISOString(),
+            });
+          }
+        } catch (error) {
+          console.error('Error loading success data:', error);
+        }
+      }
+
+      // Trigger confetti animation
+      setConfetti(true);
+      setTimeout(() => setConfetti(false), 3000);
+
+      setLoading(false);
+    };
+
+    loadSuccessData();
   }, [searchParams]);
 
   const handleShare = async () => {
     const shareData = {
-      title: 'I just supported a creator on SocialBuzz!',
-      text: `I just sent ${formatCurrency(transactionData?.amount || 0)} to support ${transactionData?.recipientName}. Join me in supporting amazing creators!`,
-      url: window.location.origin,
+      title: 'Saya baru saja memberikan donasi!',
+      text: `Saya baru saja memberikan donasi ${formatCurrency(transactionData?.amount || 0)} untuk ${transactionData?.recipientName}. Mari dukung creator bersama!`,
+      url: window.location.origin + (transactionData?.widgetUrl || `/widget/${transactionData?.recipientUsername || ''}`),
     };
 
     if (navigator.share) {
@@ -51,7 +97,17 @@ export default function PaymentSuccessPage() {
       // Fallback: copy to clipboard
       const text = `${shareData.text} ${shareData.url}`;
       await navigator.clipboard.writeText(text);
-      alert('Shared content copied to clipboard!');
+      alert('Link berhasil disalin ke clipboard!');
+    }
+  };
+
+  const handleBackToWidget = () => {
+    if (transactionData?.widgetUrl) {
+      window.location.href = transactionData.widgetUrl;
+    } else if (transactionData?.recipientUsername) {
+      window.location.href = `/widget/${transactionData.recipientUsername}`;
+    } else {
+      router.back();
     }
   };
 
@@ -67,22 +123,41 @@ export default function PaymentSuccessPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-lg">
-        <div className="flex justify-center mb-6">
-          <Link href="/" className="text-2xl font-bold text-gray-900">
-            SocialBuzz
-          </Link>
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 relative overflow-hidden">
+      {/* Confetti Animation */}
+      {confetti && (
+        <div className="fixed inset-0 pointer-events-none z-50">
+          {Array.from({ length: 50 }).map((_, i) => (
+            <div
+              key={i}
+              className="absolute w-2 h-2 bg-yellow-400 rounded-full animate-bounce"
+              style={{
+                left: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 2}s`,
+                animationDuration: `${2 + Math.random() * 2}s`
+              }}
+            />
+          ))}
         </div>
+      )}
 
-        <Card>
-          <CardHeader className="text-center">
-            <div className="flex justify-center mb-4">
-              <CheckCircle className="h-16 w-16 text-green-500" />
-            </div>
-            <CardTitle className="text-green-700">Payment Successful!</CardTitle>
-            <CardDescription>Your support has been sent successfully</CardDescription>
-          </CardHeader>
+      <div className="flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+        <div className="sm:mx-auto sm:w-full sm:max-w-lg space-y-6">
+          <div className="flex justify-center mb-6">
+            <Link href="/" className="text-2xl font-bold text-gray-900">
+              {platformName || 'SITENAME'}
+            </Link>
+          </div>
+
+          <Card className="border-green-200 bg-green-50">
+            <CardHeader className="text-center">
+              <div className="flex justify-center mb-4 relative">
+                <CheckCircle className="h-20 w-20 text-green-500 animate-pulse" />
+                <Heart className="h-8 w-8 text-red-500 absolute -top-2 -right-2 animate-bounce" />
+              </div>
+              <CardTitle className="text-2xl text-green-700">Pembayaran Berhasil!</CardTitle>
+              <CardDescription className="text-green-600">Terima kasih atas dukungan Anda! 🎉</CardDescription>
+            </CardHeader>
 
           <CardContent className="space-y-6">
             {/* Transaction Details */}
@@ -102,7 +177,7 @@ export default function PaymentSuccessPage() {
 
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium text-green-700">Transaction ID</span>
-                  <span className="text-sm text-green-700 font-mono">{transactionData?.merchantOrderId || 'N/A'}</span>
+                  <span className="text-sm text-green-700 font-mono">{transactionData?.transactionId || 'N/A'}</span>
                 </div>
 
                 {transactionData?.reference && (
@@ -132,50 +207,67 @@ export default function PaymentSuccessPage() {
 
             {/* Action Buttons */}
             <div className="space-y-3">
-              <Button onClick={handleShare} variant="outline" fullWidth className="justify-center">
-                <Share2 size={16} className="mr-2" />
-                Share your support
+              <Button 
+                onClick={handleBackToWidget}
+                className="w-full py-3 text-lg font-semibold"
+              >
+                <ArrowLeft className="h-5 w-5 mr-3" />
+                Kembali
               </Button>
 
               <div className="grid grid-cols-2 gap-3">
-                <Link href="/dashboard">
-                  <Button variant="outline" fullWidth>
-                    <Receipt size={16} className="mr-2" />
-                    View Receipt
-                  </Button>
-                </Link>
+                <Button onClick={handleShare} variant="outline" className="w-full">
+                  <Share2 size={16} className="mr-2" />
+                  Bagikan
+                </Button>
 
                 <Link href="/">
-                  <Button fullWidth>
+                  <Button variant="outline" className="w-full">
                     <Home size={16} className="mr-2" />
-                    Go Home
+                    Beranda
                   </Button>
                 </Link>
               </div>
             </div>
 
             {/* Additional Info */}
-            <div className="bg-gray-50 rounded-lg p-4">
-              <h4 className="font-medium text-gray-900 mb-2">What happens next?</h4>
-              <ul className="text-sm text-gray-600 space-y-1">
-                <li>• The creator will receive your support within 24 hours</li>
-                <li>• You&apos;ll get an email confirmation with transaction details</li>
-                <li>• You can track this transaction in your dashboard</li>
-                <li>• The creator may send you a thank you message</li>
+            <div className="bg-blue-50 rounded-lg p-4">
+              <h4 className="font-medium text-blue-900 mb-2">Langkah Selanjutnya</h4>
+              <ul className="text-sm text-blue-700 space-y-1">
+                <li>• Creator akan menerima notifikasi tentang donasi Anda</li>
+                <li>• Donasi akan dikonfirmasi dalam 1-5 menit</li>
+                <li>• Anda dapat memberikan donasi lagi kapan saja</li>
+                <li>• Creator mungkin akan mengirim pesan terima kasih</li>
               </ul>
             </div>
           </CardContent>
         </Card>
 
-        <div className="mt-8 text-center">
-          <p className="text-sm text-gray-500">
-            Need help? Contact our{' '}
-            <Link href="/support" className="text-indigo-600 hover:text-indigo-500">
-              support team
-            </Link>
-          </p>
+          <div className="text-center">
+            <p className="text-sm text-gray-500">
+              Butuh bantuan? Hubungi{' '}
+              <Link href="/support" className="text-indigo-600 hover:text-indigo-500">
+                tim support kami
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
     </div>
+  );
+}
+
+export default function PaymentSuccessPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    }>
+      <PaymentSuccessContent />
+    </Suspense>
   );
 }

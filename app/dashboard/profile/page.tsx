@@ -318,6 +318,13 @@ export default function ProfilePage() {
                   placeholder="https://tiktok.com/@username"
                 />
               </div>
+              
+              <div className="mt-6">
+                <Button onClick={handleSubmit} loading={loading} className="w-full">
+                  <Save size={16} className="mr-2" />
+                  Save Social Links
+                </Button>
+              </div>
             </CardContent>
           </Card>
 

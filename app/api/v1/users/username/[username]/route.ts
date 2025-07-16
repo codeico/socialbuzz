@@ -5,7 +5,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   try {
     const { username } = await params;
 
-    // Get user profile by username with all related data
+    // Get user profile by username (all data now in users table)
     const { data: user, error } = await supabaseAdmin
       .from('users')
       .select(
@@ -15,6 +15,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         email,
         full_name,
         avatar,
+        bio,
+        website,
+        location,
+        social_links,
+        bank_account,
         is_verified,
         role,
         balance,
@@ -33,19 +38,36 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       throw error;
     }
 
-    // Get user profile data separately
-    const { data: profile } = await supabaseAdmin
-      .from('user_profiles')
-      .select('bio, website, location, social_links, bank_account')
-      .eq('user_id', user.id)
-      .single();
-
-    // Get supporter count from donations
-    const { count: supporterCount } = await supabaseAdmin
+    // Get supporter count and total donations from donations table
+    const { data: donations } = await supabaseAdmin
       .from('donations')
-      .select('donor_id', { count: 'exact', head: true })
+      .select('donor_email, donor_name, amount')
       .eq('recipient_id', user.id)
-      .neq('donor_id', user.id); // Exclude self-donations
+      .eq('payment_status', 'paid');
+
+    // Count unique supporters based on donor_email or donor_name
+    const uniqueSupporters = new Set();
+    let totalDonations = 0;
+    
+    donations?.forEach(donation => {
+      totalDonations += donation.amount;
+      const identifier = donation.donor_email || donation.donor_name;
+      if (identifier) {
+        uniqueSupporters.add(identifier);
+      }
+    });
+    
+    const supporterCount = uniqueSupporters.size;
+
+    // Get last donation date
+    const { data: lastDonation } = await supabaseAdmin
+      .from('donations')
+      .select('created_at')
+      .eq('recipient_id', user.id)
+      .eq('payment_status', 'paid')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
 
     // Transform data to match expected format
     const transformedUser = {
@@ -55,21 +77,21 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       displayName: user.full_name || user.username,
       avatar: user.avatar || '/default-avatar.png',
       isVerified: user.is_verified,
-      isOnboarded: !!profile, // User is onboarded if they have a profile
+      isOnboarded: !!(user.bio || user.website || user.location), // User is onboarded if they have profile data
       role: user.role,
-      profile: profile
-        ? {
-          bio: profile.bio || '',
-          category: 'general', // Default category since it's not in the schema
-          social_links: profile.social_links || {},
-          bank_account: profile.bank_account || {},
-        }
-        : null,
+      location: user.location || '',
+      website: user.website || '',
+      profile: {
+        bio: user.bio || '',
+        category: 'general', // Default category since it's not in the schema
+        social_links: user.social_links || {},
+        bank_account: user.bank_account || {},
+      },
       stats: {
-        total_donations: user.total_donations || 0,
+        total_donations: totalDonations || 0,
         total_supporters: supporterCount || 0,
-        avg_donation_amount: (supporterCount || 0) > 0 ? (user.total_donations || 0) / (supporterCount || 0) : 0,
-        last_donation_at: null, // We would need to query this from donations table
+        avg_donation_amount: (supporterCount || 0) > 0 ? Math.round(totalDonations / supporterCount) : 0,
+        last_donation_at: lastDonation?.created_at || null,
       },
       joinedAt: user.created_at,
     };

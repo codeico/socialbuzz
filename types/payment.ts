@@ -18,6 +18,9 @@ export interface DuitkuPaymentResponse {
   reference?: string;
   vaNumber?: string;
   amount?: number;
+  qrCode?: string;
+  qrString?: string;
+  qrUrl?: string;
 }
 
 export interface PaymentCallback {

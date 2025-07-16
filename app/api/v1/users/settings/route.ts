@@ -17,45 +17,20 @@ export async function PUT(request: NextRequest) {
     const body = await request.json();
     const { notifications, privacy, bankAccount } = body;
 
-    // Update user profile with settings
+    // Update user settings (now all in users table)
     const { data: profile, error: profileError } = await supabaseAdmin
-      .from('user_profiles')
+      .from('users')
       .update({
         notification_settings: notifications,
         privacy_settings: privacy,
         bank_account: bankAccount,
         updated_at: new Date().toISOString(),
       })
-      .eq('user_id', decoded.userId)
+      .eq('id', decoded.userId)
       .select()
       .single();
 
     if (profileError) {
-      // If profile doesn't exist, create it
-      if (profileError.code === 'PGRST116') {
-        const { data: newProfile, error: createError } = await supabaseAdmin
-          .from('user_profiles')
-          .insert({
-            user_id: decoded.userId,
-            notification_settings: notifications,
-            privacy_settings: privacy,
-            bank_account: bankAccount,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          })
-          .select()
-          .single();
-
-        if (createError) {
-          throw createError;
-        }
-
-        return NextResponse.json({
-          success: true,
-          message: 'Settings saved successfully',
-          data: newProfile,
-        });
-      }
       throw profileError;
     }
 
@@ -82,31 +57,31 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
-    const { data: profile, error } = await supabaseAdmin
-      .from('user_profiles')
+    const { data: user, error } = await supabaseAdmin
+      .from('users')
       .select('notification_settings, privacy_settings, bank_account')
-      .eq('user_id', decoded.userId)
+      .eq('id', decoded.userId)
       .single();
 
-    if (error && error.code !== 'PGRST116') {
+    if (error) {
       throw error;
     }
 
-    // Return default settings if profile doesn't exist
-    const defaultSettings = {
-      notification_settings: {
+    // Return user settings with defaults if needed
+    const settings = {
+      notification_settings: user.notification_settings || {
         email: true,
         push: true,
         donations: true,
         payouts: true,
         marketing: false,
       },
-      privacy_settings: {
+      privacy_settings: user.privacy_settings || {
         profileVisible: true,
         showEarnings: true,
         showDonations: true,
       },
-      bank_account: {
+      bank_account: user.bank_account || {
         bankName: '',
         accountNumber: '',
         accountHolderName: '',
@@ -115,7 +90,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      data: profile || defaultSettings,
+      data: settings,
     });
   } catch (error) {
     console.error('Settings fetch error:', error);

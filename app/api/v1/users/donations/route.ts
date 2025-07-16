@@ -18,26 +18,22 @@ export const GET = withAuth(async req => {
     const offset = (page - 1) * limit;
 
     const { data, error, count } = await supabase
-      .from('donations')
+      .from('transactions')
       .select(
         `
-        *,
-        donor:users!donations_donor_id_fkey(
-          id,
-          username,
-          full_name,
-          avatar
-        ),
-        recipient:users!donations_recipient_id_fkey(
-          id,
-          username,
-          full_name,
-          avatar
-        )
+        id,
+        amount,
+        message,
+        created_at,
+        metadata,
+        user_id,
+        recipient_id
       `,
         { count: 'exact' },
       )
       .eq('recipient_id', req.user.userId)
+      .eq('type', 'donation')
+      .eq('status', 'completed')
       .order(sortBy, { ascending: sortOrder === 'asc' })
       .range(offset, offset + limit - 1);
 
@@ -49,10 +45,21 @@ export const GET = withAuth(async req => {
     const total = count || 0;
     const totalPages = Math.ceil(total / limit);
 
+    // Transform transaction data to match expected donation format
+    const transformedData = (data || []).map(transaction => ({
+      id: transaction.id,
+      amount: transaction.amount,
+      message: transaction.message || '',
+      created_at: transaction.created_at,
+      donor_name: transaction.metadata?.donorName || 'Anonymous',
+      is_anonymous: transaction.metadata?.isAnonymous || false,
+      donor_email: transaction.metadata?.donorEmail || null,
+    }));
+
     return NextResponse.json({
       success: true,
       data: {
-        data: data || [],
+        data: transformedData,
         pagination: {
           page,
           limit,

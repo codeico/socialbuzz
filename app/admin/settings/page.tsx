@@ -39,6 +39,8 @@ interface SystemSettings {
     maximum_donation: number;
     platform_fee_percentage: number;
     auto_payout_threshold: number;
+    predefined_amounts: number[];
+    transaction_id_prefix: string;
   };
   email: {
     smtp_host: string;
@@ -92,6 +94,8 @@ export default function AdminSettingsPage() {
       maximum_donation: 10000000,
       platform_fee_percentage: 5,
       auto_payout_threshold: 100000,
+      predefined_amounts: [8338000, 16670000, 25003000, 33335000, 41668000, 50000000],
+      transaction_id_prefix: 'SB',
     },
     email: {
       smtp_host: '',
@@ -133,6 +137,7 @@ export default function AdminSettingsPage() {
   const [activeTab, setActiveTab] = useState('platform');
   const [showPasswords, setShowPasswords] = useState(false);
   const [testingConnection, setTestingConnection] = useState(false);
+  const [newAmountInput, setNewAmountInput] = useState('');
 
   const loadSettings = useCallback(async () => {
     try {
@@ -224,6 +229,16 @@ export default function AdminSettingsPage() {
   };
 
   const updateSetting = (category: keyof SystemSettings, key: string, value: string | number | boolean) => {
+    setSettings(prev => ({
+      ...prev,
+      [category]: {
+        ...prev[category],
+        [key]: value,
+      },
+    }));
+  };
+
+  const updateArraySetting = (category: keyof SystemSettings, key: string, value: any[]) => {
     setSettings(prev => ({
       ...prev,
       [category]: {
@@ -513,6 +528,110 @@ export default function AdminSettingsPage() {
                         onChange={e => updateSetting('payment', 'auto_payout_threshold', parseInt(e.target.value))}
                         min="50000"
                       />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div>
+                      <label className="mb-2 block text-sm font-medium text-gray-700">Transaction ID Prefix</label>
+                      <Input
+                        value={settings.payment.transaction_id_prefix}
+                        onChange={e => updateSetting('payment', 'transaction_id_prefix', e.target.value)}
+                        placeholder="SB"
+                        maxLength={10}
+                      />
+                      <p className="mt-1 text-xs text-gray-500">
+                        Prefix for transaction IDs (e.g., SB-admin-1234567890)
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="border-t pt-6">
+                    <h3 className="text-lg font-medium mb-4">Predefined Donation Amounts</h3>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Set the quick-select amounts shown in donation widgets. Enter amount in IDR and press Enter to add.
+                    </p>
+                    
+                    {/* Input Field */}
+                    <div className="mb-4">
+                      <input
+                        type="number"
+                        value={newAmountInput}
+                        onChange={e => setNewAmountInput(e.target.value)}
+                        onKeyPress={e => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            const amount = parseInt(newAmountInput);
+                            if (!isNaN(amount) && amount > 0 && !settings.payment.predefined_amounts.includes(amount)) {
+                              updateArraySetting('payment', 'predefined_amounts', [...settings.payment.predefined_amounts, amount].sort((a, b) => a - b));
+                              setNewAmountInput('');
+                            }
+                          }
+                        }}
+                        placeholder="Enter amount (e.g., 25000) and press Enter"
+                        className="w-full rounded-md border border-gray-300 p-3 focus:border-indigo-500 focus:ring-indigo-500"
+                      />
+                    </div>
+
+                    {/* Tags/Chips Display */}
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Current Amounts:</label>
+                      <div className="flex flex-wrap gap-2">
+                        {settings.payment.predefined_amounts.map((amount, index) => (
+                          <div
+                            key={index}
+                            className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-indigo-100 text-indigo-800 border border-indigo-200"
+                          >
+                            <span className="mr-2">Rp {amount.toLocaleString('id-ID')}</span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newAmounts = settings.payment.predefined_amounts.filter((_, i) => i !== index);
+                                updateArraySetting('payment', 'predefined_amounts', newAmounts);
+                              }}
+                              className="text-indigo-600 hover:text-indigo-800 hover:bg-indigo-200 rounded-full p-1 transition-colors"
+                            >
+                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                          </div>
+                        ))}
+                        {settings.payment.predefined_amounts.length === 0 && (
+                          <span className="text-gray-500 text-sm">No amounts added yet</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Quick Add Buttons */}
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Quick Add:</label>
+                      <div className="flex flex-wrap gap-2">
+                        {[5000, 10000, 25000, 50000, 100000, 250000, 500000, 1000000].map(amount => (
+                          <button
+                            key={amount}
+                            type="button"
+                            onClick={() => {
+                              if (!settings.payment.predefined_amounts.includes(amount)) {
+                                updateArraySetting('payment', 'predefined_amounts', [...settings.payment.predefined_amounts, amount].sort((a, b) => a - b));
+                              }
+                            }}
+                            disabled={settings.payment.predefined_amounts.includes(amount)}
+                            className={`px-3 py-1 rounded-md text-sm transition-colors ${
+                              settings.payment.predefined_amounts.includes(amount)
+                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                            }`}
+                          >
+                            Rp {amount.toLocaleString('id-ID')}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="text-xs text-gray-500">
+                      Total amounts: {settings.payment.predefined_amounts.length} | 
+                      Range: {settings.payment.predefined_amounts.length > 0 ? `Rp ${Math.min(...settings.payment.predefined_amounts).toLocaleString('id-ID')} - Rp ${Math.max(...settings.payment.predefined_amounts).toLocaleString('id-ID')}` : 'None'}
                     </div>
                   </div>
                 </CardContent>

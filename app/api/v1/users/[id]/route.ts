@@ -4,8 +4,28 @@ import { supabaseAdmin } from '@/lib/supabase';
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
+    let actualUserId = id;
 
-    // Get user profile with all related data
+    // First, check if this is a payment link UUID
+    const { data: paymentLink, error: linkError } = await supabaseAdmin
+      .from('payment_links')
+      .select('creator_id, expires_at')
+      .eq('uuid', id)
+      .single();
+
+    if (paymentLink && !linkError) {
+      // Check if the link is expired
+      const expiresAt = new Date(paymentLink.expires_at);
+      if (expiresAt < new Date()) {
+        return NextResponse.json(
+          { success: false, error: 'Payment link has expired' },
+          { status: 410 }
+        );
+      }
+      actualUserId = paymentLink.creator_id;
+    }
+
+    // Get user profile (all data now in users table)
     const { data: user, error } = await supabaseAdmin
       .from('users')
       .select(
@@ -14,26 +34,20 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         username,
         email,
         full_name,
-        avatar_url,
+        avatar,
+        bio,
+        website,
+        location,
+        social_links,
+        bank_account,
         is_verified,
-        is_onboarded,
         role,
-        created_at,
-        user_profiles (
-          bio,
-          category,
-          social_links,
-          bank_account
-        ),
-        user_stats (
-          total_donations,
-          total_supporters,
-          avg_donation_amount,
-          last_donation_at
-        )
+        total_donations,
+        total_earnings,
+        created_at
       `,
       )
-      .eq('id', id)
+      .eq('id', actualUserId)
       .single();
 
     if (error) {
@@ -43,21 +57,39 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       throw error;
     }
 
+    // Get supporter count from transactions
+    const { data: transactions } = await supabaseAdmin
+      .from('transactions')
+      .select('user_id')
+      .eq('recipient_id', user.id)
+      .eq('type', 'donation')
+      .eq('status', 'completed')
+      .neq('user_id', user.id); // Exclude self-donations
+
+    // Count unique supporters
+    const uniqueSupporters = new Set(transactions?.map(t => t.user_id).filter(Boolean));
+    const supporterCount = uniqueSupporters.size;
+
     // Transform data to match expected format
     const transformedUser = {
       id: user.id,
       username: user.username,
       email: user.email,
       displayName: user.full_name || user.username,
-      avatar: user.avatar_url || '/default-avatar.png',
+      avatar: user.avatar || '/default-avatar.png',
       isVerified: user.is_verified,
-      isOnboarded: user.is_onboarded,
+      isOnboarded: !!(user.bio || user.website || user.location),
       role: user.role,
-      profile: user.user_profiles?.[0] || null,
-      stats: user.user_stats?.[0] || {
-        total_donations: 0,
-        total_supporters: 0,
-        avg_donation_amount: 0,
+      profile: {
+        bio: user.bio || '',
+        category: 'general',
+        social_links: user.social_links || {},
+        bank_account: user.bank_account || {},
+      },
+      stats: {
+        total_donations: user.total_donations || 0,
+        total_supporters: supporterCount,
+        avg_donation_amount: supporterCount > 0 ? (user.total_donations || 0) / supporterCount : 0,
         last_donation_at: null,
       },
       joinedAt: user.created_at,
